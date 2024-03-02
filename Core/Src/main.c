@@ -29,7 +29,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "debug.h"
+#include "vl53l1.h"
+#include "bmi2_defs.h"
+#include "bmp3_defs.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,6 +106,21 @@ int main(void)
   MX_UART5_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+  DEBUG_PRINT("Firmware start\r\n");
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+  HAL_Delay(2);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_Delay(2);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+  HAL_Delay(100);
+  uint8_t reg = 0x00;
+  uint8_t data = 0;
+  // uint8_t data = 0;
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, &reg, 1, 100);
+  HAL_SPI_Receive(&hspi2, &data, 1, 100);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+  DEBUG_PRINT("SPI2: 0x%02x\r\n", data);
 
   /* USER CODE END 2 */
 
@@ -112,7 +130,13 @@ int main(void)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_0);
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_14);
-    HAL_UART_Transmit(&huart4, (uint8_t *)"new firmware3\r\n", 15, 100);
+    // HAL_UART_Transmit(&huart4, (uint8_t *)"new firmware3\r\n", 15, 100);
+    uint8_t data = 0;
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&hspi2, &reg, 1, 100);
+    HAL_SPI_Receive(&hspi2, &data, 1, 100);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+    DEBUG_PRINT("SPI2: 0x%02x 0x%02x\r\n", reg, data);
     HAL_Delay(1000);
     /* USER CODE END WHILE */
 

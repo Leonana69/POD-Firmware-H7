@@ -3,7 +3,8 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Drivers/**",
             ],
             "defines": ["USE_HAL_DRIVER", "STM32H725xx"],
             "macFrameworkPath": [
