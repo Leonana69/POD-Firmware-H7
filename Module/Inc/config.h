@@ -9,9 +9,12 @@ extern "C" {
 
 #define STABILIZER_TASK_PRIORITY    osPriorityRealtime
 #define FLOW_TASK_PRIORITY          osPriorityNormal
+#define SYSTEM_TASK_PRIORITY        osPriorityNormal
+
 
 #define STABILIZER_TASK_STACK_SIZE  configMINIMAL_STACK_SIZE
 #define FLOW_TASK_STACK_SIZE        configMINIMAL_STACK_SIZE
+#define SYSTEM_TASK_STACK_SIZE      configMINIMAL_STACK_SIZE
 
 #ifdef __cplusplus
 }

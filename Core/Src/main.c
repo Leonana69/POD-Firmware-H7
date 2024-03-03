@@ -33,6 +33,7 @@
 #include "vl53l1.h"
 #include "bmi2_defs.h"
 #include "bmp3_defs.h"
+#include "imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,7 +91,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  MX_DMA_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */

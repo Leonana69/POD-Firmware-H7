@@ -17,7 +17,7 @@ C_INCLUDES += \
 -IModule/Inc
 
 VPATH += Module/Src
-C_SOURCES += eprintf.c system.c flow.c
+C_SOURCES += eprintf.c system.c flow.c imu.c utils.c
 
 VPATH += HAL/Src
 C_SOURCES += _usart.c _spi.c _i2c.c

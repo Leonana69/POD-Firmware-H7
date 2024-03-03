@@ -108,7 +108,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
     hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim2_ch1.Init.Mode = DMA_NORMAL;
-    hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
     {
@@ -126,7 +126,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
     hdma_tim2_ch3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim2_ch3.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim2_ch3.Init.Mode = DMA_NORMAL;
-    hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_tim2_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_tim2_ch3) != HAL_OK)
     {
@@ -144,7 +144,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
     hdma_tim2_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim2_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim2_ch4.Init.Mode = DMA_NORMAL;
-    hdma_tim2_ch4.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim2_ch4.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_tim2_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_tim2_ch4) != HAL_OK)
     {
@@ -162,7 +162,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
     hdma_tim2_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim2_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim2_ch2.Init.Mode = DMA_NORMAL;
-    hdma_tim2_ch2.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim2_ch2.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_tim2_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_tim2_ch2) != HAL_OK)
     {

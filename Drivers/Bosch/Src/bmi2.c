@@ -1829,7 +1829,7 @@ int8_t bmi2_get_regs(uint8_t reg_addr, uint8_t *data, uint16_t len, struct bmi2_
         else
         {
             // dev->delay_us(2, dev->intf_ptr);
-            for (int i = 0; i < 10; i++);
+            for (int i = 0; i < 20; i++);
         }
 
         if (dev->intf_rslt == BMI2_INTF_RET_SUCCESS)

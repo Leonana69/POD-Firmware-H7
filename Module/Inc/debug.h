@@ -7,6 +7,7 @@ extern "C" {
 
 #include "_usart.h"
 #include "eprintf.h"
+#include "config.h"
 
 #ifndef DEBUG_FMT
 #define DEBUG_FMT(FMT) FMT

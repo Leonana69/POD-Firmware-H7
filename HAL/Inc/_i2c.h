@@ -10,8 +10,14 @@ extern "C" {
 
 void _I2C_Init();
 
+/*
+ * I2C DMA read and normal write function, make sure both DMA and I2C event interrupts are enabled
+ */
 #define I2C_DMA_READ_NORMAL_WRITE_FUNC_DEF(NAME, I2C_HANDLE, ADDR_TYPE) \
     STATIC_SEMAPHORE_DEF(NAME##_sem); \
+    void NAME##_DMA_RxCpltCallback() { \
+        STATIC_SEMAPHORE_RELEASE(NAME##_sem); \
+    } \
     int8_t NAME##_read(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
         uint16_t DevAddress = *(uint8_t*)intf_ptr << 1; \
@@ -28,7 +34,11 @@ void _I2C_Init();
         return (status == HAL_OK) ? 0 : -1; \
     }
 
+#define I2C_DMA_RX_COMPLETE_CALLBACK(NAME) \
+    NAME##_DMA_RxCpltCallback();
+
 #define I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(NAME, ADDR_TYPE) \
+    void NAME##_DMA_RxCpltCallback(); \
     int8_t NAME##_read(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
     int8_t NAME##_write(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
 
