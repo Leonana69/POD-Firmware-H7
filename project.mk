@@ -10,19 +10,23 @@ PROG				?= $(BUILD_DIR)/$(TARGET)
 ######################################
 C_INCLUDES += \
 -IDrivers/Bosch/Inc \
+-IDrivers/Pixart/Inc \
 -IDrivers/Vl53l1/Inc \
 -IDrivers/Vl53l1_Platform/Inc \
 -IHAL/Inc \
 -IModule/Inc
 
 VPATH += Module/Src
-C_SOURCES += eprintf.c
+C_SOURCES += eprintf.c system.c flow.c
 
 VPATH += HAL/Src
-C_SOURCES += _usart.c
+C_SOURCES += _usart.c _spi.c _i2c.c
 
 VPATH += Drivers/Bosch/Src
 C_SOURCES += bmi08a.c bmi08g.c bmp3.c bmi2.c bmi270.c
+
+VPATH += Drivers/Pixart/Src
+C_SOURCES += paa3905.c
 
 VPATH += Drivers/Vl53l1/Src
 C_SOURCES += vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c \

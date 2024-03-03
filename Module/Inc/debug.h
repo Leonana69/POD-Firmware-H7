@@ -12,9 +12,15 @@ extern "C" {
 #define DEBUG_FMT(FMT) FMT
 #endif
 
-#define DEBUG_PRINT(FMT, ...) eprintf(debugUartPutChar, FMT, ## __VA_ARGS__)
+#define DEBUG_WRITE(FMT, ...) eprintf(debugUartPutChar, DEBUG_FMT(FMT), ## __VA_ARGS__)
+
+#ifdef MODULE_NAME
+#define DEBUG_PRINT(FMT, ...) DEBUG_WRITE("%s: "FMT, MODULE_NAME, ## __VA_ARGS__)
+#else
+#define DEBUG_PRINT(FMT, ...) DEBUG_WRITE(FMT, ## __VA_ARGS__)
+#endif
 
 #ifdef __cplusplus
 }
 #endif
-#endif
+#endif // __DEBUG_H__

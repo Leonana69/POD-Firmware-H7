@@ -5,8 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/Drivers/**",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/**"
             ],
-            "defines": ["USE_HAL_DRIVER", "STM32H725xx"],
+            "defines": ["USE_HAL_DRIVER", "STM32H725xx", "portENTER_CRITICAL"],
             "macFrameworkPath": [
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
             ],
