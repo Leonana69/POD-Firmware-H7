@@ -34,13 +34,25 @@ void _I2C_Init();
         return (status == HAL_OK) ? 0 : -1; \
     }
 
+/*
+ * I2C DMA RX complete callback
+ */
 #define I2C_DMA_RX_COMPLETE_CALLBACK(NAME) \
     NAME##_DMA_RxCpltCallback();
 
+/*
+ * I2C DMA read write function declaration
+ */
 #define I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(NAME, ADDR_TYPE) \
     void NAME##_DMA_RxCpltCallback(); \
     int8_t NAME##_read(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
     int8_t NAME##_write(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
+
+/*
+ * I2C DMA RX semaphore initialization
+ */
+#define I2C_DMA_READ_WRITE_SEM_INIT(NAME) \
+    STATIC_SEMAPHORE_INIT(NAME##_sem, 1, 0);
 
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(bmp388, uint8_t);
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(vl53l1, uint16_t);

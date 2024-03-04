@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "spi.h"
+#include "freeRTOS_helper.h"
 
 void _SPI_Init();
 
@@ -48,18 +49,30 @@ void _SPI_Init();
         return (status == HAL_OK) ? 0 : -1; \
     }
 
+/*
+ * SPI DMA RX complete callback
+ */
 #define SPI_DMA_RX_COMPLETE_CALLBACK(NAME) \
     NAME##_DMA_RxCpltCallback();
 
+/*
+ * SPI DMA TX complete callback
+ */
 #define SPI_DMA_TX_COMPLETE_CALLBACK(NAME) \
     NAME##_DMA_TxCpltCallback();
 
+/*
+ * SPI DMA read write function declaration
+ */
 #define SPI_DMA_READ_WRITE_FUNC_DECL(NAME) \
     void NAME##_DMA_RxCpltCallback(); \
     void NAME##_DMA_TxCpltCallback(); \
     int8_t NAME##_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
     int8_t NAME##_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
 
+/*
+ * SPI DMA TX/RX semaphore initialization
+ */
 #define SPI_DMA_READ_WRITE_SEM_INIT(NAME) \
     STATIC_SEMAPHORE_INIT(NAME##_rx_sem, 1, 0); \
     STATIC_SEMAPHORE_INIT(NAME##_tx_sem, 1, 0);

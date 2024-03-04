@@ -5,7 +5,7 @@
 #include "freeRTOS_helper.h"
 #include "imu.h"
 
-#define MODULE_NAME "SYSTEM"
+#define MODULE_NAME "SYS"
 #include "debug.h"
 
 void systemTask(void *argument);
