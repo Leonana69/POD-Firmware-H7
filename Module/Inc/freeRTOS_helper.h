@@ -25,13 +25,13 @@ extern "C" {
     }
 
 #define STATIC_QUEUE_INIT(NAME) \
-    NAME##_queue_init();
+    NAME##_queue_init()
 
 #define STATIC_QUEUE_SEND(NAME, DATA, TIMEOUT) \
-    osMessageQueuePut(NAME##_id, &DATA, 0, TIMEOUT);
+    osMessageQueuePut(NAME##_id, &DATA, 0, TIMEOUT)
 
 #define STATIC_QUEUE_RECEIVE(NAME, DATA, TIMEOUT) \
-    osMessageQueueGet(NAME##_id, &DATA, NULL, TIMEOUT);
+    osMessageQueueGet(NAME##_id, &DATA, NULL, TIMEOUT)
 
 // Static Task
 #define STATIC_TASK_DEF(NAME, PRIORITY, STACK_SIZE) \
@@ -51,7 +51,7 @@ extern "C" {
     }
 
 #define STATIC_TASK_INIT(NAME, ARGUMENT) \
-    NAME##_task_init(ARGUMENT);
+    NAME##_task_init(ARGUMENT)
 
 // Static Mutex
 #define STATIC_MUTEX_DEF(NAME) \
@@ -67,13 +67,13 @@ extern "C" {
     }
 
 #define STATIC_MUTEX_INIT(NAME) \
-    NAME##_mutex_init();
+    NAME##_mutex_init()
 
 #define STATIC_MUTEX_LOCK(NAME, TIMEOUT) \
-    osMutexAcquire(NAME##_id, TIMEOUT);
+    osMutexAcquire(NAME##_id, TIMEOUT)
 
 #define STATIC_MUTEX_UNLOCK(NAME) \
-    osMutexRelease(NAME##_id);
+    osMutexRelease(NAME##_id)
 
 // Static Semaphore
 #define STATIC_SEMAPHORE_DEF(NAME) \
@@ -89,13 +89,13 @@ extern "C" {
     }
 
 #define STATIC_SEMAPHORE_INIT(NAME, MAX_COUNT, INIT_COUNT) \
-    NAME##_semaphore_init(MAX_COUNT, INIT_COUNT);
+    NAME##_semaphore_init(MAX_COUNT, INIT_COUNT)
 
 #define STATIC_SEMAPHORE_WAIT(NAME, TIMEOUT) \
-    osSemaphoreAcquire(NAME##_id, TIMEOUT);
+    osSemaphoreAcquire(NAME##_id, TIMEOUT)
 
 #define STATIC_SEMAPHORE_RELEASE(NAME) \
-    osSemaphoreRelease(NAME##_id);
+    osSemaphoreRelease(NAME##_id)
 
 #ifdef  __cplusplus
 }

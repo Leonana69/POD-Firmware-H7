@@ -6,6 +6,8 @@ extern "C" {
 #endif
 
 void systemInit();
+void systemWaitStart();
+
 
 #ifdef __cplusplus
 }

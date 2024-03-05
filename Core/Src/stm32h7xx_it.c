@@ -23,8 +23,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "debug.h"
-#include "_i2c.h"
-#include "_spi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -186,7 +184,7 @@ void DMA1_Stream0_IRQHandler(void)
   /* USER CODE END DMA1_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c1_rx);
   /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
-  I2C_DMA_RX_COMPLETE_CALLBACK(bmp388);
+
   /* USER CODE END DMA1_Stream0_IRQn 1 */
 }
 
@@ -200,7 +198,7 @@ void DMA1_Stream1_IRQHandler(void)
   /* USER CODE END DMA1_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c3_rx);
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
-  I2C_DMA_RX_COMPLETE_CALLBACK(vl53l1);
+
   /* USER CODE END DMA1_Stream1_IRQn 1 */
 }
 
@@ -210,11 +208,11 @@ void DMA1_Stream1_IRQHandler(void)
 void DMA1_Stream2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
-  // DEBUG_PRINT("D1S2 spi1 rx\r\n");
+
   /* USER CODE END DMA1_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_spi1_rx);
   /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
-  SPI_DMA_RX_COMPLETE_CALLBACK(bmi270);
+
   /* USER CODE END DMA1_Stream2_IRQn 1 */
 }
 
@@ -350,11 +348,11 @@ void DMA2_Stream0_IRQHandler(void)
 void DMA2_Stream1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
-  // DEBUG_PRINT("D2S1 spi1 tx\r\n");
+
   /* USER CODE END DMA2_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_spi1_tx);
   /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
-  SPI_DMA_TX_COMPLETE_CALLBACK(bmi270);
+
   /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 

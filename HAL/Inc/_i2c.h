@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "i2c.h"
+#include "_config.h"
 #include "freeRTOS_helper.h"
 
 void _I2C_Init();
@@ -15,10 +16,7 @@ void _I2C_Init();
  */
 #define I2C_DMA_READ_NORMAL_WRITE_FUNC_DEF(NAME, I2C_HANDLE, ADDR_TYPE) \
     STATIC_SEMAPHORE_DEF(NAME##_sem); \
-    void NAME##_DMA_RxCpltCallback() { \
-        STATIC_SEMAPHORE_RELEASE(NAME##_sem); \
-    } \
-    int8_t NAME##_read(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
+    int8_t NAME##_read_dma(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
         uint16_t DevAddress = *(uint8_t*)intf_ptr << 1; \
         status = HAL_I2C_Master_Transmit(&I2C_HANDLE, DevAddress, (uint8_t *) &reg_addr, sizeof(ADDR_TYPE), 100); \
@@ -26,7 +24,7 @@ void _I2C_Init();
         STATIC_SEMAPHORE_WAIT(NAME##_sem, osWaitForever); \
         return (status == HAL_OK) ? 0 : -1; \
     } \
-    int8_t NAME##_write(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
+    int8_t NAME##_write_normal(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
         uint16_t DevAddress = *(uint8_t*)intf_ptr << 1; \
         status = HAL_I2C_Master_Transmit(&I2C_HANDLE, DevAddress, (uint8_t *) &reg_addr, sizeof(ADDR_TYPE), 100); \
@@ -38,15 +36,14 @@ void _I2C_Init();
  * I2C DMA RX complete callback
  */
 #define I2C_DMA_RX_COMPLETE_CALLBACK(NAME) \
-    NAME##_DMA_RxCpltCallback();
+    STATIC_SEMAPHORE_RELEASE(NAME##_sem);
 
 /*
  * I2C DMA read write function declaration
  */
 #define I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(NAME, ADDR_TYPE) \
-    void NAME##_DMA_RxCpltCallback(); \
-    int8_t NAME##_read(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
-    int8_t NAME##_write(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
+    int8_t NAME##_read_dma(ADDR_TYPE reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
+    int8_t NAME##_write_normal(ADDR_TYPE reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
 
 /*
  * I2C DMA RX semaphore initialization

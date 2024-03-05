@@ -2,7 +2,8 @@ OPENOCD				?= openocd
 OPENOCD_INTERFACE	?= interface/stlink.cfg
 OPENOCD_TARGET    	?= target/stm32h7x.cfg
 OPENOCD_CMDS		?=
-LOAD_ADDRESS		?= 0x8020000
+# LOAD_ADDRESS		?= 0x8020000
+LOAD_ADDRESS		?= 0x8000000
 PROG				?= $(BUILD_DIR)/$(TARGET)
 
 ######################################
@@ -17,10 +18,10 @@ C_INCLUDES += \
 -IModule/Inc
 
 VPATH += Module/Src
-C_SOURCES += eprintf.c system.c flow.c imu.c utils.c
+C_SOURCES += eprintf.c system.c flow.c imu.c utils.c motor_dshot.c tof.c led.c
 
 VPATH += HAL/Src
-C_SOURCES += _usart.c _spi.c _i2c.c
+C_SOURCES += _usart.c _spi.c _i2c.c _tim.c
 
 VPATH += Drivers/Bosch/Src
 C_SOURCES += bmi08a.c bmi08g.c bmp3.c bmi2.c bmi270.c
@@ -43,3 +44,9 @@ copy:
 flash:
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \
                  -c "flash write_image erase $(PROG).bin $(LOAD_ADDRESS) bin" -c "reset run" -c shutdown
+
+gdb:
+	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET)
+
+sgdb:
+	arm-none-eabi-gdb $(PROG).elf

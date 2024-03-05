@@ -41,7 +41,7 @@ static void dshot_dma_tc_callback(DMA_HandleTypeDef *hdma) {
 		__HAL_TIM_DISABLE_DMA(htim, TIM_DMA_CC4);
 }
 
-void motorDShotInit() {
+void motorDShotInit(void) {
     uint32_t prescaler = (MOTOR_CLOCK_FREQ_KHZ / DSHOT300_FREQ_KHZ / DSHOT_DMA_BUFFER_SIZE) - 1;
     for (int i = 0; i < 4; i++) {
         __HAL_TIM_SET_PRESCALER(motorConfig[i].time, prescaler);

@@ -105,6 +105,7 @@ int main(void)
   MX_DMA_Init();
   MX_UART5_Init();
   MX_UART4_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_PRINT("Firmware start\r\n");
   /* USER CODE END 2 */

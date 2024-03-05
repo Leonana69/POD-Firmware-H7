@@ -1,8 +1,9 @@
 #include "flow.h"
 #include "freeRTOS_helper.h"
 #include "config.h"
+#include "system.h"
 
-#define MODULE_NAME "FLOW"
+#define MODULE_NAME "FLW"
 #include "debug.h"
 
 void flowTask(void *argument);
@@ -14,7 +15,8 @@ void flowInit(void) {
 }
 
 void flowTask(void *argument) {
-    DEBUG_PRINT("flowTask [START]\n");
+    systemWaitStart();
+    DEBUG_PRINT("[START]\n");
     for (;;) {
         osDelay(1000);
     }
