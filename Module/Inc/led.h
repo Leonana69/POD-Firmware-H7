@@ -17,9 +17,12 @@ extern "C" {
 #define LED_ON  1
 #define LED_OFF 0
 
-void ledInit(void);
+#define ERR_LED LED_L_O
+
+uint32_t ledInit(void);
 void ledToggle(uint8_t id);
 void ledSet(uint8_t id, uint8_t state);
+void ledClearAll(void);
 
 #ifdef __cplusplus
 }

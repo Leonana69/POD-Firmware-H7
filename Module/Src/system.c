@@ -1,3 +1,6 @@
+#define MODULE_NAME "SYS"
+#include "debug.h"
+
 #include "system.h"
 #include "_i2c.h"
 #include "_spi.h"
@@ -10,13 +13,12 @@
 #include "led.h"
 #include "tof.h"
 #include "flow.h"
+#include <stdbool.h>
 
-#define MODULE_NAME "SYS"
-#include "debug.h"
-
-void systemTask(void *argument);
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
+
+static bool isInit = false;
 
 void systemInit() {
     _I2C_Init();
@@ -27,6 +29,7 @@ void systemInit() {
 }
 
 void systemWaitStart() {
+    while (!isInit) { osDelay(10); }
     STATIC_SEMAPHORE_WAIT(systemStart, osWaitForever);
     STATIC_SEMAPHORE_RELEASE(systemStart);
 }
@@ -39,11 +42,10 @@ void systemTask(void *argument) {
 
     // periodic tasks
     imuInit();
-    tofInit();
     flowInit();
+    tofInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
-    for (;;) {
-        osDelay(1000);
-    }
+    isInit = true;
+    for (;;) { osDelay(osWaitForever); }
 }

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void imuInit(void);
+uint32_t imuInit(void);
 
 #ifdef __cplusplus
 }

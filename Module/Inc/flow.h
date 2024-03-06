@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void flowInit(void);
+uint32_t flowInit(void);
 
 
 #ifdef __cplusplus

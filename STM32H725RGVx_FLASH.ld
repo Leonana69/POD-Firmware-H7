@@ -165,6 +165,7 @@ SECTIONS
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM_D1
+  
 
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :
@@ -177,7 +178,17 @@ SECTIONS
     . = ALIGN(8);
   } >RAM_D1
 
-  
+  /* Add new section for DTCMRAM */
+  .dtcmram :
+  {
+    . = ALIGN(4);
+    _sdtcmram = .;     /* create a global symbol at DTCMRAM start */
+    *(.dtcmram)        /* .dtcmram sections */
+    *(.dtcmram*)       /* .dtcmram* sections */
+
+    . = ALIGN(4);
+    _edtcmram = .;     /* define a global symbol at DTCMRAM end */
+  } >DTCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

@@ -35,6 +35,7 @@ extern "C" {
 
 // Static Task
 #define STATIC_TASK_DEF(NAME, PRIORITY, STACK_SIZE) \
+    void NAME(void *argument); \
     static osThreadId_t NAME##_id; \
     static uint32_t NAME##_stack[STACK_SIZE]; \
     static StaticTask_t NAME##_task_cb; \

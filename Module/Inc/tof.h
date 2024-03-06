@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void tofInit(void);
+uint32_t tofInit(void);
 
 #ifdef __cplusplus
 }

@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
-void motorDShotInit(void);
+uint32_t motorDShotInit(void);
 void motorDShotSetThrust(uint8_t id, uint16_t thrust);
 uint16_t motorDShotGetThrust(uint8_t id);
 

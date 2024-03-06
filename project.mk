@@ -10,6 +10,7 @@ PROG				?= $(BUILD_DIR)/$(TARGET)
 # POD's C includes
 ######################################
 C_INCLUDES += \
+-IDrivers/CMSIS/DSP/Include \
 -IDrivers/Bosch/Inc \
 -IDrivers/Pixart/Inc \
 -IDrivers/Vl53l1/Inc \
@@ -17,8 +18,10 @@ C_INCLUDES += \
 -IHAL/Inc \
 -IModule/Inc
 
+CFLAGS += -Wno-comment
+
 VPATH += Module/Src
-C_SOURCES += eprintf.c system.c flow.c imu.c utils.c motor_dshot.c tof.c led.c
+C_SOURCES += eprintf.c system.c flow.c imu.c utils.c motor_dshot.c tof.c led.c assert.c kalman_filter.c
 
 VPATH += HAL/Src
 C_SOURCES += _usart.c _spi.c _i2c.c _tim.c
@@ -33,6 +36,15 @@ VPATH += Drivers/Vl53l1/Src
 C_SOURCES += vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c \
 	vl53l1_api.c vl53l1_core_support.c vl53l1_core.c vl53l1_error_strings.c vl53l1_register_funcs.c vl53l1_silicon_core.c \
 	vl53l1_wait.c vl53l1.c
+
+VPATH += Drivers/CMSIS/DSP/Source/FastMathFunctions
+C_SOURCES += arm_cos_f32.c arm_sin_f32.c
+
+VPATH += Drivers/CMSIS/DSP/Source/MatrixFunctions
+C_SOURCES += arm_mat_mult_f32.c arm_mat_trans_f32.c
+
+VPATH += Drivers/CMSIS/DSP/Source/CommonTables
+C_SOURCES += arm_common_tables.c
 
 all: $(PROG).bin
 

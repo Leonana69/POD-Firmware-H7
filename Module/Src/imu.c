@@ -1,5 +1,7 @@
-#include "imu.h"
+#define MODULE_NAME "IMU"
+#include "debug.h"
 
+#include "imu.h"
 #include "bmi270.h"
 #include "bmp3.h"
 #include "utils.h"
@@ -8,10 +10,6 @@
 #include "freeRTOS_helper.h"
 #include "system.h"
 
-#define MODULE_NAME "IMU"
-#include "debug.h"
-
-void imuTask(void *argument);
 STATIC_TASK_DEF(imuTask, IMU_TASK_PRIORITY, IMU_TASK_STACK_SIZE);
 
 static struct bmi2_dev bmi2Dev;
@@ -20,7 +18,7 @@ struct bmi2_sens_config bmi270Config[2];
 static float accelValue2Gravity;
 static float gyroVale2Degree;
 
-void imuInit() {
+uint32_t imuInit() {
     int8_t rslt;
     uint8_t chipId;
     bmi2Dev.delay_us = sensorsDelayUs;
@@ -30,9 +28,10 @@ void imuInit() {
     bmi2Dev.read_write_len = 32;
     rslt = bmi270_init(&bmi2Dev);
     rslt |= bmi2_get_regs(BMI2_CHIP_ID_ADDR, &chipId, 1, &bmi2Dev);
-	if (rslt != BMI2_OK || chipId != BMI270_CHIP_ID)
-		DEBUG_PRINT("BMI270 Init [FAILED]: chipId: 0x%02x, rslt: %d\n", chipId, rslt);
-    else
+	if (rslt != BMI2_OK || chipId != BMI270_CHIP_ID) {
+        DEBUG_PRINT("BMI270 Init [FAILED]: chipId: 0x%02x, rslt: %d\n", chipId, rslt);
+        return TASK_INIT_FAILED(IMU_TASK_INDEX);
+    } else
         DEBUG_PRINT("BMI270 Init [OK]\n");
 
     bmi2Dev.delay_us(10000, NULL);
@@ -42,8 +41,10 @@ void imuInit() {
     rslt = bmi2_sensor_enable(sensorsList, 2, &bmi2Dev);
     /*! Disable power saving mode, this will cause severe delay */
     rslt |= bmi2_set_adv_power_save(BMI2_DISABLE, &bmi2Dev);
-    if (rslt != BMI2_OK)
+    if (rslt != BMI2_OK) {
         DEBUG_PRINT("BMI270 Enable [FAILED].\n");
+        return TASK_INIT_FAILED(IMU_TASK_INDEX);
+    }
     bmi2Dev.delay_us(10000, NULL);
 
     bmi270Config[ACCEL].cfg.acc.odr = BMI2_ACC_ODR_1600HZ;
@@ -61,19 +62,23 @@ void imuInit() {
     gyroVale2Degree = (float)2000 / 32768.0f;
 
     rslt = bmi2_set_sensor_config(bmi270Config, 2, &bmi2Dev);
-    if (rslt != BMI2_OK)
-        DEBUG_PRINT("BMI270 Accel Gyro Meas Config [FAILED].\n");
+    if (rslt != BMI2_OK) {
+        DEBUG_PRINT("BMI270 Accel Gyro Config [FAILED].\n");
+        return TASK_INIT_FAILED(IMU_TASK_INDEX);
+    }
     bmi2Dev.delay_us(10000, NULL);
 
     STATIC_TASK_INIT(imuTask, NULL);
+    return TASK_INIT_SUCCESS;
 }
 
 void imuTask(void *argument) {
+    systemWaitStart();
+    
     struct bmi2_sensor_data bmi270Data[2];
 	bmi270Data[ACCEL].type = BMI2_ACCEL;
 	bmi270Data[GYRO].type = BMI2_GYRO;
-    systemWaitStart();
-    DEBUG_PRINT("[START]\n");
+    
     while (1) {
         bmi2_get_sensor_data(&bmi270Data[0], 1, &bmi2Dev);
 		bmi2_get_sensor_data(&bmi270Data[1], 1, &bmi2Dev);

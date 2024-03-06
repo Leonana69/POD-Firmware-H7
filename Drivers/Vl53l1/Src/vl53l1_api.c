@@ -1752,14 +1752,13 @@ VL53L1_Error VL53L1_StartMeasurement(VL53L1_DEV Dev)
 	LOG_FUNCTION_END(Status);
 	return Status;
 }
-
+#include "debug.h"
 VL53L1_Error VL53L1_StopMeasurement(VL53L1_DEV Dev)
 {
 	VL53L1_Error Status = VL53L1_ERROR_NONE;
 	uint8_t DeviceMeasurementMode;
 
 	LOG_FUNCTION_START("");
-
 	Status = VL53L1_stop_range(Dev);
 	DeviceMeasurementMode = VL53L1DevDataGet(Dev, LLData.measurement_mode);
 	if (DeviceMeasurementMode != VL53L1_DEVICEMEASUREMENTMODE_TIMED)

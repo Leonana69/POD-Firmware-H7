@@ -1,5 +1,6 @@
 #include "led.h"
 #include "gpio.h"
+#include "config.h"
 
 typedef struct {
     GPIO_TypeDef *port;
@@ -16,11 +17,12 @@ static led_t led[] = {
     { .port = LED_L_B_GPIO_PORT, .pin = LED_L_B_GPIO_PIN }
 };
 
-void ledInit(void) {
+uint32_t ledInit(void) {
     ledCount = sizeof(led) / sizeof(led_t);
     for (uint8_t i = 0; i < ledCount; i++) {
         HAL_GPIO_WritePin(led[i].port, led[i].pin, led[i].polarity);
     }
+    return TASK_INIT_SUCCESS;
 }
 
 void ledToggle(uint8_t id) {
@@ -32,5 +34,11 @@ void ledToggle(uint8_t id) {
 void ledSet(uint8_t id, uint8_t state) {
     if (id < ledCount) {
         HAL_GPIO_WritePin(led[id].port, led[id].pin, state ^ led[id].polarity);
+    }
+}
+
+void ledClearAll(void) {
+    for (uint8_t i = 0; i < ledCount; i++) {
+        HAL_GPIO_WritePin(led[i].port, led[i].pin, led[i].polarity);
     }
 }

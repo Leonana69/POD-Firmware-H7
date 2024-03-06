@@ -44,8 +44,8 @@ void _SPI_Init();
         STATIC_SEMAPHORE_WAIT(NAME##_tx_sem, osWaitForever); \
         HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
         return (status == HAL_OK) ? 0 : -1; \
-    } \
-    int8_t NAME##_read_normal(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
+    }
+    // int8_t NAME##_read_normal(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
         HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
         reg_addr |= 0x80; \
@@ -81,15 +81,15 @@ void _SPI_Init();
  */
 #define SPI_DMA_READ_WRITE_FUNC_DECL(NAME) \
     int8_t NAME##_read_dma(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
-    int8_t NAME##_write_dma(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr); \
-    int8_t NAME##_read_normal(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
+    int8_t NAME##_write_dma(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
+    // int8_t NAME##_read_normal(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr); \
     int8_t NAME##_write_normal(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
 /*
  * SPI DMA TX/RX semaphore initialization
  */
 #define SPI_DMA_READ_WRITE_SEM_INIT(NAME) \
-    STATIC_SEMAPHORE_INIT(NAME##_rx_sem, 2, 0); \
-    STATIC_SEMAPHORE_INIT(NAME##_tx_sem, 2, 0);
+    STATIC_SEMAPHORE_INIT(NAME##_rx_sem, 1, 0); \
+    STATIC_SEMAPHORE_INIT(NAME##_tx_sem, 1, 0);
 
 SPI_DMA_READ_WRITE_FUNC_DECL(paa3905);
 SPI_DMA_READ_WRITE_FUNC_DECL(bmi270);

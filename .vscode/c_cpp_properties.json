@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/Drivers/**",
+                "${workspaceFolder}/Drivers/CMSIS/DSP/Include/**",
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/**"
             ],
             "defines": ["USE_HAL_DRIVER", "STM32H725xx", "portENTER_CRITICAL"],
