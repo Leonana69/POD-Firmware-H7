@@ -25,6 +25,7 @@ extern "C" {
 #define MOTOR_2_CHANNEL         TIM_CHANNEL_2
 #define MOTOR_3_CHANNEL         TIM_CHANNEL_3
 #define MOTOR_4_CHANNEL         TIM_CHANNEL_4
+#define MOTOR_DSHOT_TIM         htim6
 
 #define DELAY_US_TIM            htim7
 #define DELAY_US_TIM_PERIOD     65535

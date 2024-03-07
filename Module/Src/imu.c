@@ -71,7 +71,7 @@ uint32_t imuInit() {
     STATIC_TASK_INIT(imuTask, NULL);
     return TASK_INIT_SUCCESS;
 }
-
+#include "motor_power.h"
 void imuTask(void *argument) {
     systemWaitStart();
     
@@ -82,8 +82,8 @@ void imuTask(void *argument) {
     while (1) {
         bmi2_get_sensor_data(&bmi270Data[0], 1, &bmi2Dev);
 		bmi2_get_sensor_data(&bmi270Data[1], 1, &bmi2Dev);
-        DEBUG_PRINT("Accel: %d, %d, %d\n", bmi270Data[ACCEL].sens_data.acc.x, bmi270Data[ACCEL].sens_data.acc.y, bmi270Data[ACCEL].sens_data.acc.z);
-        DEBUG_PRINT("Gyro: %d, %d, %d\n", bmi270Data[GYRO].sens_data.gyr.x, bmi270Data[GYRO].sens_data.gyr.y, bmi270Data[GYRO].sens_data.gyr.z);
-        osDelay(1000);
+        // DEBUG_PRINT("Accel: %d, %d, %d\n", bmi270Data[ACCEL].sens_data.acc.x, bmi270Data[ACCEL].sens_data.acc.y, bmi270Data[ACCEL].sens_data.acc.z);
+        // DEBUG_PRINT("Gyro: %d, %d, %d\n", bmi270Data[GYRO].sens_data.gyr.x, bmi270Data[GYRO].sens_data.gyr.y, bmi270Data[GYRO].sens_data.gyr.z);
+        osDelay(100);
     }
 }

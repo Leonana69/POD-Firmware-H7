@@ -51,10 +51,14 @@
  * ============================================================================
  */
 
-#ifndef __KALMAN_FILTER_H__
-#define __KALMAN_FILTER_H__
+#ifndef __KALMAN_FILTER_CORE_H__
+#define __KALMAN_FILTER_CORE_H__
 #include "stabilizer_types.h"
 #include "arm_math.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Indexes to access the quad's state, stored as a column vector
 typedef enum {
@@ -98,23 +102,27 @@ typedef struct {
     float baroReferenceHeight;
 } kalmanCoreData_t;
 
-void kalmanCoreInit(kalmanCoreData_t* this);
+void kalmanCoreInit(kalmanCoreData_t* coreData);
 
 /**
  * Primary Kalman filter functions
  *
  * The filter progresses as:
  *  - Predicting the current state forward */
-void kalmanCorePredict(kalmanCoreData_t* this, imu_t* imuData, float dt, bool isFlying);
+void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t* imuData, float dt, bool isFlying);
 
-void kalmanCoreAddProcessNoise(kalmanCoreData_t* this, float dt);
+void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt);
 
 /*  - Finalization to incorporate attitude error into body attitude */
-void kalmanCoreFinalize(kalmanCoreData_t* this, uint32_t tick);
+void kalmanCoreFinalize(kalmanCoreData_t* coreData, uint32_t tick);
 
 /*  - Externalization to move the filter's internal state into the external state expected by other modules */
-void kalmanCoreExternalizeState(const kalmanCoreData_t* this, state_t *state, const vec3f_t *acc, uint32_t tick);
+void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state, const vec3f_t *acc, uint32_t tick);
 
-void kalmanCoreScalarUpdate(kalmanCoreData_t* this, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise);
+void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise);
 
-#endif //__KALMAN_FILTER_H__
+#ifdef __cplusplus
+}
+#endif
+
+#endif //__KALMAN_FILTER_CORE_H__

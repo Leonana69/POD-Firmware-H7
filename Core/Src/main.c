@@ -30,10 +30,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "debug.h"
-#include "vl53l1.h"
-#include "bmi2_defs.h"
-#include "bmp3_defs.h"
-#include "imu.h"
+#include "motor_dshot.h"
+#include "_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,6 +104,7 @@ int main(void)
   MX_UART5_Init();
   MX_UART4_Init();
   MX_TIM7_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_PRINT("Firmware start\r\n");
   /* USER CODE END 2 */
@@ -206,7 +205,9 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+  if (htim->Instance == MOTOR_DSHOT_TIM.Instance) {
+    motorDShotWriteDma();
+  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {
     HAL_IncTick();

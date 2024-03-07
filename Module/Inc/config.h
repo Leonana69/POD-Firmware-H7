@@ -13,16 +13,18 @@ extern "C" {
 #define IMU_TASK_PRIORITY           osPriorityNormal
 #define FLOW_TASK_PRIORITY          osPriorityNormal
 #define TOF_TASK_PRIORITY           osPriorityNormal
+#define ESTIMATOR_TASK_PRIORITY     osPriorityNormal
 
 /*
  * Make sure the stack size is large enough to handle the task.
  */
 #define SYSTEM_TASK_STACK_SIZE      (2 * configMINIMAL_STACK_SIZE)
 
-#define STABILIZER_TASK_STACK_SIZE  configMINIMAL_STACK_SIZE
+#define STABILIZER_TASK_STACK_SIZE  (2 * configMINIMAL_STACK_SIZE)
 #define IMU_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
 #define FLOW_TASK_STACK_SIZE        (2 * configMINIMAL_STACK_SIZE)
 #define TOF_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
+#define ESTIMATOR_TASK_STACK_SIZE   (2 * configMINIMAL_STACK_SIZE)
 
 #define TASK_INIT_SUCCESS           0
 #define TASK_INIT_FAILED(index)     (1 << index)
@@ -31,6 +33,7 @@ extern "C" {
 #define IMU_TASK_INDEX              1
 #define FLOW_TASK_INDEX             2
 #define TOF_TASK_INDEX              3
+#define ESTIMATOR_TASK_INDEX        4
 
 #ifdef __cplusplus
 }

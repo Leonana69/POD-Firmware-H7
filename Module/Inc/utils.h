@@ -11,6 +11,9 @@ void sensorsDelayUs(uint32_t period, void *intf_ptr);
 void sensorsDelayMs(uint32_t period);
 uint16_t sensorsGetMilli();
 
+float degrees(float radians);
+float radians(float degrees);
+
 #ifdef __cplusplus
 }
 #endif

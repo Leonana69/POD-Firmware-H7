@@ -31,3 +31,11 @@ void sensorsDelayMs(uint32_t period) {
 uint16_t sensorsGetMilli() {
     return (uint16_t)osKernelGetTickCount();
 }
+
+float degrees(float radians) {
+    return radians * 57.2957795130823208767981548141051703;
+}
+
+float radians(float degrees) {
+    return degrees * 0.0174532925199432957692369076848861;
+}

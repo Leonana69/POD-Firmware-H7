@@ -12,4 +12,5 @@ void systemWaitStart();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // __SYSTEM_H__

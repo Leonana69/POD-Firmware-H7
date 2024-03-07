@@ -7,8 +7,13 @@ extern "C" {
 
 #include <stdint.h>
 
-uint32_t motorDShotInit(void);
+// TODO: test this base value
+#define DSHOT_MAX_THRUST 2047
+#define DSHOT_MIN_THRUST 48
+
+void motorDShotInit(void);
 void motorDShotSetThrust(uint8_t id, uint16_t thrust);
+void motorDShotWriteDma();
 uint16_t motorDShotGetThrust(uint8_t id);
 
 #ifdef __cplusplus
