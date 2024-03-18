@@ -24,7 +24,7 @@ extern "C" {
 #define IMU_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
 #define FLOW_TASK_STACK_SIZE        (2 * configMINIMAL_STACK_SIZE)
 #define TOF_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
-#define ESTIMATOR_TASK_STACK_SIZE   (2 * configMINIMAL_STACK_SIZE)
+#define ESTIMATOR_TASK_STACK_SIZE   (4 * configMINIMAL_STACK_SIZE)
 
 #define TASK_INIT_SUCCESS           0
 #define TASK_INIT_FAILED(index)     (1 << index)

@@ -9,6 +9,9 @@ extern "C" {
 #include <stdbool.h>
 #include "stabilizer_types.h"
 
+#define MOTOR_THRUST_SCALE  1000.0f
+#define MOTOR_THRUST_MIN    2000.0f
+
 void motorPowerInit(void);
 void motorPowerStop(void);
 void motorPowerUpdate(const control_t *control);

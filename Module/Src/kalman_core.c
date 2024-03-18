@@ -75,8 +75,6 @@
 #define MIN_COVARIANCE (1e-6f)
 #define EPSILON        (1e-6f)
 
-#define DATA_MATRIX __attribute__((section(".dtcmram"), aligned(4)))
-
 // Initial variances, uncertain of position, but know we're stationary and roughly flat
 static const float stdDevInitPos_x_y = 100;
 static const float stdDevInitPos_z = 1;
@@ -143,23 +141,23 @@ void kalmanCoreInit(kalmanCoreData_t* coreData) {
 
 void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise) {
     // The Kalman gain as a column vector
-    DATA_MATRIX static float K[KC_STATE_DIM];
+    DATA_REGION static float K[KC_STATE_DIM];
     static arm_matrix_instance_f32 Km = { KC_STATE_DIM, 1, K };
 
     // Temporary matrices for the covariance updates
-    DATA_MATRIX static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN1m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN1d };
 
-    DATA_MATRIX static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN2m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN2d };
 
-    DATA_MATRIX static float tmpNN3d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN3d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN3m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN3d };
 
-    DATA_MATRIX static float HTd[KC_STATE_DIM * 1];
+    DATA_REGION static float HTd[KC_STATE_DIM * 1];
     static arm_matrix_instance_f32 HTm = { KC_STATE_DIM, 1, HTd };
 
-    DATA_MATRIX static float PHTd[KC_STATE_DIM * 1];
+    DATA_REGION static float PHTd[KC_STATE_DIM * 1];
     static arm_matrix_instance_f32 PHTm = { KC_STATE_DIM, 1, PHTd };
 
     ASSERT(Hm->numRows == 1);
@@ -229,14 +227,14 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
    */
 
     // The state transition matrix
-    DATA_MATRIX static float F[KC_STATE_DIM][KC_STATE_DIM];
+    DATA_REGION static float F[KC_STATE_DIM][KC_STATE_DIM];
     static arm_matrix_instance_f32 Fm = { KC_STATE_DIM, KC_STATE_DIM, (float *) F }; // linearized dynamics for covariance update;
 
     // Temporary matrices for the covariance updates
-    DATA_MATRIX static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN1m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN1d };
 
-    DATA_MATRIX static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN2m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN2d };
 
     vec3f_t *gyro = &imuData->gyro;
@@ -450,16 +448,16 @@ void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt) {
     capCovariance(coreData);
 }
 
-void kalmanCoreFinalize(kalmanCoreData_t* coreData, uint32_t tick) {
+void kalmanCoreFinalize(kalmanCoreData_t* coreData) {
     // Matrix to rotate the attitude covariances once updated
-    DATA_MATRIX static float F[KC_STATE_DIM][KC_STATE_DIM];
+    DATA_REGION static float F[KC_STATE_DIM][KC_STATE_DIM];
     static arm_matrix_instance_f32 Fm = { KC_STATE_DIM, KC_STATE_DIM, (float *)F };
 
     // Temporary matrices for the covariance updates
-    DATA_MATRIX static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN1d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN1m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN1d };
 
-    DATA_MATRIX static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
+    DATA_REGION static float tmpNN2d[KC_STATE_DIM * KC_STATE_DIM];
     static arm_matrix_instance_f32 tmpNN2m = { KC_STATE_DIM, KC_STATE_DIM, tmpNN2d };
 
     // Incorporate the attitude error (Kalman filter state) with the attitude
@@ -605,4 +603,18 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
         .y = coreData->q[2],
         .z = coreData->q[3]
     };
+}
+
+bool kalmanCoreCheckBounds(kalmanCoreData_t* coreData) {
+    float maxPosition = 100;
+    float maxVelocity = 10;
+    for (int i = 0; i < 3; i++) {
+        if (fabsf(coreData->S[KC_STATE_X + i]) > maxPosition) {
+            return false;
+        }
+        if (fabsf(coreData->S[KC_STATE_PX + i]) > maxVelocity) {
+            return false;
+        }
+    }
+    return true;
 }

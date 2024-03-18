@@ -9,14 +9,25 @@
 #include "_i2c.h"
 #include "freeRTOS_helper.h"
 #include "system.h"
+#include "stabilizer_types.h"
+#include "estimator_kalman.h"
 
+#define IMU_RATE RATE_1000_HZ
+
+STATIC_MUTEX_DEF(imuDataMutex);
 STATIC_TASK_DEF(imuTask, IMU_TASK_PRIORITY, IMU_TASK_STACK_SIZE);
 
 static struct bmi2_dev bmi2Dev;
-enum { ACCEL, GYRO };
+enum { ACCEL = 0, GYRO = 1 };
 struct bmi2_sens_config bmi270Config[2];
 static float accelValue2Gravity;
 static float gyroVale2Degree;
+
+static imu_t imuData;
+static vec3f_t gyroBias;
+static float accelScale;
+
+static bool imuCalibration();
 
 uint32_t imuInit() {
     int8_t rslt;
@@ -68,22 +79,91 @@ uint32_t imuInit() {
     }
     bmi2Dev.delay_us(10000, NULL);
 
+    STATIC_MUTEX_INIT(imuDataMutex);
     STATIC_TASK_INIT(imuTask, NULL);
     return TASK_INIT_SUCCESS;
 }
-#include "motor_power.h"
+
+void imuGet(imu_t *imu) {
+    STATIC_MUTEX_LOCK(imuDataMutex, osWaitForever);
+    *imu = imuData;
+    STATIC_MUTEX_UNLOCK(imuDataMutex);
+}
+
+static struct bmi2_sensor_data bmi270Data[2] = {
+    { .type = BMI2_ACCEL },
+    { .type = BMI2_GYRO }
+};
+
+bool imuCalibration() {
+    const int caliNbr = 256;
+    vec3f_t gyroBiasSquared = (vec3f_t){ 0 };
+    gyroBias = (vec3f_t){ 0 };
+    accelScale = 0;
+    for (int i = 0; i < caliNbr; i++) {
+        bmi2_get_sensor_data(&bmi270Data[ACCEL], 1, &bmi2Dev);
+		bmi2_get_sensor_data(&bmi270Data[GYRO], 1, &bmi2Dev);
+        float x = bmi270Data[ACCEL].sens_data.acc.x;
+        float y = bmi270Data[ACCEL].sens_data.acc.y;
+        float z = bmi270Data[ACCEL].sens_data.acc.z;
+        accelScale += sqrtf(x * x + y * y + z * z);
+
+        gyroBias.x += bmi270Data[GYRO].sens_data.gyr.x;
+        gyroBias.y += bmi270Data[GYRO].sens_data.gyr.y;
+        gyroBias.z += bmi270Data[GYRO].sens_data.gyr.z;
+        gyroBiasSquared.x += bmi270Data[GYRO].sens_data.gyr.x * bmi270Data[GYRO].sens_data.gyr.x;
+        gyroBiasSquared.y += bmi270Data[GYRO].sens_data.gyr.y * bmi270Data[GYRO].sens_data.gyr.y;
+        gyroBiasSquared.z += bmi270Data[GYRO].sens_data.gyr.z * bmi270Data[GYRO].sens_data.gyr.z;
+        osDelay(1);
+    }
+
+    accelScale /= caliNbr;
+    gyroBias.x /= caliNbr;
+    gyroBias.y /= caliNbr;
+    gyroBias.z /= caliNbr;
+    gyroBiasSquared.x = gyroBiasSquared.x / caliNbr - gyroBias.x * gyroBias.x;
+    gyroBiasSquared.y = gyroBiasSquared.y / caliNbr - gyroBias.y * gyroBias.y;
+    gyroBiasSquared.z = gyroBiasSquared.z / caliNbr - gyroBias.z * gyroBias.z;
+    const float gyroBiasLimit = 1000;
+    if (gyroBiasSquared.x < gyroBiasLimit
+     && gyroBiasSquared.y < gyroBiasLimit
+     && gyroBiasSquared.z < gyroBiasLimit) {
+        DEBUG_PRINT("IMU Calibration [OK]: %.3f %.3f %.3f %.3f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
+        return true;
+    } else {
+        DEBUG_PRINT("IMU Calibration [FAILED]: %.3f %.3f %.3f %.3f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
+        return false;
+    }
+}
+
 void imuTask(void *argument) {
+    estimatorPacket_t packet = { .type = IMU_TASK_INDEX };
+    imu_t imuBuffer = { 0 };
     systemWaitStart();
-    
-    struct bmi2_sensor_data bmi270Data[2];
-	bmi270Data[ACCEL].type = BMI2_ACCEL;
-	bmi270Data[GYRO].type = BMI2_GYRO;
+    while (!imuCalibration());
+    TASK_TIMER_DEF(IMU, IMU_RATE);
     
     while (1) {
-        bmi2_get_sensor_data(&bmi270Data[0], 1, &bmi2Dev);
-		bmi2_get_sensor_data(&bmi270Data[1], 1, &bmi2Dev);
-        // DEBUG_PRINT("Accel: %d, %d, %d\n", bmi270Data[ACCEL].sens_data.acc.x, bmi270Data[ACCEL].sens_data.acc.y, bmi270Data[ACCEL].sens_data.acc.z);
-        // DEBUG_PRINT("Gyro: %d, %d, %d\n", bmi270Data[GYRO].sens_data.gyr.x, bmi270Data[GYRO].sens_data.gyr.y, bmi270Data[GYRO].sens_data.gyr.z);
-        osDelay(100);
+        TASK_TIMER_WAIT(IMU);
+        bmi2_get_sensor_data(&bmi270Data[ACCEL], 1, &bmi2Dev);
+		bmi2_get_sensor_data(&bmi270Data[GYRO], 1, &bmi2Dev);
+        
+        imuBuffer.accel.x = bmi270Data[ACCEL].sens_data.acc.x / accelScale;
+        imuBuffer.accel.y = bmi270Data[ACCEL].sens_data.acc.y / accelScale;
+        imuBuffer.accel.z = bmi270Data[ACCEL].sens_data.acc.z / accelScale;
+        imuBuffer.gyro.x = (bmi270Data[GYRO].sens_data.gyr.x - gyroBias.x) * gyroVale2Degree;
+        imuBuffer.gyro.y = (bmi270Data[GYRO].sens_data.gyr.y - gyroBias.y) * gyroVale2Degree;
+        imuBuffer.gyro.z = (bmi270Data[GYRO].sens_data.gyr.z - gyroBias.z) * gyroVale2Degree;
+
+        STATIC_MUTEX_LOCK(imuDataMutex, osWaitForever);
+        imuData = imuBuffer;
+        STATIC_MUTEX_UNLOCK(imuDataMutex);
+        // TOOD: verify the LPF
+        // applyAxis3fLpf((lpf2pData*)(&gyroLpf), &imuBuffer.gyro);
+
+        // TODO: potential alignment calibration
+
+        packet.imu = imuBuffer;
+        estimatorKalmanEnqueue(&packet);
     }
 }

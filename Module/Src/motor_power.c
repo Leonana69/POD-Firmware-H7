@@ -1,6 +1,7 @@
 #include "motor_power.h"
 #include "motor_dshot.h"
 #include "_config.h"
+#include "debug.h"
 
 typedef struct {
     void (*init)();

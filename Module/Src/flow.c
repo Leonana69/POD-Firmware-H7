@@ -19,6 +19,6 @@ void flowTask(void *argument) {
     
     for (;;) {
         osDelay(1000);
-        DEBUG_PRINT("[RUN]\n");
+        // DEBUG_PRINT("[RUN]\n");
     }
 }

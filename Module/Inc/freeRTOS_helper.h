@@ -8,6 +8,19 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
 
+// Static Task Timer
+#define TASK_TIMER_DEF(NAME, FREQ) \
+    uint32_t NAME##_last_wake = osKernelGetTickCount(); \
+    uint32_t NAME##_period = osKernelGetTickFreq() / FREQ; \
+
+#define TASK_TIMER_WAIT(NAME) \
+    uint32_t now = osKernelGetTickCount(); \
+    uint32_t future = NAME##_last_wake + NAME##_period; \
+    if (now - NAME##_last_wake < NAME##_period) { \
+        osDelayUntil(future); \
+    } \
+    NAME##_last_wake = future; \
+
 // Static Queue
 #define STATIC_QUEUE_DEF(NAME, SIZE, TYPE) \
     static osMessageQueueId_t NAME##_id; \
@@ -15,7 +28,7 @@ extern "C" {
     static StaticQueue_t NAME##_queue_cb; \
     static const osMessageQueueAttr_t NAME##_queue_attr = { \
         .name = #NAME, \
-        .cb_mem = NAME##_queue_cb, \
+        .cb_mem = &NAME##_queue_cb, \
         .cb_size = sizeof(NAME##_queue_cb), \
         .mq_mem = NAME##_buffer, \
         .mq_size = sizeof(NAME##_buffer), \
@@ -28,10 +41,10 @@ extern "C" {
     NAME##_queue_init()
 
 #define STATIC_QUEUE_SEND(NAME, DATA, TIMEOUT) \
-    osMessageQueuePut(NAME##_id, &DATA, 0, TIMEOUT)
+    osMessageQueuePut(NAME##_id, DATA, 0, TIMEOUT)
 
 #define STATIC_QUEUE_RECEIVE(NAME, DATA, TIMEOUT) \
-    osMessageQueueGet(NAME##_id, &DATA, NULL, TIMEOUT)
+    osMessageQueueGet(NAME##_id, DATA, NULL, TIMEOUT)
 
 // Static Task
 #define STATIC_TASK_DEF(NAME, PRIORITY, STACK_SIZE) \
@@ -57,7 +70,7 @@ extern "C" {
 // Static Mutex
 #define STATIC_MUTEX_DEF(NAME) \
     static osMutexId_t NAME##_id; \
-    static StaticMutex_t NAME##_mutex_cb; \
+    static StaticSemaphore_t NAME##_mutex_cb; \
     static const osMutexAttr_t NAME##_mutex_attr = { \
         .name = #NAME, \
         .cb_mem = &NAME##_mutex_cb, \

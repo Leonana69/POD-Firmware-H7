@@ -8,8 +8,8 @@ extern "C" {
 #include "stabilizer_types.h"
 #include "kalman_core.h"
 
-void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, tofMeasurement_t *tof);
-void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flowMeasurement_t *flow, const vec3f_t *gyro);
+void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, tof_t *tof);
+void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, const vec3f_t *gyro);
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, float baroAsl, bool isFlying);
 
 #ifdef __cplusplus

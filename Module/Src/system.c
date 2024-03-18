@@ -14,6 +14,8 @@
 #include "tof.h"
 #include "flow.h"
 #include "stabilizer.h"
+#include "controller_pid.h"
+#include "estimator_kalman.h"
 
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
@@ -45,6 +47,7 @@ void systemTask(void *argument) {
     flowInit();
     tofInit();
     stabilizerInit();
+    estimatorKalmanInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
     isInit = true;

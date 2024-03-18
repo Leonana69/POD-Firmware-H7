@@ -62,7 +62,7 @@ typedef union {
     scalar_t v[3];
 } vec3f_t;
 
-typedef struct state_s {
+typedef struct {
     attitude_t attitude;      // deg (legacy CF2 body coordinate system, where pitch is inverted)
     quaternion_t attitudeQuat;
     position_t position;      // m
@@ -81,7 +81,7 @@ typedef enum {
     STABILIZE_VELOCITY,
 } stab_mode_t;
 
-typedef struct setpoint_s {
+typedef struct {
     uint32_t timestamp;
 
     scalar_t thrust;
@@ -97,7 +97,7 @@ typedef struct setpoint_s {
         stab_mode_t x;
         stab_mode_t y;
         stab_mode_t z;
-        stab_mode_t raw;
+        stab_mode_t roll;
         stab_mode_t pitch;
         stab_mode_t yaw;
     } mode;
@@ -134,31 +134,6 @@ typedef struct {
     vec3f_t accel;             // Gs
     vec3f_t gyro;              // deg/s
 } imu_t;
-
-/** Flow measurement**/
-typedef struct {
-    uint32_t timestamp;
-    flow_t data;
-} flowMeasurement_t;
-
-/** TOF measurement**/
-typedef struct {
-    uint32_t timestamp;
-    tof_t data;
-} tofMeasurement_t;
-
-/** IMU measurement */
-typedef struct {
-    uint32_t timestamp;
-    imu_t data;
-} imuMeasurement_t;
-
-/** barometer measurement */
-typedef struct {
-    uint32_t timestamp;
-    baro_t data; // for legacy reasons
-} barometerMeasurement_t;
-
 
 // Frequencies to bo used with the RATE_DO_EXECUTE_HZ macro. Do NOT use an arbitrary number.
 #define RATE_1000_HZ 1000

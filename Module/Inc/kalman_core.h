@@ -69,6 +69,7 @@ typedef enum {
 } kalmanCoreStateIdx_t;
 
 #define GRAVITY_EARTH   (9.80665f)
+#define DATA_REGION __attribute__((section(".dtcmram"), aligned(4)))
 
 typedef struct {
     /**
@@ -114,12 +115,14 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t* imuData, float dt, boo
 void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt);
 
 /*  - Finalization to incorporate attitude error into body attitude */
-void kalmanCoreFinalize(kalmanCoreData_t* coreData, uint32_t tick);
+void kalmanCoreFinalize(kalmanCoreData_t* coreData);
 
 /*  - Externalization to move the filter's internal state into the external state expected by other modules */
 void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state, const vec3f_t *acc, uint32_t tick);
 
 void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise);
+
+bool kalmanCoreCheckBounds(kalmanCoreData_t* coreData);
 
 #ifdef __cplusplus
 }
