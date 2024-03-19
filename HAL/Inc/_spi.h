@@ -19,50 +19,58 @@ void _SPI_Init();
 #define SPI_DMA_READ_WRITE_FUNC_DEF(NAME, SPI_HANDLE, CS_GPIO_PORT, CS_GPIO_PIN) \
     STATIC_SEMAPHORE_DEF(NAME##_rx_sem); \
     STATIC_SEMAPHORE_DEF(NAME##_tx_sem); \
+    void NAME##_enable_cs() { \
+        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
+    } \
+    void NAME##_disable_cs() { \
+        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
+    } \
     int8_t NAME##_read_dma(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
-        reg_addr |= 0x80; \
+        NAME##_enable_cs(); \
         while (SPI_HANDLE.State != HAL_SPI_STATE_READY) {} \
         status = HAL_SPI_Transmit_DMA(&SPI_HANDLE, &reg_addr, 1); \
         STATIC_SEMAPHORE_WAIT(NAME##_tx_sem, osWaitForever); \
         while (SPI_HANDLE.State != HAL_SPI_STATE_READY) {} \
         status |= HAL_SPI_Receive_DMA(&SPI_HANDLE, reg_data, len); \
         STATIC_SEMAPHORE_WAIT(NAME##_rx_sem, osWaitForever); \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
+        NAME##_disable_cs(); \
         return (status == HAL_OK) ? 0 : -1; \
     } \
     int8_t NAME##_write_dma(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
-        reg_addr &= 0x7F; \
+        NAME##_enable_cs(); \
         while (SPI_HANDLE.State != HAL_SPI_STATE_READY) {} \
         status = HAL_SPI_Transmit_DMA(&SPI_HANDLE, &reg_addr, 1); \
         STATIC_SEMAPHORE_WAIT(NAME##_tx_sem, osWaitForever); \
         while (SPI_HANDLE.State != HAL_SPI_STATE_READY) {} \
         status |= HAL_SPI_Transmit_DMA(&SPI_HANDLE, (uint8_t *) reg_data, len); \
         STATIC_SEMAPHORE_WAIT(NAME##_tx_sem, osWaitForever); \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
+        NAME##_disable_cs(); \
         return (status == HAL_OK) ? 0 : -1; \
     }
     // int8_t NAME##_read_normal(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
-        reg_addr |= 0x80; \
+        NAME##_enable_cs(); \
         status = HAL_SPI_Transmit(&SPI_HANDLE, &reg_addr, 1, 100); \
         status |= HAL_SPI_Receive(&SPI_HANDLE, reg_data, len, 100); \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
+        NAME##_disable_cs(); \
         return (status == HAL_OK) ? 0 : -1; \
     } \
     int8_t NAME##_write_normal(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_RESET); \
-        reg_addr &= 0x7F; \
+        NAME##_enable_cs(); \
         status = HAL_SPI_Transmit(&SPI_HANDLE, &reg_addr, 1, 100); \
         status |= HAL_SPI_Transmit(&SPI_HANDLE, (uint8_t *) reg_data, len, 100); \
-        HAL_GPIO_WritePin(CS_GPIO_PORT, CS_GPIO_PIN, GPIO_PIN_SET); \
+        NAME##_disable_cs(); \
         return (status == HAL_OK) ? 0 : -1; \
     }
+
+#define SPI_ENABLE_CS(NAME) \
+    NAME##_enable_cs()
+
+#define SPI_DISABLE_CS(NAME) \
+    NAME##_disable_cs()
 
 /*
  * SPI DMA RX complete callback

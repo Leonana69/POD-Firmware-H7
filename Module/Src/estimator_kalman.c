@@ -100,8 +100,9 @@ void estimatorKalmanTask(void *argument) {
 
         update = processDataQueue();
 
-        kalmanCoreAddProcessNoise(&coreData, getDurationUs(lastTime, getTimeUs()) / 1000000.0f);
-        lastTime = getTimeUs();
+        uint32_t currentTime = getTimeUs();
+        kalmanCoreAddProcessNoise(&coreData, getDurationUs(lastTime, currentTime) / 1e6f);
+        lastTime = currentTime;
         
         if (update) {
             kalmanCoreFinalize(&coreData);

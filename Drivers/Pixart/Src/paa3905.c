@@ -1,6 +1,8 @@
 #include "paa3905.h"
 #include "_spi.h"
 
+#include "debug.h"
+
 uint8_t set_mode_reg_addr[60] = {
     0x7F, 0x51, 0x4E, 0x66,
     0x7F, 0x7E, 0x55, 0x59,
@@ -55,29 +57,53 @@ uint8_t enhanced_mode_reg_data[60] = {
     0x96, 0xB4, 0x00, 0xA0,
 };
 
-void register_write(struct paa3905_dev *dev, uint8_t reg_addr, uint8_t reg_data) {
+void register_write(paa3905_dev_t *dev, uint8_t reg_addr, uint8_t reg_data) {
     dev->write(reg_addr, &reg_data, 1, NULL);
 }
 
-uint8_t register_read(struct paa3905_dev *dev, uint8_t reg_addr) {
+uint8_t register_read(paa3905_dev_t *dev, uint8_t reg_addr) {
     uint8_t reg_data;
     dev->read(reg_addr, &reg_data, 1, NULL);
     return reg_data;
 }
 
-int8_t paa3905_init(struct paa3905_dev *dev) {
-    return 0;
-}
-
-void paa3905_standard_mode(struct paa3905_dev *dev) {
+void paa3905_standard_mode(paa3905_dev_t *dev) {
     for (int i = 0; i < 60; i++) {
         register_write(dev, set_mode_reg_addr[i], standard_mode_reg_data[i]);
     }
 }
 
-void paa3905_enhanced_mode(struct paa3905_dev *dev) {
+void paa3905_enhanced_mode(paa3905_dev_t *dev) {
     for (int i = 0; i < 60; i++) {
         register_write(dev, set_mode_reg_addr[i], enhanced_mode_reg_data[i]);
     }
 }
 
+int8_t paa3905_init(paa3905_dev_t *dev) {
+    dev->delay(40);
+    uint8_t chip_id = register_read(dev, PAA3905_REG_PRODUCT_ID);
+    uint8_t inverse_chip_id = register_read(dev, PAA3905_REG_INVERSE_PRODUCT_ID);
+
+    if (chip_id != PAA3905_PRODUCT_ID || inverse_chip_id != PAA3905_INVERSE_PRODUCT_ID) {
+        return PAA3905_ERROR;
+    }
+
+    register_write(dev, PAA3905_REG_POWER_UP_RESET, 0x5A);
+    dev->delay(1);
+    register_read(dev, PAA3905_REG_MOTION);
+    register_read(dev, PAA3905_REG_DELTA_X_L);
+    register_read(dev, PAA3905_REG_DELTA_X_H);
+    register_read(dev, PAA3905_REG_DELTA_Y_L);
+    register_read(dev, PAA3905_REG_DELTA_Y_H);
+
+    if (dev->mode == PAA3905_ENHANCED_MODE)
+        paa3905_enhanced_mode(dev);
+    else
+        paa3905_standard_mode(dev);
+
+    return PAA3905_OK;
+}
+
+void paa3905_motion_burst(paa3905_dev_t *dev, paa3905_motion_t *motion) {
+    dev->read(PAA3905_REG_MOTION_BURST, (uint8_t *)motion, sizeof(paa3905_motion_t), NULL);
+}

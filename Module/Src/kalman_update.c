@@ -6,18 +6,16 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, tof_t *tof) {
     arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     if (fabs(coreData->R[2][2]) > 0.1 && coreData->R[2][2] > 0) {
-        // float angle = fabsf(acosf(coreData->R[2][2])) - radians(15.0f / 2.0f);
-        // if (angle < 0.0f)
-        //     angle = 0.0f;
-        //float predictedDistance = S[KC_STATE_Z] / cosf(angle);
-        float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
+        float angle = fabsf(acosf(coreData->R[2][2])) - radians(15.0f / 2.0f);
+        if (angle < 0.0f)
+            angle = 0.0f;
+        float predictedDistance = coreData->S[KC_STATE_Z] / cosf(angle);
+        // float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
         float measuredDistance = tof->distance; // [m]
 
-        // equation
-        //
-        // h = z/((R*z_b)\dot z_b) = z/cos(alpha)
-        h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
-        //h[KC_STATE_Z] = 1 / cosf(angle);
+        // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
+        h[KC_STATE_Z] = 1.0 / cosf(angle);
+        // h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
 
         // Scalar update
         kalmanCoreScalarUpdate(coreData, &H, measuredDistance - predictedDistance, tof->stdDev);
@@ -29,11 +27,11 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     static float predictedNY;
     static float measuredNX;
     static float measuredNY;
-      // Inclusion of flow measurements in the EKF done by two scalar updates
+    // Inclusion of flow measurements in the EKF done by two scalar updates
     // ~~~ Camera constants ~~~
-    // The angle of aperture is guessed from the raw data register and thankfully look to be symmetric
-    float pixelNbr = 30.0;                      // [pixels] (same in x and y)
-    float thetapix = radians(4.2f);
+    float MPC = 0.1;                 // Meter per count coefficient
+    float pixelNbr = 35.0;           // [pixels] (same in x and y)
+    float thetapix = 0.71674f;       // 2 * sin(FOV/2) [rad] (same in x and y
     //~~~ Body rates ~~~
     // TODO check if this is feasible or if some filtering has to be done
     float omegax_b = radians(gyro->x);
@@ -49,31 +47,30 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
 
     // ~~~ X velocity prediction and update ~~~
     // predics the number of accumulated pixels in the x-direction
-    float omegaFactor = 1.25f;
     float hx[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
-    predictedNX = (flow->dt * pixelNbr / thetapix) * ((dx_g * coreData->R[2][2] / z_g) - omegaFactor * omegay_b);
-    measuredNX = flow->dpixelx;
+    predictedNX = (flow->dt * pixelNbr / thetapix) * ((dx_g * coreData->R[2][2] / z_g) - omegay_b);
+    measuredNX = flow->dpixelx * MPC;
 
     // derive measurement equation with respect to dx (and z?)
     hx[KC_STATE_Z] = (pixelNbr * flow->dt / thetapix) * ((coreData->R[2][2] * dx_g) / (-z_g * z_g));
     hx[KC_STATE_PX] = (pixelNbr * flow->dt / thetapix) * (coreData->R[2][2] / z_g);
 
     /*! X update */
-    kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
+    kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX * MPC);
 
     // ~~~ Y velocity prediction and update ~~~
     float hy[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
-    predictedNY = (flow->dt * pixelNbr / thetapix) * ((dy_g * coreData->R[2][2] / z_g) + omegaFactor * omegax_b);
-    measuredNY = flow->dpixely;
+    predictedNY = (flow->dt * pixelNbr / thetapix) * ((dy_g * coreData->R[2][2] / z_g) + omegax_b);
+    measuredNY = flow->dpixely * MPC;
 
     // derive measurement equation with respect to dy (and z?)
     hy[KC_STATE_Z] = (pixelNbr * flow->dt / thetapix) * ((coreData->R[2][2] * dy_g) / (-z_g * z_g));
     hy[KC_STATE_PY] = (pixelNbr * flow->dt / thetapix) * (coreData->R[2][2] / z_g);
 
     /*! Y update */
-    kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
+    kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY * MPC);
 }
 
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, float baroAsl, bool isFlying) {

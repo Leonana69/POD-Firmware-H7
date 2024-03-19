@@ -44,8 +44,8 @@ void systemTask(void *argument) {
 
     // periodic tasks
     imuInit();
-    flowInit();
     tofInit();
+    flowInit();
     stabilizerInit();
     estimatorKalmanInit();
     

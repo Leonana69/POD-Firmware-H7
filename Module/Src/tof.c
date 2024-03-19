@@ -12,11 +12,15 @@
 #include "stabilizer_types.h"
 #include "estimator_kalman.h"
 
+#define expCoeff 2.92135f
+#define expPointA 2.5f
+#define expStdA 0.0025f
+#define RANGE_OUTLIER_LIMIT 5000
+
 STATIC_TASK_DEF(tofTask, TOF_TASK_PRIORITY, TOF_TASK_STACK_SIZE);
 
 #define TOF_RATE RATE_25_HZ
 static VL53L1_Dev_t vl53l1Dev;
-static tof_t tofData;
 
 uint32_t tofInit(void) {
     if (HAL_I2C_IsDeviceReady(&VL53L1_I2C_HANDLE, VL53L1_DEV_ADDR_DEFAULT << 1, 3, 100) != HAL_OK) {
@@ -44,22 +48,19 @@ uint32_t tofInit(void) {
 
 void tofTask(void *argument) {
     estimatorPacket_t packet = { .type = TOF_TASK_INDEX };
+    VL53L1_RangingMeasurementData_t vl53l1RangingData;
     systemWaitStart();
     TASK_TIMER_DEF(TOF, TOF_RATE);
-	VL53L1_RangingMeasurementData_t vl53l1RangingData;
-
-	int16_t range_mm = 0;
 	while (1) {
 		TASK_TIMER_WAIT(TOF);
 		VL53L1_WaitMeasurementDataReady(&vl53l1Dev);
 		VL53L1_GetRangingMeasurementData(&vl53l1Dev, &vl53l1RangingData);
-		range_mm = vl53l1RangingData.RangeMilliMeter;
+		int16_t range_mm = vl53l1RangingData.RangeMilliMeter;
 		VL53L1_ClearInterruptAndStartMeasurement(&vl53l1Dev);
 
 		if (range_mm < RANGE_OUTLIER_LIMIT) {
-			tofData.distance = range_mm * 0.001f;
-			tofData.stdDev = expStdA * (1.0f  + expf(expCoeff * (range_mm * 0.001f - expPointA)));
-			packet.tof = tofData;
+			packet.tof.distance = range_mm * 0.001f;
+			packet.tof.stdDev = expStdA * (1.0f  + expf(expCoeff * (range_mm * 0.001f - expPointA)));
             estimatorKalmanEnqueue(&packet);
 		}
 	}

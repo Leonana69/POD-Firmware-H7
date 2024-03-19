@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 uint32_t imuInit(void);
+void imuGet(imu_t *imu);
 
 #ifdef __cplusplus
 }

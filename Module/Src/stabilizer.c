@@ -22,9 +22,26 @@ uint32_t stabilizerInit(void) {
 void stabilizerTask(void *argument) {
     state_t state;
     systemWaitStart();
+    control_t control;
+    control.thrust = 20000;
+    control.attitude = (attitude_t) { 0, 0, 0 };
+    osDelay(3000);
+
+    int count = 0;
+
     while (1) {
         estimatorKalmanUpdate(&state);
         DEBUG_PRINT("Stabilizer Task [RUN]: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
-        osDelay(1000);
+        // if (control.thrust >= 20000)
+        //     motorPowerUpdate(&control);
+        // else
+        //     motorPowerStop();
+        // if (count < 30) {
+        //     control.thrust += 1000;
+        // } else {
+        //     control.thrust -= 1000;
+        // }
+        // count++;
+        osDelay(200);
     }
 }

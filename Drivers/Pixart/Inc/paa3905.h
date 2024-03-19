@@ -8,6 +8,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+#define PAA3905_OK    0
+#define PAA3905_ERROR -1
+
 #define PAA3905_PRODUCT_ID 0xA2
 #define PAA3905_REVISION_ID 0x00
 #define PAA3905_RESOLUTION 0x2A
@@ -46,15 +49,42 @@ typedef int8_t (*paa3905_read_t)(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
 typedef int8_t (*paa3905_write_t)(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr);
 typedef void (*paa3905_delay_t)(uint32_t period);
 
-struct paa3905_dev {
-    uint8_t chip_id;
+typedef struct {
     paa3905_read_t read;
     paa3905_write_t write;
     paa3905_delay_t delay;
     uint8_t mode;
-};
+}paa3905_dev_t;
 
-int8_t paa3905_init(struct paa3905_dev *dev);
+typedef struct {
+    uint8_t motion;
+    uint8_t observation;
+    union {
+        struct {
+            uint8_t delta_x_l;
+            uint8_t delta_x_h;
+        };
+        int16_t delta_x;
+    };
+    union {
+        struct {
+            uint8_t delta_y_l;
+            uint8_t delta_y_h;
+        };
+        int16_t delta_y;
+    };
+    uint8_t challenging_condition;
+    uint8_t squal;
+    uint8_t raw_data_sum;
+    uint8_t maximum_raw_data;
+    uint8_t minimum_raw_data;
+    uint8_t shutter_upper;
+    uint8_t shutter_middle;
+    uint8_t shutter_lower;
+} paa3905_motion_t;
+
+int8_t paa3905_init(paa3905_dev_t *dev);
+void paa3905_motion_burst(paa3905_dev_t *dev, paa3905_motion_t *motion);
 
 #ifdef __cplusplus
 }
