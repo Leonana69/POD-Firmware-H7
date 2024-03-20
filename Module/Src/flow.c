@@ -2,7 +2,6 @@
 #include "debug.h"
 
 #include "flow.h"
-#include "freeRTOS_helper.h"
 #include "config.h"
 #include "system.h"
 #include "paa3905.h"

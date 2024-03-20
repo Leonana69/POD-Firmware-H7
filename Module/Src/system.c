@@ -9,6 +9,7 @@
 #include "config.h"
 #include "freeRTOS_helper.h"
 #include "imu.h"
+#include "baro.h"
 #include "motor_power.h"
 #include "led.h"
 #include "tof.h"
@@ -44,6 +45,7 @@ void systemTask(void *argument) {
 
     // periodic tasks
     imuInit();
+    baroInit();
     tofInit();
     flowInit();
     stabilizerInit();

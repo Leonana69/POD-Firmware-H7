@@ -115,6 +115,7 @@ typedef struct {
 typedef struct {
     scalar_t distance;          // m
     scalar_t stdDev;            // m
+    scalar_t dt;
 } tof_t;
 
 typedef struct {

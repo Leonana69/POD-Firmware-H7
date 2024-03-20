@@ -6,7 +6,6 @@
 #include "_config.h"
 #include "config.h"
 #include "vl53l1.h"
-#include "freeRTOS_helper.h"
 #include "utils.h"
 #include "system.h"
 #include "stabilizer_types.h"
@@ -15,7 +14,8 @@
 #define expCoeff 2.92135f
 #define expPointA 2.5f
 #define expStdA 0.0025f
-#define RANGE_OUTLIER_LIMIT 5000
+#define RANGE_MAX 5000
+#define RANGE_MIN 10
 
 STATIC_TASK_DEF(tofTask, TOF_TASK_PRIORITY, TOF_TASK_STACK_SIZE);
 
@@ -50,6 +50,7 @@ void tofTask(void *argument) {
     estimatorPacket_t packet = { .type = TOF_TASK_INDEX };
     VL53L1_RangingMeasurementData_t vl53l1RangingData;
     systemWaitStart();
+    uint32_t lastTime = getTimeUs();
     TASK_TIMER_DEF(TOF, TOF_RATE);
 	while (1) {
 		TASK_TIMER_WAIT(TOF);
@@ -58,9 +59,12 @@ void tofTask(void *argument) {
 		int16_t range_mm = vl53l1RangingData.RangeMilliMeter;
 		VL53L1_ClearInterruptAndStartMeasurement(&vl53l1Dev);
 
-		if (range_mm < RANGE_OUTLIER_LIMIT) {
+		if (range_mm < RANGE_MAX && range_mm > RANGE_MIN) {
 			packet.tof.distance = range_mm * 0.001f;
 			packet.tof.stdDev = expStdA * (1.0f  + expf(expCoeff * (range_mm * 0.001f - expPointA)));
+            uint32_t currentTime = getTimeUs();
+            packet.tof.dt = getDurationUs(lastTime, currentTime) / 1e6f;
+            lastTime = currentTime;
             estimatorKalmanEnqueue(&packet);
 		}
 	}

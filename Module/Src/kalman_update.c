@@ -1,17 +1,29 @@
 #include "kalman_update.h"
 #include "utils.h"
 
-void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, tof_t *tof) {
+void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
+    static float prevDistance = -1;
+    static float offset = 0;
+
     float h[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     if (fabs(coreData->R[2][2]) > 0.1 && coreData->R[2][2] > 0) {
+        // tracking the offset to avoid jumps in the distance
+        if (prevDistance < 0) {
+            prevDistance = tof->distance;
+        }
+        if (fabs((prevDistance - tof->distance) / tof->dt) > 0.8f) {
+            offset += tof->distance - prevDistance;
+        }
+        prevDistance = tof->distance;
+
         float angle = fabsf(acosf(coreData->R[2][2])) - radians(15.0f / 2.0f);
         if (angle < 0.0f)
             angle = 0.0f;
         float predictedDistance = coreData->S[KC_STATE_Z] / cosf(angle);
         // float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
-        float measuredDistance = tof->distance; // [m]
+        float measuredDistance = tof->distance - offset; // [m]
 
         // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
         h[KC_STATE_Z] = 1.0 / cosf(angle);
@@ -73,16 +85,17 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY * MPC);
 }
 
-void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, float baroAsl, bool isFlying) {
+void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro, bool isFlying) {
     static float measNoiseBaro = 2.0f; // meters
     float h[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     h[KC_STATE_Z] = 1;
 
+    float asl = (1 - powf(baro->pressure / 101315.0f, 0.28686299f)) * (273.15 + 25) / 0.0098f;
     if (!isFlying || coreData->baroReferenceHeight < 1)
-    coreData->baroReferenceHeight = baroAsl;
+        coreData->baroReferenceHeight = asl;
 
-    float meas = (baroAsl - coreData->baroReferenceHeight);
+    float meas = (asl - coreData->baroReferenceHeight);
     kalmanCoreScalarUpdate(coreData, &H, meas - coreData->S[KC_STATE_Z], measNoiseBaro);
 }
