@@ -61,7 +61,12 @@ bool processDataQueue() {
                 update = true;
                 break;
             case TOF_TASK_INDEX:
-                kalmanCoreUpdateWithTof(&coreData, &packet.tof);
+                // TODO: implement taking off and landing
+                kalmanCoreUpdateWithTof(&coreData, &packet.tof, false);
+                update = true;
+                break;
+            case BARO_TASK_INDEX:
+                kalmanCoreUpdateWithBaro(&coreData, &packet.baro, motorPowerIsFlying());
                 update = true;
                 break;
             default:
