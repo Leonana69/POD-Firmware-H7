@@ -9,7 +9,8 @@ extern "C" {
 #include "stabilizer_types.h"
 
 uint32_t imuInit(void);
-void imuGet(imu_t *imu);
+void imuGetData(imu_t *imu);
+void imuWaitData();
 
 #ifdef __cplusplus
 }

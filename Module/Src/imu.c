@@ -15,6 +15,7 @@
 #define IMU_RATE RATE_1000_HZ
 
 STATIC_MUTEX_DEF(imuDataMutex);
+STATIC_SEMAPHORE_DEF(imuDataReady);
 STATIC_TASK_DEF(imuTask, IMU_TASK_PRIORITY, IMU_TASK_STACK_SIZE);
 
 static struct bmi2_dev bmi2Dev;
@@ -80,14 +81,19 @@ uint32_t imuInit() {
     bmi2Dev.delay_us(10000, NULL);
 
     STATIC_MUTEX_INIT(imuDataMutex);
+    STATIC_SEMAPHORE_INIT(imuDataReady, 1, 0);
     STATIC_TASK_INIT(imuTask, NULL);
     return TASK_INIT_SUCCESS;
 }
 
-void imuGet(imu_t *imu) {
+void imuGetData(imu_t *imu) {
     STATIC_MUTEX_LOCK(imuDataMutex, osWaitForever);
     *imu = imuData;
     STATIC_MUTEX_UNLOCK(imuDataMutex);
+}
+
+void imuWaitData() {
+    STATIC_SEMAPHORE_WAIT(imuDataReady, osWaitForever);
 }
 
 static struct bmi2_sensor_data bmi270Data[2] = {
@@ -165,5 +171,6 @@ void imuTask(void *argument) {
 
         packet.imu = imuBuffer;
         estimatorKalmanEnqueue(&packet);
+        STATIC_SEMAPHORE_RELEASE(imuDataReady);
     }
 }

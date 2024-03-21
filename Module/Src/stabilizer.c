@@ -10,6 +10,8 @@
 #include "stabilizer_types.h"
 #include "controller_pid.h"
 #include "estimator_kalman.h"
+#include "imu.h"
+#include "supervisor.h"
 
 STATIC_TASK_DEF(stabilizerTask, STABILIZER_TASK_PRIORITY, STABILIZER_TASK_STACK_SIZE);
 
@@ -21,16 +23,30 @@ uint32_t stabilizerInit(void) {
 
 void stabilizerTask(void *argument) {
     state_t state;
-    systemWaitStart();
     control_t control;
-    control.thrust = 20000;
-    control.attitude = (attitude_t) { 0, 0, 0 };
-    osDelay(3000);
-
-    int count = 0;
-
+    setpoint_t setpoint;
+    imu_t imu;
+    systemWaitStart();
+    
+    uint32_t tick = 0;
     while (1) {
+        imuWaitData();
+        imuGetData(&imu);
+
+        supervisorUpdate(&imu);
+
         estimatorKalmanUpdate(&state);
+
+        // TODO: get setpoint
+
+        controllerPidUpdate(&setpoint, &imu, &state, tick, &control);
+
+        if (supervisorCanFly()) {
+            motorPowerUpdate(&control);
+        } else {
+            motorPowerStop();
+        }
+
         DEBUG_PRINT("Stabilizer Task [RUN]: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
         // if (control.thrust >= 20000)
         //     motorPowerUpdate(&control);
@@ -42,6 +58,6 @@ void stabilizerTask(void *argument) {
         //     control.thrust -= 1000;
         // }
         // count++;
-        osDelay(200);
+        tick++;
     }
 }
