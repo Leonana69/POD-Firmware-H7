@@ -2,8 +2,7 @@ OPENOCD				?= openocd
 OPENOCD_INTERFACE	?= interface/stlink.cfg
 OPENOCD_TARGET    	?= target/stm32h7x.cfg
 OPENOCD_CMDS		?=
-# LOAD_ADDRESS		?= 0x8020000
-LOAD_ADDRESS		?= 0x8000000
+LOAD_ADDRESS		?= 0x8020000
 PROG				?= $(BUILD_DIR)/$(TARGET)
 
 ######################################

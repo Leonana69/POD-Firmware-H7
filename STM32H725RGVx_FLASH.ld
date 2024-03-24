@@ -66,7 +66,7 @@ RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 320K
 RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 32K
 RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 16K
 ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
-FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1024K
+FLASH (rx)      : ORIGIN = 0x8020000, LENGTH = 896K
 }
 
 /* Define output sections */
@@ -137,6 +137,18 @@ SECTIONS
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+  /* Add new section for DTCMRAM */
+  .dtcmram :
+  {
+    . = ALIGN(4);
+    _sdtcmram = .;     /* create a global symbol at DTCMRAM start */
+    *(.dtcmram)        /* .dtcmram sections */
+    *(.dtcmram*)       /* .dtcmram* sections */
+
+    . = ALIGN(4);
+    _edtcmram = .;     /* define a global symbol at DTCMRAM end */
+  } >DTCMRAM AT> FLASH
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
   {
@@ -177,18 +189,6 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM_D1
-
-  /* Add new section for DTCMRAM */
-  .dtcmram :
-  {
-    . = ALIGN(4);
-    _sdtcmram = .;     /* create a global symbol at DTCMRAM start */
-    *(.dtcmram)        /* .dtcmram sections */
-    *(.dtcmram*)       /* .dtcmram* sections */
-
-    . = ALIGN(4);
-    _edtcmram = .;     /* define a global symbol at DTCMRAM end */
-  } >DTCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
