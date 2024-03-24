@@ -121,7 +121,6 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    ledToggle(LED_COM);
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */

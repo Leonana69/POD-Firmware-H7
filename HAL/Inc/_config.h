@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#define DEBUG_UART_HANDLE       huart4
+#define ESP_UART_HANDLE         huart5
+
 #define VL53L1_I2C_HANDLE       hi2c3
 #define BMP388_I2C_HANDLE       hi2c1
 #define BMI270_SPI_HANDLE       hspi1

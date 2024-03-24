@@ -27,10 +27,10 @@ uint32_t flowInit(void) {
     uint8_t rslt = paa3905_init(&paa3905_dev);
 
     if (rslt != PAA3905_OK) {
-        DEBUG_PRINT("Flow Init [FAILED]: rslt: %d\n", rslt);
+        DEBUG_PRINT("PAA3905 Init [FAILED]: rslt: %d\n", rslt);
         return TASK_INIT_FAILED(FLOW_TASK_INDEX);
     }
-    DEBUG_PRINT("Flow Init [OK]\n");
+    DEBUG_PRINT("PAA3905 Init [OK]\n");
     return TASK_INIT_SUCCESS;
 }
 

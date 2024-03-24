@@ -23,8 +23,7 @@ CFLAGS += -Wno-comment
 VPATH += Module/Src
 C_SOURCES += eprintf.c system.c flow.c imu.c utils.c motor_dshot.c tof.c led.c assert.c kalman_core.c kalman_update.c \
 	motor_power.c stabilizer.c pid.c controller_pid.c estimator_kalman.c baro.c \
-	supervisor.c
-
+	supervisor.c led_seq.c link.c
 VPATH += HAL/Src
 C_SOURCES += _usart.c _spi.c _i2c.c _tim.c
 

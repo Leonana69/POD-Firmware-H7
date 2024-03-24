@@ -17,6 +17,8 @@
 #include "stabilizer.h"
 #include "controller_pid.h"
 #include "estimator_kalman.h"
+#include "led_seq.h"
+#include "link.h"
 
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
@@ -27,6 +29,7 @@ void systemInit() {
     _I2C_Init();
     _SPI_Init();
     _TIM_Init();
+    _UART_Init();
     STATIC_SEMAPHORE_INIT(systemStart, 1, 0);
     STATIC_TASK_INIT(systemTask, NULL);
 }
@@ -40,7 +43,6 @@ void systemWaitStart() {
 void systemTask(void *argument) {
     DEBUG_PRINT("systemTask [START]\n");
     // one-time init tasks
-    ledInit();
     motorPowerInit();
 
     // periodic tasks
@@ -50,6 +52,8 @@ void systemTask(void *argument) {
     flowInit();
     stabilizerInit();
     estimatorKalmanInit();
+    ledSeqInit();
+    linkInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
     isInit = true;

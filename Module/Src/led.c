@@ -17,23 +17,29 @@ static led_t led[] = {
     { .port = LED_L_B_GPIO_PORT, .pin = LED_L_B_GPIO_PIN }
 };
 
-uint32_t ledInit(void) {
+void ledInit(void) {
     ledCount = sizeof(led) / sizeof(led_t);
-    for (uint8_t i = 0; i < ledCount; i++) {
-        HAL_GPIO_WritePin(led[i].port, led[i].pin, led[i].polarity);
-    }
-    return TASK_INIT_SUCCESS;
+    ledClearAll();
 }
 
-void ledToggle(uint8_t id) {
-    if (id < ledCount) {
+uint8_t ledIdGet(uint8_t collection) {
+    uint8_t id = 31 - __builtin_clz(collection);
+    return id >= ledCount ? 0 : id;
+}
+
+void ledToggle(uint8_t collection) {
+    while (collection) {
+        uint8_t id = ledIdGet(collection);
         HAL_GPIO_TogglePin(led[id].port, led[id].pin);
+        collection &= ~(1 << id);
     }
 }
 
-void ledSet(uint8_t id, uint8_t state) {
-    if (id < ledCount) {
-        HAL_GPIO_WritePin(led[id].port, led[id].pin, state ^ led[id].polarity);
+void ledSet(uint8_t collection, uint8_t state) {
+    while (collection) {
+        uint8_t id = ledIdGet(collection);
+        HAL_GPIO_WritePin(led[id].port, led[id].pin, state);
+        collection &= ~(1 << id);
     }
 }
 
