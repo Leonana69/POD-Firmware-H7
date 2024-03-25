@@ -6,6 +6,8 @@
 #include "link.h"
 #include "usart.h"
 #include "system.h"
+#include "led.h"
+#include "command.h"
 
 STATIC_QUEUE_DEF(linkTxPacketQueue, 10, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
@@ -67,9 +69,8 @@ void linkBufferPutChar(uint8_t c) {
             break;
         case PODTP_STATE_CRC_2:
             state = PODTP_STATE_START_1;
-            if (c == check_sum[1]) {
-                ASSERT(STATIC_QUEUE_SEND(linkRxPacketQueue, &packet, 0) == osOK);
-            }
+            if (c == check_sum[1])
+                STATIC_QUEUE_SEND(linkRxPacketQueue, &packet, 0);
             break;
     }
 }
@@ -91,14 +92,15 @@ int8_t linkSendPacketUart(PodtpPacket *packet) {
 
 bool linkProcessPacket(PodtpPacket *packet) {
     uint8_t len = packet->length;
-    if (len <= 1)
+    ledToggle(LED_COM);
+    if (len < 1)
         return false;
 
     bool ret = false;
 
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
-            DEBUG_PRINT("CMD\n");
+            ret = commandProcessPacket(packet);
             break;
         case PODTP_TYPE_ESP32:
             DEBUG_PRINT("ESP32\n");

@@ -553,7 +553,6 @@ void kalmanCoreFinalize(kalmanCoreData_t* coreData) {
 void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state, const vec3f_t *accel, uint32_t tick) {
     // position state is already in world frame
     state->position = (position_t) {
-        .timestamp = tick,
         .x = coreData->S[KC_STATE_X],
         .y = coreData->S[KC_STATE_Y],
         .z = coreData->S[KC_STATE_Z],
@@ -561,7 +560,6 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
 
     // velocity is in body frame and needs to be rotated to world frame
     state->velocity = (velocity_t) {
-        .timestamp = tick,
         .x = coreData->R[0][0] * coreData->S[KC_STATE_PX] + coreData->R[0][1] * coreData->S[KC_STATE_PY] + coreData->R[0][2] * coreData->S[KC_STATE_PZ],
         .y = coreData->R[1][0] * coreData->S[KC_STATE_PX] + coreData->R[1][1] * coreData->S[KC_STATE_PY] + coreData->R[1][2] * coreData->S[KC_STATE_PZ],
         .z = coreData->R[2][0] * coreData->S[KC_STATE_PX] + coreData->R[2][1] * coreData->S[KC_STATE_PY] + coreData->R[2][2] * coreData->S[KC_STATE_PZ],
@@ -571,7 +569,6 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
     // Furthermore, the legacy code requires acc.z to be acceleration without gravity.
     // Finally, note that these accelerations are in Gs, and not in m/s^2, hence - 1 for removing gravity
     state->accel = (accel_t) {
-        .timestamp = tick,
         .x = coreData->R[0][0] * accel->x + coreData->R[0][1] * accel->y + coreData->R[0][2] * accel->z,
         .y = coreData->R[1][0] * accel->x + coreData->R[1][1] * accel->y + coreData->R[1][2] * accel->z,
         .z = coreData->R[2][0] * accel->x + coreData->R[2][1] * accel->y + coreData->R[2][2] * accel->z - 1.0,
@@ -590,7 +587,6 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
 
     // Save attitude, adjusted for the legacy CF2 body coordinate system
     state->attitude = (attitude_t) {
-        .timestamp = tick,
         .roll = degrees(roll),
         .pitch = degrees(pitch),
         .yaw = degrees(yaw)
@@ -599,7 +595,6 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
     // Save quaternion, hopefully one day this could be used in a better controller.
     // Note that this is not adjusted for the legacy coordinate system
     state->attitudeQuat = (quaternion_t) {
-        .timestamp = tick,
         .w = coreData->q[0],
         .x = coreData->q[1],
         .y = coreData->q[2],

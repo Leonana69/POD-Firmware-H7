@@ -9,7 +9,9 @@ extern "C" {
 #include "stabilizer_types.h"
 
 void supervisorUpdate(const imu_t *imu);
+void supervisorUpdateCommand();
 bool supervisorCanFly();
+bool supervisorCommandTimeout();
 void supervisorUnlockDrone();
 void supervisorLockDrone();
 

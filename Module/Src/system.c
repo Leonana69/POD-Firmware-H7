@@ -19,6 +19,7 @@
 #include "estimator_kalman.h"
 #include "led_seq.h"
 #include "link.h"
+#include "command.h"
 
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
@@ -44,6 +45,7 @@ void systemTask(void *argument) {
     DEBUG_PRINT("systemTask [START]\n");
     // one-time init tasks
     motorPowerInit();
+    commandInit();
 
     // periodic tasks
     imuInit();

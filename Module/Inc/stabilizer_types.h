@@ -13,7 +13,6 @@ typedef float scalar_t;
  *  All have a timestamp to be set when the data is calculated.
  */
 struct geo_info_s {
-	uint32_t timestamp;
 	union {
 		struct {
 			scalar_t roll;
@@ -26,7 +25,7 @@ struct geo_info_s {
 			scalar_t z;
 		};
 	};
-};
+}__attribute__((packed, aligned(4)));
 
 typedef struct geo_info_s attitude_t;
 typedef struct geo_info_s palstance_t;
@@ -36,7 +35,6 @@ typedef struct geo_info_s accel_t;
 
 /* Orientation as a quaternion */
 typedef struct {
-    uint32_t timestamp;
     union {
         struct {
             scalar_t q0;
@@ -51,7 +49,7 @@ typedef struct {
             scalar_t w;
         };
     };
-} quaternion_t;
+}__attribute__((packed, aligned(4))) quaternion_t;
 
 typedef union {
     struct {
@@ -60,7 +58,7 @@ typedef union {
         scalar_t z;
     };
     scalar_t v[3];
-} vec3f_t;
+}__attribute__((packed, aligned(4))) vec3f_t;
 
 typedef struct {
     attitude_t attitude;      // deg (legacy CF2 body coordinate system, where pitch is inverted)

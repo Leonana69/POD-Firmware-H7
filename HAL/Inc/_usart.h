@@ -36,6 +36,7 @@ extern "C" {
 
 void _UART_Init();
 void debugUartPutChar(int c);
+void ESP_UART_HANDLE_IRQHandler();
 USART_DMA_WRITE_FUNC_DECL(esp);
 
 #ifdef __cplusplus

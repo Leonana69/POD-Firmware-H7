@@ -1,6 +1,8 @@
 #define MODULE_NAME "STA"
 #include "debug.h"
 
+#include <string.h>
+
 #include "stabilizer.h"
 #include "config.h"
 #include "freeRTOS_helper.h"
@@ -13,6 +15,7 @@
 #include "imu.h"
 #include "supervisor.h"
 #include "led_seq.h"
+#include "command.h"
 
 STATIC_TASK_DEF(stabilizerTask, STABILIZER_TASK_PRIORITY, STABILIZER_TASK_STACK_SIZE);
 
@@ -21,7 +24,7 @@ uint32_t stabilizerInit(void) {
     STATIC_TASK_INIT(stabilizerTask, NULL);
     return TASK_INIT_SUCCESS;
 }
-
+extern MotorPower_t motorPower;
 void stabilizerTask(void *argument) {
     state_t state;
     control_t control;
@@ -38,29 +41,27 @@ void stabilizerTask(void *argument) {
 
         estimatorKalmanUpdate(&state);
 
-        // TODO: get setpoint
+        if (supervisorCommandTimeout())
+            memset(&setpoint, 0, sizeof(setpoint_t));
+        else {
+            commandGetSetpoint(&setpoint);
+        }
 
         controllerPidUpdate(&setpoint, &imu, &state, tick, &control);
 
+        if (tick % 500 == 0) {
+            DEBUG_PRINT("c: %.1f %.1f %.1f %.1f\n", control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
+        }
+        
         if (supervisorCanFly()) {
             motorPowerUpdate(&control);
         } else {
+            supervisorLockDrone();
             motorPowerStop();
         }
 
-        if (tick % 500 == 0)
-            DEBUG_PRINT("Stabilizer Task [RUN]: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
-        
-        // if (control.thrust >= 20000)
-        //     motorPowerUpdate(&control);
-        // else
-        //     motorPowerStop();
-        // if (count < 30) {
-        //     control.thrust += 1000;
-        // } else {
-        //     control.thrust -= 1000;
-        // }
-        // count++;
+        if (tick % 1000 == 0)
+            DEBUG_PRINT("s: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
         tick++;
     }
 }

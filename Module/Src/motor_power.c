@@ -3,23 +3,13 @@
 #include "_config.h"
 #include "debug.h"
 
-typedef struct {
-    void (*init)();
-    void (*setRatio)(uint8_t id, uint16_t thrust);
-    uint16_t (*getRatio)(uint8_t id);
-    uint16_t baseThrust;
-    uint16_t maxThrust;
-    uint16_t minThrust;
-    bool isFlying;
-} MotorPower_t;
-
 MotorPower_t motorPower = {
     .init = motorDShotInit,
     .setRatio = motorDShotSetThrust,
     .getRatio = motorDShotGetThrust,
     .baseThrust = 30000,
-    .maxThrust = DSHOT_MAX_THRUST,
-    .minThrust = DSHOT_MIN_THRUST,
+    .maxThrust = MOTOR_THRUST_MAX,
+    .minThrust = MOTOR_THRUST_MIN,
     .isFlying = false
 };
 
@@ -32,6 +22,7 @@ void motorPowerStop(void) {
     for (int i = 0; i < MOTOR_COUNT; i++) {
         motorPower.setRatio(i, 0);
     }
+    motorPower.isFlying = false;
 }
 
 static uint16_t thrustToRatio(uint16_t thrust) {
