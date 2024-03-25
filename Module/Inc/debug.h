@@ -13,7 +13,7 @@ extern "C" {
 #define DEBUG_FMT(FMT) FMT
 #endif
 
-#define DEBUG_WRITE(FMT, ...) eprintf(debugUartPutChar, DEBUG_FMT(FMT), ## __VA_ARGS__)
+#define DEBUG_WRITE(FMT, ...) eprintf(debugUartTransmit, DEBUG_FMT(FMT), ## __VA_ARGS__)
 
 #ifdef MODULE_NAME
 #define DEBUG_PRINT(FMT, ...) DEBUG_WRITE("%s: "FMT, MODULE_NAME, ## __VA_ARGS__)

@@ -35,7 +35,7 @@ extern "C" {
     int8_t NAME##_write_dma(const uint8_t *data, uint16_t len);
 
 void _UART_Init();
-void debugUartPutChar(int c);
+void debugUartTransmit(const uint8_t *data, uint16_t len);
 void ESP_UART_HANDLE_IRQHandler();
 USART_DMA_WRITE_FUNC_DECL(esp);
 

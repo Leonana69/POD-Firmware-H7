@@ -128,7 +128,7 @@ void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0xA0303048;
+  hi2c4.Init.Timing = 0x00D049F7;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

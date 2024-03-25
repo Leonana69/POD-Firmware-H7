@@ -6,8 +6,8 @@
 
 USART_DMA_WRITE_FUNC_DEF(esp, ESP_UART_HANDLE);
 
-void debugUartPutChar(int c) {
-	HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*) &c, 1, 100);
+void debugUartTransmit(const uint8_t *data, uint16_t len) {
+	HAL_UART_Transmit(&DEBUG_UART_HANDLE, data, len, 100);
 }
 
 void ESP_UART_HANDLE_IRQHandler() {
