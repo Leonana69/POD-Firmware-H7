@@ -8,12 +8,14 @@ extern "C" {
 #include "_usart.h"
 #include "eprintf.h"
 #include "config.h"
+#include "link.h"
 
 #ifndef DEBUG_FMT
 #define DEBUG_FMT(FMT) FMT
 #endif
 
 #define DEBUG_WRITE(FMT, ...) eprintf(debugUartTransmit, DEBUG_FMT(FMT), ## __VA_ARGS__)
+#define DEBUG_REMOTE(FMT, ...) eprintf(linkSendData, DEBUG_FMT(FMT), ## __VA_ARGS__)
 
 #ifdef MODULE_NAME
 #define DEBUG_PRINT(FMT, ...) DEBUG_WRITE("%s: "FMT, MODULE_NAME, ## __VA_ARGS__)

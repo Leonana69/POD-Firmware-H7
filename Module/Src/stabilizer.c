@@ -62,6 +62,9 @@ void stabilizerTask(void *argument) {
 
         if (tick % 1000 == 0)
             DEBUG_PRINT("s: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
+        
+        if (tick % 2000 == 0)
+            DEBUG_REMOTE("Hello, World!:L %ld\n", tick);
         tick++;
     }
 }

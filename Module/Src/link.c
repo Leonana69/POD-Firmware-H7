@@ -75,19 +75,15 @@ void linkBufferPutChar(uint8_t c) {
     }
 }
 
-int8_t linkSendPacketUart(PodtpPacket *packet) {
-    static uint8_t buffer[PODTP_MAX_DATA_LEN + 5] = { PODTP_START_BYTE_1, PODTP_START_BYTE_2 };
-    uint8_t check_sum[2] = { 0 };
-    check_sum[0] = check_sum[1] = packet->length;
-    buffer[2] = packet->length;
-    for (uint8_t i = 0; i < packet->length; i++) {
-        check_sum[0] += packet->raw[i];
-        check_sum[1] += check_sum[0];
-        buffer[i + 3] = packet->raw[i];
+void linkSendData(const uint8_t *data, uint16_t length) {
+    PodtpPacket packet = { 0 };
+    packet.type = PODTP_TYPE_LOG;
+    packet.port = PODTP_PORT_STRING;
+    packet.length = length + 1;
+    for (uint16_t i = 0; i < length; i++) {
+        packet.data[i] = data[i];
     }
-    buffer[packet->length + 3] = check_sum[0];
-    buffer[packet->length + 4] = check_sum[1];
-    return esp_write_dma(buffer, packet->length + 5);
+    linkSendPacket(&packet);
 }
 
 bool linkProcessPacket(PodtpPacket *packet) {
@@ -127,6 +123,21 @@ void linkRxTask(void *argument) {
             STATIC_QUEUE_SEND(linkTxPacketQueue, &packet, 0);
         }
     }
+}
+
+static int8_t linkSendPacketUart(PodtpPacket *packet) {
+    static uint8_t buffer[PODTP_MAX_DATA_LEN + 5] = { PODTP_START_BYTE_1, PODTP_START_BYTE_2 };
+    uint8_t check_sum[2] = { 0 };
+    check_sum[0] = check_sum[1] = packet->length;
+    buffer[2] = packet->length;
+    for (uint8_t i = 0; i < packet->length; i++) {
+        check_sum[0] += packet->raw[i];
+        check_sum[1] += check_sum[0];
+        buffer[i + 3] = packet->raw[i];
+    }
+    buffer[packet->length + 3] = check_sum[0];
+    buffer[packet->length + 4] = check_sum[1];
+    return esp_write_dma(buffer, packet->length + 5);
 }
 
 void linkTxTask(void *argument) {
