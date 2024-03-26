@@ -46,6 +46,9 @@ extern "C" {
 #define STATIC_QUEUE_RECEIVE(NAME, DATA, TIMEOUT) \
     osMessageQueueGet(NAME##_id, DATA, NULL, TIMEOUT)
 
+#define STATIC_QUEUE_IS_EMPTY(NAME) \
+    osMessageQueueGetCount(NAME##_id) == 0
+
 // Static Task
 #define STATIC_TASK_DEF(NAME, PRIORITY, STACK_SIZE) \
     void NAME(void *argument); \

@@ -49,22 +49,20 @@ void stabilizerTask(void *argument) {
 
         controllerPidUpdate(&setpoint, &imu, &state, tick, &control);
 
-        if (tick % 500 == 0) {
+        if (tick % 1000 == 0) {
             DEBUG_PRINT("c: %.1f %.1f %.1f %.1f\n", control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
         }
         
         if (supervisorCanFly()) {
             motorPowerUpdate(&control);
         } else {
-            supervisorLockDrone();
+            supervisorLockDrone(true);
             motorPowerStop();
         }
 
         if (tick % 1000 == 0)
             DEBUG_PRINT("s: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
         
-        if (tick % 2000 == 0)
-            DEBUG_REMOTE("Hello, World!:L %ld\n", tick);
         tick++;
     }
 }

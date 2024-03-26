@@ -106,7 +106,7 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  DEBUG_PRINT("Firmware start\r\n");
+  DEBUG_PRINT("Firmware start\n");
   /* USER CODE END 2 */
 
   /* Init scheduler */

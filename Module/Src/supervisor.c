@@ -20,7 +20,7 @@ void supervisorUpdate(const imu_t *imu) {
 
     if (z_accel_count > Z_ACCEL_COUNT) {
         isTumbled = true;
-        supervisorLockDrone();
+        supervisorLockDrone(true);
     }
 }
 
@@ -38,10 +38,6 @@ bool supervisorCanFly() {
         && !(motorPowerIsFlying() && supervisorCommandTimeout());
 }
 
-void supervisorUnlockDrone() {
-    isLocked = false;
-}
-
-void supervisorLockDrone() {
-    isLocked = true;
+void supervisorLockDrone(bool lock) {
+    isLocked = lock;
 }

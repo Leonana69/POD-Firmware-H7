@@ -75,29 +75,28 @@ typedef struct {
 
 typedef enum {
     STABILIZE_DISABLE = 0,
-    STABILIZE_ABSOLUTE,
-    STABILIZE_VELOCITY,
+    STABILIZE_ABSOLUTE = 1,
+    STABILIZE_VELOCITY = 2,
 } stab_mode_t;
 
 typedef struct {
     uint32_t timestamp;
+    uint32_t duration;
 
     scalar_t thrust;
-    attitude_t attitude;      // deg
+    attitude_t attitude;    // deg
     palstance_t palstance;  // deg/s
-    quaternion_t attitudeQuat;
-    position_t position;      // m
-    velocity_t velocity;      // m/s
-    accel_t acceleration;     // m/s^2
-    bool velocity_body;       // true if velocity is given in body frame; false if velocity is given in world frame
+    position_t position;    // m
+    velocity_t velocity;    // m/s
+    bool velocity_body;     // true if velocity is given in body frame
 
     struct {
-        stab_mode_t x;
-        stab_mode_t y;
-        stab_mode_t z;
-        stab_mode_t roll;
-        stab_mode_t pitch;
-        stab_mode_t yaw;
+        uint8_t x;
+        uint8_t y;
+        uint8_t z;
+        uint8_t roll;
+        uint8_t pitch;
+        uint8_t yaw;
     } mode;
 } setpoint_t;
 

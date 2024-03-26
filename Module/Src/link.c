@@ -8,6 +8,7 @@
 #include "system.h"
 #include "led.h"
 #include "command.h"
+#include "supervisor.h"
 
 STATIC_QUEUE_DEF(linkTxPacketQueue, 10, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
@@ -86,6 +87,12 @@ void linkSendData(const uint8_t *data, uint16_t length) {
     linkSendPacket(&packet);
 }
 
+static void linkSetAckPacket(PodtpPacket *packet, uint8_t port) {
+    packet->type = PODTP_TYPE_ACK;
+    packet->port = port;
+    packet->length = 1;
+}
+
 bool linkProcessPacket(PodtpPacket *packet) {
     uint8_t len = packet->length;
     ledToggle(LED_COM);
@@ -97,6 +104,17 @@ bool linkProcessPacket(PodtpPacket *packet) {
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
             ret = commandProcessPacket(packet);
+            break;
+        case PODTP_TYPE_CTRL:
+            if (packet->port == PODTP_PORT_LOCK) {
+                DEBUG_PRINT("LOCK DRONE\n");
+                supervisorLockDrone(true);
+            } else if (packet->port == PODTP_PORT_UNLOCK) {
+                DEBUG_PRINT("UNLOCK DRONE\n");
+                supervisorLockDrone(false);
+            }
+            linkSetAckPacket(packet, PODTP_PORT_OK);
+            ret = true;
             break;
         case PODTP_TYPE_ESP32:
             DEBUG_PRINT("ESP32\n");
