@@ -34,6 +34,7 @@ enum {
     // PODTP_TYPE_CTRL
     PODTP_PORT_LOCK = 0x0,
     PODTP_PORT_UNLOCK = 0x1,
+    PODTP_PORT_KEEP_ALIVE = 0x2,
 
     // PODTP_TYPE_ESP32
     PORT_ECHO = 0x0,
@@ -54,7 +55,8 @@ typedef struct {
             union {
                 uint8_t header;
                 struct {
-                    uint8_t port:4;
+                    uint8_t port:3;
+                    uint8_t ack:1;
                     uint8_t type:4;
                 };
             };

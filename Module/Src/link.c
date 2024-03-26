@@ -99,11 +99,11 @@ bool linkProcessPacket(PodtpPacket *packet) {
     if (len < 1)
         return false;
 
-    bool ret = false;
-
+    bool ret = packet->ack;
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
-            ret = commandProcessPacket(packet);
+            commandProcessPacket(packet);
+            ret = true;
             break;
         case PODTP_TYPE_CTRL:
             if (packet->port == PODTP_PORT_LOCK) {
@@ -112,9 +112,13 @@ bool linkProcessPacket(PodtpPacket *packet) {
             } else if (packet->port == PODTP_PORT_UNLOCK) {
                 DEBUG_PRINT("UNLOCK DRONE\n");
                 supervisorLockDrone(false);
+            } else if (packet->port == PODTP_PORT_KEEP_ALIVE) {
+                DEBUG_PRINT("KEEP ALIVE\n");
+                supervisorUpdateCommand();
             }
-            linkSetAckPacket(packet, PODTP_PORT_OK);
-            ret = true;
+            if (ret) {
+                linkSetAckPacket(packet, packet->port);
+            }
             break;
         case PODTP_TYPE_ESP32:
             DEBUG_PRINT("ESP32\n");

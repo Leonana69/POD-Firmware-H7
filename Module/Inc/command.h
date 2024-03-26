@@ -10,7 +10,7 @@ extern "C" {
 #include "stabilizer_types.h"
 
 void commandInit(void);
-bool commandProcessPacket(PodtpPacket *packet);
+void commandProcessPacket(PodtpPacket *packet);
 void commandSetSetpoint(setpoint_t *s);
 void commandGetSetpoint(setpoint_t *s);
 

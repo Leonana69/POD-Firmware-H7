@@ -13,12 +13,14 @@ typedef struct {
     float dt;       // 1.0 / rate
     float last_error;
     float integral;
+    float tau;      // 1 / (2 * pi * f_cutoff)
+    float filtered_derivative;
 
     float i_limit;  // integral limit
     float o_limit;  // output limit
 } pid_t;
 
-void pidInit(pid_t *pid, float kp, float ki, float kd, float rate, float i_limit, float o_limit);
+void pidInit(pid_t *pid, float kp, float ki, float kd, float rate, float cutoff_freq, float i_limit, float o_limit);
 float pidUpdate(pid_t *pid, float error);
 void pidReset(pid_t *pid);
 

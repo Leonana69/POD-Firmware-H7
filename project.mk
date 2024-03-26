@@ -19,23 +19,11 @@ C_INCLUDES += \
 
 CFLAGS += -Wno-comment
 
-VPATH += Module/Src
-C_SOURCES += eprintf.c system.c flow.c imu.c utils.c motor_dshot.c tof.c led.c assert.c kalman_core.c kalman_update.c \
-	motor_power.c stabilizer.c pid.c controller_pid.c estimator_kalman.c baro.c \
-	supervisor.c led_seq.c link.c command.c
-VPATH += HAL/Src
-C_SOURCES += _usart.c _spi.c _i2c.c _tim.c
-
-VPATH += Drivers/Bosch/Src
-C_SOURCES += bmi08a.c bmi08g.c bmp3.c bmi2.c bmi270.c
-
-VPATH += Drivers/Pixart/Src
-C_SOURCES += paa3905.c
-
-VPATH += Drivers/Vl53l1/Src
-C_SOURCES += vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c \
-	vl53l1_api.c vl53l1_core_support.c vl53l1_core.c vl53l1_error_strings.c vl53l1_register_funcs.c vl53l1_silicon_core.c \
-	vl53l1_wait.c vl53l1.c
+C_SOURCES += $(wildcard Module/Src/*.c)
+C_SOURCES += $(wildcard HAL/Src/*.c)
+C_SOURCES += $(wildcard Drivers/Bosch/Src/*.c)
+C_SOURCES += $(wildcard Drivers/Pixart/Src/*.c)
+C_SOURCES += $(wildcard Drivers/Vl53l1/Src/*.c)
 
 VPATH += Drivers/CMSIS/DSP/Source/FastMathFunctions
 C_SOURCES += arm_cos_f32.c arm_sin_f32.c

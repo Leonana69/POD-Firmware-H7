@@ -10,39 +10,31 @@ STATIC_QUEUE_DEF(commandQueue, 10, setpoint_t);
 static setpoint_t currentSetpoint;
 
 static void getHoverSetpoint(setpoint_t *sp, scalar_t height, scalar_t vx, scalar_t vy, scalar_t vyaw) {
-    *sp = (setpoint_t) {
-        .timestamp = 0,
-        .duration = 0,
-        .thrust = MOTOR_THRUST_MIN,
-        .attitude = { .roll = 0, .pitch = 0, .yaw = 0 },
-        .palstance = { .roll = 0, .pitch = 0, .yaw = vyaw },
-        .position = { .x = 0, .y = 0, .z = height },
-        .velocity = { .x = vx, .y = vy, .z = 0 },
-        .mode.x = STABILIZE_VELOCITY,
-        .mode.y = STABILIZE_VELOCITY,
-        .mode.z = STABILIZE_ABSOLUTE,
-        .mode.roll = STABILIZE_DISABLE,
-        .mode.pitch = STABILIZE_DISABLE,
-        .mode.yaw = STABILIZE_VELOCITY
-    };
+    sp->thrust = 0;
+    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = 0 };
+    sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = vyaw };
+    sp->position = (position_t) { .x = 0, .y = 0, .z = height };
+    sp->velocity = (velocity_t) { .x = vx, .y = vy, .z = 0 };
+    sp->mode.x = STABILIZE_VELOCITY;
+    sp->mode.y = STABILIZE_VELOCITY;
+    sp->mode.z = STABILIZE_ABSOLUTE;
+    sp->mode.roll = STABILIZE_DISABLE;
+    sp->mode.pitch = STABILIZE_DISABLE;
+    sp->mode.yaw = STABILIZE_VELOCITY;
 };
 
 static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scalar_t yaw, scalar_t thrust) {
-    *sp = (setpoint_t) {
-        .timestamp = 0,
-        .duration = 0,
-        .thrust = clamp(thrust, MOTOR_THRUST_MIN, MOTOR_THRUST_MAX),
-        .attitude = { .roll = roll, .pitch = pitch, .yaw = yaw },
-        .palstance = { .roll = 0, .pitch = 0, .yaw = 0 },
-        .position = { .x = 0, .y = 0, .z = 0 },
-        .velocity = { .x = 0, .y = 0, .z = 0 },
-        .mode.x = STABILIZE_DISABLE,
-        .mode.y = STABILIZE_DISABLE,
-        .mode.z = STABILIZE_DISABLE,
-        .mode.roll = STABILIZE_ABSOLUTE,
-        .mode.pitch = STABILIZE_ABSOLUTE,
-        .mode.yaw = STABILIZE_ABSOLUTE
-    };
+    sp->thrust = clamp(thrust, MOTOR_THRUST_MIN, MOTOR_THRUST_MAX);
+    sp->attitude = (attitude_t) { .roll = roll, .pitch = pitch, .yaw = yaw };
+    sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
+    sp->position = (position_t) { .x = 0, .y = 0, .z = 0 };
+    sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
+    sp->mode.x = STABILIZE_DISABLE;
+    sp->mode.y = STABILIZE_DISABLE;
+    sp->mode.z = STABILIZE_DISABLE;
+    sp->mode.roll = STABILIZE_ABSOLUTE;
+    sp->mode.pitch = STABILIZE_ABSOLUTE;
+    sp->mode.yaw = STABILIZE_ABSOLUTE;
 };
 
 typedef struct {
@@ -79,6 +71,17 @@ bool commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
     return true;
 }
 
+void commandTakeOff() {
+    setpoint_t sp;
+    sp.duration = 500;
+    getRpytSetpoint(&sp, 0, 0, 0, 20000);
+    commandSetSetpoint(&sp);
+    getRpytSetpoint(&sp, 0, 0, 0, 40000);
+    commandSetSetpoint(&sp);
+    getHoverSetpoint(&sp, 1, 0, 0, 0);
+    commandSetSetpoint(&sp);
+}
+
 void commandInit(void) {
     STATIC_QUEUE_INIT(commandQueue);
 }
@@ -87,8 +90,8 @@ void commandGetSetpoint(setpoint_t *s) {
     if (currentSetpoint.timestamp == 0)
         currentSetpoint.timestamp = osKernelGetTickCount();
 
-    if (currentSetpoint.timestamp + currentSetpoint.duration < osKernelGetTickCount()
-        && !STATIC_QUEUE_IS_EMPTY(commandQueue)) {
+    if (!STATIC_QUEUE_IS_EMPTY(commandQueue)
+        && currentSetpoint.timestamp + currentSetpoint.duration < osKernelGetTickCount()) {
         STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0);
     }
     *s = currentSetpoint;
@@ -98,7 +101,7 @@ void commandSetSetpoint(setpoint_t *s) {
     STATIC_QUEUE_SEND(commandQueue, s, 0);
 }
 
-bool commandProcessPacket(PodtpPacket *packet) {
+void commandProcessPacket(PodtpPacket *packet) {
     static setpoint_t sp;
     bool ret = false;
     memset(&sp, 0, sizeof(setpoint_t));
@@ -123,8 +126,9 @@ bool commandProcessPacket(PodtpPacket *packet) {
         packet->port = PODTP_PORT_OK;
         supervisorUpdateCommand();
         commandSetSetpoint(&sp);
+    } else {
+        packet->port = PODTP_PORT_ERROR;
     }
     packet->type = PODTP_TYPE_ACK;
     packet->length = 1;
-    return true;
 }
