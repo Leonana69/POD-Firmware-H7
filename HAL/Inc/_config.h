@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#ifdef GEAR
+#define GEAR_UART_HANDLE        huart4
+#endif
+
 #define DEBUG_UART_HANDLE       huart4
 #define ESP_UART_HANDLE         huart5
 
