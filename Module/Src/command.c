@@ -37,6 +37,19 @@ static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scala
     sp->mode.yaw = STABILIZE_ABSOLUTE;
 };
 
+static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, scalar_t yaw) {
+    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw };
+    sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
+    sp->position = (position_t) { .x = x, .y = y, .z = z };
+    sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
+    sp->mode.x = STABILIZE_ABSOLUTE;
+    sp->mode.y = STABILIZE_ABSOLUTE;
+    sp->mode.z = STABILIZE_ABSOLUTE;
+    sp->mode.roll = STABILIZE_DISABLE;
+    sp->mode.pitch = STABILIZE_DISABLE;
+    sp->mode.yaw = STABILIZE_ABSOLUTE;
+};
+
 typedef struct {
     scalar_t height;
     scalar_t vx;
@@ -68,6 +81,23 @@ bool commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
     }
     rpyt_t *rpyt = (rpyt_t *)packet->data;
     getRpytSetpoint(sp, rpyt->roll, rpyt->pitch, rpyt->yaw, rpyt->thrust);
+    return true;
+}
+
+typedef struct {
+    scalar_t x;
+    scalar_t y;
+    scalar_t z;
+    scalar_t yaw;
+} __attribute__((packed)) xyzy_t;
+
+bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
+    if (packet->length - 1 != sizeof(rpyt_t)) {
+        packet->port = PODTP_PORT_ERROR;
+        return false;
+    }
+    xyzy_t *xyzy = (xyzy_t *)packet->data;
+    getXyzySetpoint(sp, xyzy->x, xyzy->y, xyzy->z, xyzy->yaw);
     return true;
 }
 
@@ -121,6 +151,9 @@ void commandProcessPacket(PodtpPacket *packet) {
             break;
         case PODTP_PORT_HOVER:
             ret = commandDecodeHoverPacket(packet, &sp);
+            break;
+        case PODTP_PORT_POSITION:
+            ret = commandDecodeXyzyPacket(packet, &sp);
             break;
         default:
             packet->port = PODTP_PORT_ERROR;

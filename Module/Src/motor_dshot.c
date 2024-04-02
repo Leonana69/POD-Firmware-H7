@@ -21,11 +21,19 @@ typedef struct {
     uint32_t dma_buffer[DSHOT_DMA_BUFFER_SIZE];
 } MotorConfig_t;
 
+// static MotorConfig_t motorConfig[MOTOR_COUNT] = {
+//     { &MOTOR_1_TIM, MOTOR_1_CHANNEL, 0, { 0 }},
+//     { &MOTOR_2_TIM, MOTOR_2_CHANNEL, 0, { 0 }},
+//     { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
+//     { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }}
+// };
+
+// for reverse ESC installation
 static MotorConfig_t motorConfig[MOTOR_COUNT] = {
+    { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
+    { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }},
     { &MOTOR_1_TIM, MOTOR_1_CHANNEL, 0, { 0 }},
     { &MOTOR_2_TIM, MOTOR_2_CHANNEL, 0, { 0 }},
-    { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
-    { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }}
 };
 
 static void dshot_dma_tc_callback(DMA_HandleTypeDef *hdma) {

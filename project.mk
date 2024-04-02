@@ -17,7 +17,7 @@ C_INCLUDES += \
 -IHAL/Inc \
 -IModule/Inc
 
-C_DEFS += -DGEAR
+# C_DEFS += -DGEAR
 
 CFLAGS += -Wno-comment
 

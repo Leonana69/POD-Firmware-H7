@@ -43,7 +43,7 @@ void motorPowerStop(void) {
     motorPower.isFlying = false;
 }
 
-static int16_t thrustToRatio(int16_t thrust) {
+static int16_t thrustToRatio(float thrust) {
     int32_t value = thrust * motorPower.maxEncodedThrust / motorPower.divisor;
     value = clamp_i32(value, motorPower.minEncodedThrust, motorPower.maxEncodedThrust);
     return (int16_t) value;
