@@ -49,9 +49,20 @@ void stabilizerTask(void *argument) {
 
         controllerPidUpdate(&setpoint, &imu, &state, tick, &control);
 
-        if (tick % 1000 == 0) {
-            DEBUG_PRINT("c: %.1f %.1f %.1f %.1f\n", control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
-        }
+        // if (tick % 1000 == 0) {
+        //     DEBUG_PRINT("c: %.1f %.1f %.1f %.1f\n", control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
+            
+        //     // PodtpPacket packet;
+        //     // packet.type = PODTP_TYPE_CTRL;
+        //     // packet.port = PODTP_PORT_LOCK;
+        //     // velocity_t vel;
+        //     // vel.x = 0.15;
+        //     // vel.y = 0.22;
+        //     // vel.z = 0.3;
+        //     // memcpy(packet.data, &vel, sizeof(velocity_t));
+        //     // packet.length = sizeof(velocity_t) + 1;
+        //     // linkSendGearPacket(&packet);
+        // }
         
         if (supervisorCanFly()) {
             motorPowerUpdate(&control);
@@ -60,9 +71,10 @@ void stabilizerTask(void *argument) {
             motorPowerStop();
         }
 
-        if (tick % 1000 == 0)
-            DEBUG_PRINT("s: %.3f %.3f %.3f\n", state.position.x, state.position.y, state.position.z);
-        
+        if (tick % 100 == 0) {
+            DEBUG_PRINT("s: %.1f %.1f\n", setpoint.thrust, control.thrust);
+            DEBUG_PRINT("%d\n", motorPower.getRatio(0));
+        }
         tick++;
     }
 }

@@ -17,6 +17,8 @@ C_INCLUDES += \
 -IHAL/Inc \
 -IModule/Inc
 
+C_DEFS += -DGEAR
+
 CFLAGS += -Wno-comment
 
 C_SOURCES += $(wildcard Module/Src/*.c)

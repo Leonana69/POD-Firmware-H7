@@ -30,7 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "debug.h"
-#include "motor_dshot.h"
+#include "motor_power.h"
 #include "_config.h"
 /* USER CODE END Includes */
 
@@ -205,8 +205,8 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-  if (htim->Instance == MOTOR_DSHOT_TIM.Instance) {
-    motorDShotWriteDma();
+  if (htim->Instance == MOTOR_TIM.Instance) {
+    motorPowerSend();
   }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {

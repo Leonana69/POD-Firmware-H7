@@ -4,7 +4,6 @@
 #include "assert.h"
 
 #include "link.h"
-#include "usart.h"
 #include "system.h"
 #include "led.h"
 #include "command.h"
@@ -147,7 +146,7 @@ void linkRxTask(void *argument) {
     }
 }
 
-static int8_t linkSendPacketUart(PodtpPacket *packet) {
+int8_t linkSendPacketUart(PodtpPacket *packet, usart_write_func_t write) {
     static uint8_t buffer[PODTP_MAX_DATA_LEN + 5] = { PODTP_START_BYTE_1, PODTP_START_BYTE_2 };
     uint8_t check_sum[2] = { 0 };
     check_sum[0] = check_sum[1] = packet->length;
@@ -159,7 +158,7 @@ static int8_t linkSendPacketUart(PodtpPacket *packet) {
     }
     buffer[packet->length + 3] = check_sum[0];
     buffer[packet->length + 4] = check_sum[1];
-    return esp_write_dma(buffer, packet->length + 5);
+    return write(buffer, packet->length + 5);
 }
 
 void linkTxTask(void *argument) {
@@ -167,6 +166,6 @@ void linkTxTask(void *argument) {
     systemWaitStart();
     while (1) {
         STATIC_QUEUE_RECEIVE(linkTxPacketQueue, &packet, osWaitForever);
-        ASSERT(linkSendPacketUart(&packet) == 0);
+        ASSERT(linkSendPacketUart(&packet, esp_write_dma) == 0);
     }
 }

@@ -13,8 +13,11 @@ extern "C" {
 #ifndef DEBUG_FMT
 #define DEBUG_FMT(FMT) FMT
 #endif
-
+#ifdef GEAR
+#define DEBUG_WRITE(FMT, ...)
+#else
 #define DEBUG_WRITE(FMT, ...) eprintf(debugUartTransmit, DEBUG_FMT(FMT), ## __VA_ARGS__)
+#endif
 #define DEBUG_REMOTE(FMT, ...) eprintf(linkSendData, DEBUG_FMT(FMT), ## __VA_ARGS__)
 
 #ifdef MODULE_NAME

@@ -2,7 +2,7 @@
 #include "cmsis_os.h"
 #include "motor_power.h"
 
-#define COMMAND_TIMEOUT     500
+#define COMMAND_TIMEOUT     1000
 #define Z_ACCEL_THRESHOLD   -0.5f
 #define Z_ACCEL_COUNT       30
 
@@ -33,8 +33,7 @@ bool supervisorCommandTimeout() {
 }
 
 bool supervisorCanFly() {
-    return !isTumbled
-        && !isLocked
+    return !isTumbled && !isLocked
         && !(motorPowerIsFlying() && supervisorCommandTimeout());
 }
 

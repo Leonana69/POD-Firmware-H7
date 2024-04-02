@@ -14,9 +14,6 @@
 #define MOTOR_BIT0_PULSE 7
 #define MOTOR_BIT1_PULSE 14
 
-#define DSHOT_MIN_THRUST 48
-#define DSHOT_MAX_THRUST 2047
-
 typedef struct {
     TIM_HandleTypeDef* tim;
     uint32_t channel;

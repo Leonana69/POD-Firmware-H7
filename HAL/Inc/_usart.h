@@ -8,6 +8,8 @@ extern "C" {
 #include "usart.h"
 #include "freeRTOS_helper.h"
 
+typedef int8_t (*usart_write_func_t)(const uint8_t *data, uint16_t len);
+
 /*
  * USART DMA dma write function
  */
@@ -38,6 +40,10 @@ void _UART_Init();
 void debugUartTransmit(const uint8_t *data, uint16_t len);
 void ESP_UART_HANDLE_IRQHandler();
 USART_DMA_WRITE_FUNC_DECL(esp);
+
+#ifdef GEAR
+USART_DMA_WRITE_FUNC_DECL(gear);
+#endif
 
 #ifdef __cplusplus
 }

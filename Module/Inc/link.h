@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "podtp.h"
 #include "config.h"
+#include "_usart.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,7 @@ void linkBufferPutChar(uint8_t c);
 uint32_t linkInit();
 void linkSendPacket(PodtpPacket *packet);
 void linkSendData(const uint8_t *data, uint16_t length);
+int8_t linkSendPacketUart(PodtpPacket *packet, usart_write_func_t write);
 
 #ifdef __cplusplus
 }

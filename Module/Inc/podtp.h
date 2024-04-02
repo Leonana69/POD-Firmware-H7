@@ -63,7 +63,7 @@ typedef struct {
             uint8_t data[PODTP_MAX_DATA_LEN];
         } __attribute__((packed));
         uint8_t raw[PODTP_MAX_DATA_LEN + 1];
-    };
+    } __attribute__((aligned(4)));
 } PodtpPacket;
 
 #endif // __PODTP_H__
