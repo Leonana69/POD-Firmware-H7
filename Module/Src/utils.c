@@ -52,7 +52,17 @@ float radians(float degrees) {
     return degrees * 0.0174532925199432957692369076848861;
 }
 
-float clamp(float value, float min, float max) {
+float clamp_f(float value, float min, float max) {
+    if (value < min) {
+        return min;
+    } else if (value > max) {
+        return max;
+    } else {
+        return value;
+    }
+}
+
+int32_t clamp_i32(int32_t value, int32_t min, int32_t max) {
     if (value < min) {
         return min;
     } else if (value > max) {

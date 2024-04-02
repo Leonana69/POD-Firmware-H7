@@ -12,9 +12,9 @@ extern "C" {
 #define DSHOT_MIN_THRUST 48
 
 void motorDShotInit(void);
-void motorDShotSetThrust(uint8_t id, uint16_t thrust);
+void motorDShotSetThrust(uint8_t id, int16_t thrust);
 void motorDShotWriteDma();
-uint16_t motorDShotGetThrust(uint8_t id);
+int16_t motorDShotGetThrust(uint8_t id);
 
 #ifdef __cplusplus
 }

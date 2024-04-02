@@ -3,6 +3,7 @@
 #include "motor_2040.h"
 #include "_config.h"
 #include "debug.h"
+#include "utils.h"
 
 #ifdef GEAR
 MotorPower_t motorPower = {
@@ -11,8 +12,9 @@ MotorPower_t motorPower = {
     .setRatio = motor2040SetSpeed,
     .getRatio = motor2040GetSpeed,
     .baseThrust = 0,
-    .maxEncodedThrust = MOTOR_2040_MAX_SPEED,
-    .minEncodedThrust = MOTOR_2040_MIN_SPEED,
+    .maxEncodedThrust = MOTOR_2040_MAX_THRUST,
+    .minEncodedThrust = MOTOR_2040_MIN_THRUST,
+    .divisor = 4096,
     .isFlying = false
 };
 #else
@@ -24,6 +26,7 @@ MotorPower_t motorPower = {
     .baseThrust = 30000,
     .maxEncodedThrust = DSHOT_MAX_THRUST,
     .minEncodedThrust = DSHOT_MIN_THRUST,
+    .divisor = INT16_MAX,
     .isFlying = false
 };
 #endif
@@ -40,12 +43,10 @@ void motorPowerStop(void) {
     motorPower.isFlying = false;
 }
 
-static uint16_t thrustToRatio(uint16_t thrust) {
-    uint32_t value = thrust * motorPower.maxEncodedThrust / UINT16_MAX;
-    if (value > motorPower.maxEncodedThrust) {
-        value = motorPower.maxEncodedThrust;
-    }
-    return value;
+static int16_t thrustToRatio(int16_t thrust) {
+    int32_t value = thrust * motorPower.maxEncodedThrust / motorPower.divisor;
+    value = clamp_i32(value, motorPower.minEncodedThrust, motorPower.maxEncodedThrust);
+    return (int16_t) value;
 }
 
 void motorPowerUpdate(const control_t *control) {
@@ -58,11 +59,15 @@ void motorPowerUpdate(const control_t *control) {
     motorPower.setRatio(2, thrustToRatio(t + r - p + y));
     motorPower.setRatio(3, thrustToRatio(t + r + p - y));
 
+#ifdef GEAR
+    motorPower.isFlying = false;
+#else
     if (t > motorPower.minEncodedThrust) {
         motorPower.isFlying = true;
     } else {
         motorPower.isFlying = false;
     }
+#endif
 }
 
 void motorPowerSend() {

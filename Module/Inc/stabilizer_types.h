@@ -22,7 +22,7 @@ struct geo_info_s {
 		struct {
 			scalar_t x;
 			scalar_t y;
-			scalar_t z;
+            scalar_t z;
 		};
 	};
 }__attribute__((packed, aligned(4)));

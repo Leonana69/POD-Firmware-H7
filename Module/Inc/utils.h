@@ -13,7 +13,8 @@ uint16_t sensorsGetMilli();
 
 float degrees(float radians);
 float radians(float degrees);
-float clamp(float value, float min, float max);
+float clamp_f(float value, float min, float max);
+int32_t clamp_i32(int32_t value, int32_t min, int32_t max);
 float canonicalize_angle(float value);
 
 uint32_t getTimeUs();

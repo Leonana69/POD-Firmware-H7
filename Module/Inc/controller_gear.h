@@ -1,5 +1,5 @@
-#ifndef __CONTROLLER_PID_ATTITUDE_H__
-#define __CONTROLLER_PID_ATTITUDE_H__
+#ifndef __CONTROLLER_GEAR_H__
+#define __CONTROLLER_GEAR_H__
 
 #include "stabilizer_types.h"
 
@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-void controllerPidInit(void);
-void controllerPidUpdate(
+void controllerGearInit();
+void controllerGearUpdate(
     setpoint_t *setpoint, imu_t *imu, state_t *state,
     uint32_t tick, control_t *control_out);
 
@@ -16,4 +16,4 @@ void controllerPidUpdate(
 }
 #endif
 
-#endif // __CONTROLLER_PID_ATTITUDE_H__
+#endif // __CONTROLLER_GEAR_H__

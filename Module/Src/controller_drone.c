@@ -1,11 +1,11 @@
-#include "controller_pid.h"
+#include "controller_drone.h"
 #include "pid.h"
 #include "utils.h"
 #include "motor_power.h"
 #include "arm_math.h"
 
-pid_t pid_roll, pid_pitch, pid_yaw;
-pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
+static pid_t pid_roll, pid_pitch, pid_yaw;
+static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
 
 #define OUTTER_LOOP_CUTOFF_FREQ 10.0f
 #define INNER_LOOP_CUTOFF_FREQ 100.0f
@@ -93,8 +93,8 @@ void controllerPidAttitudeReset(void) {
     pidReset(&pid_yaw_rate);
 }
 
-pid_t pid_x, pid_y, pid_z;
-pid_t pid_x_rate, pid_y_rate, pid_z_rate;
+static pid_t pid_x, pid_y, pid_z;
+static pid_t pid_x_rate, pid_y_rate, pid_z_rate;
 
 void controllerPidPositionInit(void) {
     pidInit(&pid_x, 2.0f, 0.5f, 0.0f, POSITION_RATE, OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.0f);
@@ -143,7 +143,7 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     *thrust = (az + 1.0f) * MOTOR_THRUST_SCALE;
 }
 
-void controllerPidPositionReset(void) {
+void controllerPidPositionReset() {
     pidReset(&pid_x);
     pidReset(&pid_y);
     pidReset(&pid_z);
@@ -152,12 +152,12 @@ void controllerPidPositionReset(void) {
     pidReset(&pid_z_rate);
 }
 
-void controllerPidInit(void) {
+void controllerDroneInit() {
     controllerPidAttitudeInit();
     controllerPidPositionInit();
 }
 
-void controllerPidUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint32_t tick, control_t *control_out) {
+void controllerDroneUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint32_t tick, control_t *control_out) {
     static attitude_t attitude_target;
     static palstance_t palstance_target;
     static scalar_t thrust;

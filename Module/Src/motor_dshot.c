@@ -17,7 +17,7 @@
 typedef struct {
     TIM_HandleTypeDef* tim;
     uint32_t channel;
-    uint16_t value;
+    int16_t value;
     uint32_t dma_buffer[DSHOT_DMA_BUFFER_SIZE];
 } MotorConfig_t;
 
@@ -50,7 +50,7 @@ void motorDShotInit(void) {
     }
 }
 
-static void updateDMABuffer(uint32_t* motor_dmabuffer, uint16_t value, bool telemetry) {
+static void updateDMABuffer(uint32_t* motor_dmabuffer, int16_t value, bool telemetry) {
 	uint16_t packet = (value << 1) | (telemetry ? 1 : 0);
 
 	// compute checksum
@@ -105,10 +105,10 @@ void motorDShotWriteDma() {
     }
 }
 
-void motorDShotSetThrust(uint8_t id, uint16_t thrust) {
+void motorDShotSetThrust(uint8_t id, int16_t thrust) {
     motorConfig[id].value = thrust;
 }
 
-uint16_t motorDShotGetThrust(uint8_t id) {
+int16_t motorDShotGetThrust(uint8_t id) {
     return motorConfig[id].value;
 }

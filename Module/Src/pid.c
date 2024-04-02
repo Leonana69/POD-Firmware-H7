@@ -30,12 +30,12 @@ float pidUpdate(pid_t *pid, float error) {
     pid->integral += error * pid->dt;
 
     if (pid->i_limit > 0) {
-        pid->integral = clamp(pid->integral, -pid->i_limit, pid->i_limit);
+        pid->integral = clamp_f(pid->integral, -pid->i_limit, pid->i_limit);
     }
     output += pid->ki * pid->integral;
 
     if (pid->o_limit > 0) {
-        output = clamp(output, -pid->o_limit, pid->o_limit);
+        output = clamp_f(output, -pid->o_limit, pid->o_limit);
     }
     return output;
 }

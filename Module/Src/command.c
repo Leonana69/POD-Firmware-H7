@@ -24,7 +24,7 @@ static void getHoverSetpoint(setpoint_t *sp, scalar_t height, scalar_t vx, scala
 };
 
 static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scalar_t yaw, scalar_t thrust) {
-    sp->thrust = clamp(thrust, MOTOR_THRUST_MIN, MOTOR_THRUST_MAX);
+    sp->thrust = clamp_f(thrust, MOTOR_THRUST_MIN, MOTOR_THRUST_MAX);
     sp->attitude = (attitude_t) { .roll = roll, .pitch = pitch, .yaw = yaw };
     sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
     sp->position = (position_t) { .x = 0, .y = 0, .z = 0 };
@@ -90,10 +90,14 @@ void commandGetSetpoint(setpoint_t *s) {
     if (currentSetpoint.timestamp == 0)
         currentSetpoint.timestamp = osKernelGetTickCount();
 
-    if (!STATIC_QUEUE_IS_EMPTY(commandQueue)
-        && currentSetpoint.timestamp + currentSetpoint.duration < osKernelGetTickCount()) {
+    if (currentSetpoint.timestamp + currentSetpoint.duration < osKernelGetTickCount()
+        && !STATIC_QUEUE_IS_EMPTY(commandQueue)) {
         STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0);
     }
+
+    if (supervisorCommandTimeout())
+        memset(s, 0, sizeof(setpoint_t));
+
     *s = currentSetpoint;
 }
 

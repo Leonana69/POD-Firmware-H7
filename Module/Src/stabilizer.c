@@ -10,7 +10,7 @@
 #include "motor_dshot.h"
 #include "system.h"
 #include "stabilizer_types.h"
-#include "controller_pid.h"
+#include "controller.h"
 #include "estimator_kalman.h"
 #include "imu.h"
 #include "supervisor.h"
@@ -20,7 +20,7 @@
 STATIC_TASK_DEF(stabilizerTask, STABILIZER_TASK_PRIORITY, STABILIZER_TASK_STACK_SIZE);
 
 uint32_t stabilizerInit(void) {
-    controllerPidInit();
+    controllerInit();
     STATIC_TASK_INIT(stabilizerTask, NULL);
     return TASK_INIT_SUCCESS;
 }
@@ -47,7 +47,7 @@ void stabilizerTask(void *argument) {
             commandGetSetpoint(&setpoint);
         }
 
-        controllerPidUpdate(&setpoint, &imu, &state, tick, &control);
+        controllerUpdate(&setpoint, &imu, &state, tick, &control);
 
         // if (tick % 1000 == 0) {
         //     DEBUG_PRINT("c: %.1f %.1f %.1f %.1f\n", control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
@@ -69,11 +69,6 @@ void stabilizerTask(void *argument) {
         } else {
             supervisorLockDrone(true);
             motorPowerStop();
-        }
-
-        if (tick % 100 == 0) {
-            DEBUG_PRINT("s: %.1f %.1f\n", setpoint.thrust, control.thrust);
-            DEBUG_PRINT("%d\n", motorPower.getRatio(0));
         }
         tick++;
     }

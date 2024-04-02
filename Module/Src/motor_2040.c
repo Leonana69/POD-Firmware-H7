@@ -19,10 +19,10 @@ void motor2040Send() {
 #endif
 }
 
-void motor2040SetSpeed(uint8_t id, uint16_t speed) {
+void motor2040SetSpeed(uint8_t id, int16_t speed) {
     motorConfig.speed[id] = speed;
 }
 
-uint16_t motor2040GetSpeed(uint8_t id) {
+int16_t motor2040GetSpeed(uint8_t id) {
     return motorConfig.speed[id];
 }
