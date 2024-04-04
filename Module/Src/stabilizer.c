@@ -55,6 +55,7 @@ void stabilizerTask(void *argument) {
             supervisorLockDrone(true);
             motorPowerStop();
         }
+
         tick++;
     }
 }

@@ -166,6 +166,4 @@ void commandProcessPacket(PodtpPacket *packet) {
     } else {
         packet->port = PODTP_PORT_ERROR;
     }
-    packet->type = PODTP_TYPE_ACK;
-    packet->length = 1;
 }
