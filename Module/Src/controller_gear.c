@@ -53,14 +53,9 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         control.thrust = vx * MOTOR_THRUST_SCALE;
     }
 
-    // if (tick % 250 == 0) {
-    //     DEBUG_REMOTE("%.1f %.1f %.1f\n", state->attitude.yaw, state->position.x, state->position.y);
-    // }
-
     if (fabs(control.attitude.roll) < motorPowerGetMinThrust()
     && fabs(control.attitude.yaw) < motorPowerGetMinThrust()
     && fabs(control.thrust) < motorPowerGetMinThrust()) {
-        // yaw = state->attitude.yaw;
         pidReset(&pid_x);
         pidReset(&pid_y);
         pidReset(&pid_r);
