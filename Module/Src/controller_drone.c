@@ -171,7 +171,7 @@ void controllerDroneUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uin
         controllerPidAttitudeUpdate(setpoint, imu, state, &attitude_target, &palstance_target, &thrust, &control);
     }
 
-    if (control.thrust < MOTOR_THRUST_MIN) {
+    if (control.thrust < (float) motorPowerGetMinThrust()) {
         controllerPidAttitudeReset();
         controllerPidPositionReset();
         attitude_target.yaw = state->attitude.yaw;

@@ -1,5 +1,4 @@
 #define MODULE_NAME "LNK"
-#define DEBUG
 #include "debug.h"
 #include "assert.h"
 
@@ -19,7 +18,7 @@ uint32_t linkInit() {
     STATIC_QUEUE_INIT(linkRxPacketQueue);
     STATIC_TASK_INIT(linkTxTask, NULL);
     STATIC_TASK_INIT(linkRxTask, NULL);
-    DEBUG_PRINT("LINK [OK]\n");
+    DEBUG_PRINT("LINK Init [OK]\n");
     return TASK_INIT_SUCCESS;
 }
 

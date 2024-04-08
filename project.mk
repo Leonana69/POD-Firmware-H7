@@ -17,7 +17,7 @@ C_INCLUDES += \
 -IHAL/Inc \
 -IModule/Inc
 
-# C_DEFS += -DGEAR
+C_DEFS += -DGEAR
 
 CFLAGS += -Wno-comment
 
@@ -38,10 +38,12 @@ C_SOURCES += arm_common_tables.c
 
 all: $(PROG).bin
 
+COPY_PATH = /Users/guojun/Workspace/github/POD-XIAO-Firmware-idf/scripts/examples
+
 copy:
-	@echo "Copy $(PROG).bin to scripts folder"
-	@rm -f /Users/guojun/Workspace/github/POD-XIAO-Firmware/scripts/$(PROG).bin
-	@cp $(PROG).bin /Users/guojun/Workspace/github/POD-XIAO-Firmware/scripts/
+	@echo "Copy $(TARGET).bin to scripts folder"
+	@rm -f $(COPY_PATH)/$(TARGET).bin
+	@cp $(PROG).bin $(COPY_PATH)/$(TARGET).bin
 
 flash:
 	$(OPENOCD) -d2 -f $(OPENOCD_INTERFACE) $(OPENOCD_CMDS) -f $(OPENOCD_TARGET) -c init -c targets -c "reset halt" \

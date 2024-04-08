@@ -2,8 +2,6 @@
 #include "_config.h"
 #include "link.h"
 
-#include "debug.h"
-
 USART_DMA_WRITE_FUNC_DEF(esp, ESP_UART_HANDLE);
 #ifdef GEAR
 USART_DMA_WRITE_FUNC_DEF(gear, GEAR_UART_HANDLE);

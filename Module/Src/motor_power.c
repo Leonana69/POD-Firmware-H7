@@ -12,10 +12,12 @@ MotorPower_t motorPower = {
     .setRatio = motor2040SetSpeed,
     .getRatio = motor2040GetSpeed,
     .baseThrust = 0,
+    .maxThrust = MOTOR_2040_MAX_THRUST,
+    .minThrust = MOTOR_2040_MIN_THRUST,
     .maxEncodedThrust = MOTOR_2040_MAX_THRUST,
     .minEncodedThrust = MOTOR_2040_MIN_THRUST,
-    .divisor = 4096,
-    .isFlying = false
+    .isFlying = false,
+    .allowNegativeThrust = true
 };
 #else
 MotorPower_t motorPower = {
@@ -24,10 +26,12 @@ MotorPower_t motorPower = {
     .setRatio = motorDShotSetThrust,
     .getRatio = motorDShotGetThrust,
     .baseThrust = 30000,
+    .maxThrust = INT16_MAX,
+    .minThrust = 1000,
     .maxEncodedThrust = DSHOT_MAX_THRUST,
     .minEncodedThrust = DSHOT_MIN_THRUST,
-    .divisor = INT16_MAX,
-    .isFlying = false
+    .isFlying = false,
+    .allowNegativeThrust = false
 };
 #endif
 
@@ -43,9 +47,19 @@ void motorPowerStop(void) {
     motorPower.isFlying = false;
 }
 
+int16_t motorPowerGetMinThrust() {
+    return motorPower.minThrust;
+}
+
 static int16_t thrustToRatio(float thrust) {
-    int32_t value = thrust * motorPower.maxEncodedThrust / motorPower.divisor;
-    value = clamp_i32(value, motorPower.minEncodedThrust, motorPower.maxEncodedThrust);
+    int32_t value = thrust * motorPower.maxEncodedThrust / motorPower.maxThrust;
+
+    if (motorPower.allowNegativeThrust) {
+        value = clamp_i32(value, -motorPower.maxEncodedThrust, motorPower.maxEncodedThrust);
+    } else {
+        value = clamp_i32(value, 0, motorPower.maxEncodedThrust);
+    }
+    
     return (int16_t) value;
 }
 

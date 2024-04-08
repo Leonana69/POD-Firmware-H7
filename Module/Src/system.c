@@ -42,6 +42,7 @@ void systemWaitStart() {
 
 void systemTask(void *argument) {
     DEBUG_PRINT("systemTask [START]\n");
+    linkInit();
     // one-time init tasks
     motorPowerInit();
     commandInit();
@@ -54,7 +55,6 @@ void systemTask(void *argument) {
     stabilizerInit();
     estimatorKalmanInit();
     ledSeqInit();
-    linkInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
     isInit = true;

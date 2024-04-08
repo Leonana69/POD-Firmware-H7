@@ -134,10 +134,10 @@ bool imuCalibration() {
     if (gyroBiasSquared.x < gyroBiasLimit
      && gyroBiasSquared.y < gyroBiasLimit
      && gyroBiasSquared.z < gyroBiasLimit) {
-        DEBUG_PRINT("IMU Calibration [OK]: %.3f %.3f %.3f %.3f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
+        DEBUG_PRINT("IMU Calibration [OK]: %.1f %.1f %.1f %.1f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
         return true;
     } else {
-        DEBUG_PRINT("IMU Calibration [FAILED]: %.3f %.3f %.3f %.3f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
+        DEBUG_PRINT("IMU Calibration [FAILED]: %.1f %.1f %.1f %.1f\n", accelScale, gyroBias.x, gyroBias.y, gyroBias.z);
         return false;
     }
 }

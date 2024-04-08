@@ -7,8 +7,8 @@ extern "C" {
 
 #include <stdint.h>
 
-#define MOTOR_2040_MAX_THRUST 2048.0f
-#define MOTOR_2040_MIN_THRUST -2048.0f
+#define MOTOR_2040_MAX_THRUST 2048
+#define MOTOR_2040_MIN_THRUST 48
 
 typedef struct {
     int16_t speed[4];

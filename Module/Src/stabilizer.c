@@ -24,7 +24,7 @@ uint32_t stabilizerInit(void) {
     STATIC_TASK_INIT(stabilizerTask, NULL);
     return TASK_INIT_SUCCESS;
 }
-extern MotorPower_t motorPower;
+
 void stabilizerTask(void *argument) {
     state_t state;
     control_t control;

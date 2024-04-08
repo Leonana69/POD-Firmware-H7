@@ -5,9 +5,12 @@
 #include "utils.h"
 #include "supervisor.h"
 #include "debug.h"
+#include "stabilizer_types.h"
+#include "estimator_kalman.h"
 
 STATIC_QUEUE_DEF(commandQueue, 10, setpoint_t);
 static setpoint_t currentSetpoint;
+static state_t state;
 
 static void getHoverSetpoint(setpoint_t *sp, scalar_t height, scalar_t vx, scalar_t vy, scalar_t vyaw) {
     sp->thrust = 0;
@@ -38,9 +41,10 @@ static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scala
 };
 
 static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, scalar_t yaw) {
-    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw };
+    estimatorKalmanUpdate(&state);
+    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
     sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
-    sp->position = (position_t) { .x = x, .y = y, .z = z };
+    sp->position = (position_t) { .x = x + state.position.x, .y = y + state.position.y, .z = z + state.position.z };
     sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
     sp->mode.x = STABILIZE_ABSOLUTE;
     sp->mode.y = STABILIZE_ABSOLUTE;
@@ -126,7 +130,7 @@ void commandGetSetpoint(setpoint_t *s) {
     }
 
     if (supervisorCommandTimeout())
-        memset(s, 0, sizeof(setpoint_t));
+        memset(&currentSetpoint, 0, sizeof(setpoint_t));
 
     *s = currentSetpoint;
 }

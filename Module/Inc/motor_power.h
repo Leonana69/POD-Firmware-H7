@@ -20,15 +20,18 @@ typedef struct {
     void (*setRatio)(uint8_t id, int16_t thrust);
     int16_t (*getRatio)(uint8_t id);
     int16_t baseThrust;
+    int16_t maxThrust;
+    int16_t minThrust;
     int16_t maxEncodedThrust;
     int16_t minEncodedThrust;
-    int16_t divisor;
     bool isFlying;
+    bool allowNegativeThrust;
 } MotorPower_t;
 
 void motorPowerInit();
 void motorPowerStop();
 void motorPowerSend();
+int16_t motorPowerGetMinThrust();
 void motorPowerUpdate(const control_t *control);
 bool motorPowerIsFlying();
 
