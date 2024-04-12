@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "bdma.h"
 #include "dma.h"
 #include "i2c.h"
 #include "spi.h"
@@ -99,12 +100,13 @@ int main(void)
   MX_I2C4_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM2_Init();
   MX_DMA_Init();
   MX_UART5_Init();
   MX_UART4_Init();
-  MX_TIM7_Init();
+  MX_BDMA_Init();
   MX_TIM6_Init();
+  MX_TIM2_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_PRINT("Firmware start\n");
   /* USER CODE END 2 */

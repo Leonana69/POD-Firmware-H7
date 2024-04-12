@@ -59,6 +59,7 @@ void _I2C_Init();
 
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(bmp388, uint8_t);
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(vl53l1, uint16_t);
+I2C_DMA_READ_NORMAL_WRITE_FUNC_DECL(vl53l8cx, uint16_t);
 
 #ifdef __cplusplus
 }

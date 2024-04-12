@@ -3,7 +3,6 @@
 /*! vl53l1 platform functions */
 int8_t vl53l1Init(VL53L1_Dev_t *dev) {
 	VL53L1_Error status = VL53L1_ERROR_NONE;
-	dev->comms_type = VL53L1_I2C;
 	dev->comms_speed_khz = 400;
 
 	status = VL53L1_DataInit(dev);

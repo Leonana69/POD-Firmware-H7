@@ -56,7 +56,6 @@ typedef uint16_t (*vl53l1_timestamp_fptr_t) ();
 typedef void (*vl53l1_delay_ms) (uint32_t);
 
 typedef struct {
-
 	VL53L1_DevData_t   Data;
 	/*!< Low Level Driver data structure */
 
@@ -74,7 +73,6 @@ typedef struct {
 	vl53l1_write_fptr_t write;
 	vl53l1_delay_ms delay;
 	vl53l1_timestamp_fptr_t millis;
-
 } VL53L1_Dev_t;
 
 

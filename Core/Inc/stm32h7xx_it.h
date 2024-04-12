@@ -73,6 +73,8 @@ void DMA2_Stream2_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void I2C3_EV_IRQHandler(void);
 void OTG_HS_IRQHandler(void);
+void I2C4_EV_IRQHandler(void);
+void BDMA_Channel0_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
