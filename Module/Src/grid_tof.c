@@ -1,3 +1,4 @@
+#define MODULE_NAME "DIS"
 #include "grid_tof.h"
 #include "_config.h"
 #include "_i2c.h"
@@ -7,6 +8,8 @@
 
 VL53L8CX_Configuration vl53l8Dev;
 
+volatile uint8_t data __attribute__((section(".ramd3"), aligned(4))) = 0;
+
 uint32_t gridTofInit(void) {
     uint8_t status, isAlive;
 
@@ -14,7 +17,7 @@ uint32_t gridTofInit(void) {
     vl53l8Dev.platform.write = vl53l8cx_write_normal;
     vl53l8Dev.platform.delay = sensorsDelayMs;
     vl53l8Dev.platform.millis = sensorsGetMilli;
-    vl53l8Dev.platform.address = VL53L8CX_DEFAULT_I2C_ADDRESS;
+    vl53l8Dev.platform.address = VL53L8CX_DEFAULT_I2C_ADDRESS >> 1;
 
     status = vl53l8cx_is_alive(&vl53l8Dev, &isAlive);
     if (!isAlive || status) {

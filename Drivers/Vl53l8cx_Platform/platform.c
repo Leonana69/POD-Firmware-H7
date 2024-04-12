@@ -44,7 +44,10 @@ uint8_t RdMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	return p_platform->read(RegisterAdress, p_values, size, &p_platform->address);
+	static uint8_t d3_buffer[1024] __attribute__((section(".ramd3"), aligned(4)));
+	uint8_t rslt = p_platform->read(RegisterAdress, d3_buffer, size, &p_platform->address);
+	memcpy(p_values, d3_buffer, size);
+	return rslt;
 }
 
 uint8_t Reset_Sensor(

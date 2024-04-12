@@ -91,6 +91,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   MX_DMA_Init();
+  MX_BDMA_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */

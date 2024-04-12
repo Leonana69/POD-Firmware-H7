@@ -149,6 +149,18 @@ SECTIONS
     _edtcmram = .;     /* define a global symbol at DTCMRAM end */
   } >DTCMRAM AT> FLASH
 
+  /* Add new section for ramd3 */
+  .ramd3 :
+  {
+    . = ALIGN(4);
+    _sramd3 = .;     /* create a global symbol at RAM_D3 start */
+    *(.ramd3)        /* .ramd3 sections */
+    *(.ramd3*)       /* .ramd3* sections */
+
+    . = ALIGN(4);
+    _eramd3 = .;     /* define a global symbol at RAM_D3 end */
+  } >RAM_D3 AT> FLASH
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
   {

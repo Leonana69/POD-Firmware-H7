@@ -1,5 +1,6 @@
 #include "_i2c.h"
 #include <string.h>
+#include "debug.h"
 
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DEF(bmp388, BMP388_I2C_HANDLE, uint8_t);
 I2C_DMA_READ_NORMAL_WRITE_FUNC_DEF(vl53l1, VL53L1_I2C_HANDLE, uint16_t);
