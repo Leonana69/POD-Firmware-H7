@@ -29,12 +29,7 @@ void _I2C_Init();
     int8_t NAME##_write_normal(ADDR_TYPE reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr) { \
         HAL_StatusTypeDef status; \
         uint16_t DevAddress = *(uint8_t*)intf_ptr << 1; \
-        static uint8_t sBuffer[256]; \
-        memset(sBuffer, 0, 256); \
-        sBuffer[0] = reg_addr >> 8; \
-        sBuffer[sizeof(ADDR_TYPE) - 1] = reg_addr & 0xff; \
-        memcpy(sBuffer + sizeof(ADDR_TYPE), data, len); \
-        status = HAL_I2C_Master_Transmit(&I2C_HANDLE, DevAddress, sBuffer, len + sizeof(ADDR_TYPE), 1000); \
+        status = HAL_I2C_Mem_Write(&I2C_HANDLE, DevAddress, reg_addr, sizeof(ADDR_TYPE), (uint8_t *) data, len, 1000); \
         return (status == HAL_OK) ? 0 : -1; \
     }
 

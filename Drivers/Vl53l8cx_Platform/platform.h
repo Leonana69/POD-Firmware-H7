@@ -10,9 +10,8 @@
   ******************************************************************************
   */
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
-#pragma once
+#ifndef __PLATFORM_H__
+#define __PLATFORM_H__
 
 #include <stdint.h>
 #include <string.h>
@@ -171,4 +170,4 @@ uint8_t WaitMs(
 		VL53L8CX_Platform *p_platform,
 		uint32_t TimeMs);
 
-#endif	// _PLATFORM_H_
+#endif	// __PLATFORM_H__

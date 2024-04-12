@@ -29,7 +29,7 @@ C_SOURCES += $(wildcard Drivers/Bosch/Src/*.c)
 C_SOURCES += $(wildcard Drivers/Pixart/Src/*.c)
 C_SOURCES += $(wildcard Drivers/Vl53l1/Src/*.c)
 C_SOURCES += $(wildcard Drivers/Vl53l8cx/Src/*.c)
-C_SOURCES += $(wildcard Drivers/Vl53l8_Platform/Src/*.c)
+C_SOURCES += $(wildcard Drivers/Vl53l8cx_Platform/*.c)
 
 VPATH += Drivers/CMSIS/DSP/Source/FastMathFunctions
 C_SOURCES += arm_cos_f32.c arm_sin_f32.c

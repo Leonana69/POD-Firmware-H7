@@ -8,7 +8,7 @@
 VL53L8CX_Configuration vl53l8Dev;
 
 uint32_t gridTofInit(void) {
-    uint8_t status, loop, isAlive, isReady, i;
+    uint8_t status, isAlive;
 
     vl53l8Dev.platform.read = vl53l8cx_read_dma;
     vl53l8Dev.platform.write = vl53l8cx_write_normal;
