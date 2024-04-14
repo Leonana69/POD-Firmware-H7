@@ -129,6 +129,14 @@ typedef struct {
 } flow_t;
 
 typedef struct {
+    scalar_t dx;
+    scalar_t dy;
+    scalar_t stdDevX;
+    scalar_t stdDevY;
+    scalar_t dt;
+} motor_t;
+
+typedef struct {
     vec3f_t accel;             // Gs
     vec3f_t gyro;              // deg/s
 } imu_t;

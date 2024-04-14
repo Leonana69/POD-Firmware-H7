@@ -14,6 +14,7 @@ typedef struct {
         flow_t flow;
         imu_t imu;
         baro_t baro;
+        motor_t motor;
     };
 } estimatorPacket_t;
 

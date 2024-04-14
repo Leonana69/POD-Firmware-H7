@@ -19,7 +19,7 @@ C_INCLUDES += \
 -IDrivers/Vl53l8cx/Inc \
 -IDrivers/Vl53l8cx_Platform
 
-# C_DEFS += -DGEAR
+C_DEFS += -DGEAR
 
 CFLAGS += -Wno-comment
 

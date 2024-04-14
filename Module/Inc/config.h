@@ -18,11 +18,12 @@ extern "C" {
 #define LED_SEQ_TASK_PRIORITY       osPriorityLow
 #define LINK_TASK_PRIORITY          osPriorityNormal
 #define DIS_TASK_PRIORITY           osPriorityNormal
+#define MOTOR_2040_TASK_PRIORITY    osPriorityNormal
 
 /*
  * Make sure the stack size is large enough to handle the task.
  */
-#define SYSTEM_TASK_STACK_SIZE      (2 * configMINIMAL_STACK_SIZE)
+#define SYSTEM_TASK_STACK_SIZE      (4 * configMINIMAL_STACK_SIZE)
 
 #define STABILIZER_TASK_STACK_SIZE  (2 * configMINIMAL_STACK_SIZE)
 #define IMU_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
@@ -33,6 +34,7 @@ extern "C" {
 #define LED_SEQ_TASK_STACK_SIZE     (2 * configMINIMAL_STACK_SIZE)
 #define LINK_TASK_STACK_SIZE        (4 * configMINIMAL_STACK_SIZE)
 #define DIS_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
+#define MOTOR_2040_TASK_STACK_SIZE  (4 * configMINIMAL_STACK_SIZE)
 
 #define TASK_INIT_SUCCESS           0
 #define TASK_INIT_FAILED(index)     (1 << index)
@@ -46,6 +48,7 @@ extern "C" {
 #define LED_SEQ_TASK_INDEX          6
 #define LINK_TASK_INDEX             7
 #define DIS_TASK_INDEX              8
+#define MOTOR_2040_TASK_INDEX       9
 
 #ifdef __cplusplus
 }

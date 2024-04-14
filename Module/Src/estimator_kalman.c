@@ -69,6 +69,10 @@ bool processDataQueue() {
                 kalmanCoreUpdateWithBaro(&coreData, &packet.baro, motorPowerIsFlying());
                 update = true;
                 break;
+            case MOTOR_2040_TASK_INDEX:
+                kalmanCoreUpdateWithMotor(&coreData, &packet.motor);
+                update = true;
+                break;
             default:
                 break;
         }

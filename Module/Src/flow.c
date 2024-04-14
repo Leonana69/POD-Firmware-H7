@@ -18,6 +18,9 @@ STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 static paa3905_dev_t paa3905_dev;
 
 uint32_t flowInit(void) {
+#ifdef GEAR
+    return TASK_INIT_SUCCESS;
+#endif
     paa3905_dev.delay = sensorsDelayMs;
     paa3905_dev.read = paa3905_read_dma;
     paa3905_dev.write = paa3905_write_dma;

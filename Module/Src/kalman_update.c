@@ -82,6 +82,42 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY * MPC);
 }
 
+void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor) {
+    static float predictedNX;
+    static float predictedNY;
+    static float measuredNX;
+    static float measuredNY;
+    // Inclusion of flow measurements in the EKF done by two scalar updates
+    // ~~~ Camera constants ~~~
+    //~~~ Body rates ~~~
+    // TODO check if this is feasible or if some filtering has to be done
+    float dx_g = coreData->S[KC_STATE_PX];
+    float dy_g = coreData->S[KC_STATE_PY];
+
+    // ~~~ X velocity prediction and update ~~~
+    // predics the number of accumulated pixels in the x-direction
+    float hx[KC_STATE_DIM] = { 0 };
+    arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
+    predictedNX = dx_g;
+    measuredNX = motor->dx / motor->dt;
+    hx[KC_STATE_PX] = 1;
+
+    /*! X update */
+    kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, motor->stdDevX);
+
+    // ~~~ Y velocity prediction and update ~~~
+    float hy[KC_STATE_DIM] = { 0 };
+    arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
+    predictedNY = dy_g;
+    measuredNY = motor->dy / motor->dt;
+
+    // derive measurement equation with respect to dy (and z?)
+    hy[KC_STATE_PY] = 1;
+
+    /*! Y update */
+    kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, motor->stdDevY);
+}
+
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro, bool isFlying) {
     static float measNoiseBaro = 2.0f; // meters
     float h[KC_STATE_DIM] = { 0 };

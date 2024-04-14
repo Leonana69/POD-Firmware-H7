@@ -1,6 +1,7 @@
 #include "_usart.h"
 #include "_config.h"
 #include "link.h"
+#include "debug.h"
 
 USART_DMA_WRITE_FUNC_DEF(esp, ESP_UART_HANDLE);
 #ifdef GEAR
@@ -28,11 +29,23 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #endif
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == ESP_UART_HANDLE.Instance) {
+		UART_DMA_RX_COMPLETE_CALLBACK(esp);
+	}
+
+#ifdef GEAR
+	if (huart->Instance == GEAR_UART_HANDLE.Instance) {
+		UART_DMA_RX_COMPLETE_CALLBACK(gear);
+	}
+#endif
+}
+
 void _UART_Init() {
-	UART_DMA_WRITE_SEM_INIT(esp);
+	UART_DMA_READ_WRITE_SEM_INIT(esp);
 	__HAL_UART_ENABLE_IT(&ESP_UART_HANDLE, UART_IT_RXNE);
 
 #ifdef GEAR
-	UART_DMA_WRITE_SEM_INIT(gear);
+	UART_DMA_READ_WRITE_SEM_INIT(gear);
 #endif
 }
