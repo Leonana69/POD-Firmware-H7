@@ -9,7 +9,7 @@
 #include "estimator_kalman.h"
 #include "system.h"
 
-#define BARO_RATE RATE_25_HZ
+#define BARO_TASK_RATE RATE_25_HZ
 
 STATIC_TASK_DEF(baroTask, BARO_TASK_PRIORITY, BARO_TASK_STACK_SIZE);
 
@@ -66,7 +66,7 @@ void baroTask(void *argument) {
     estimatorPacket_t packet = { .type = BARO_TASK_INDEX };
     struct bmp3_data bmp388_data;
     systemWaitStart();
-    TASK_TIMER_DEF(BARO, BARO_RATE);
+    TASK_TIMER_DEF(BARO, BARO_TASK_RATE);
     while (1) {
         TASK_TIMER_WAIT(BARO);
         bmp3_get_sensor_data(BMP3_PRESS | BMP3_TEMP, &bmp388_data, &bmp388_dev);

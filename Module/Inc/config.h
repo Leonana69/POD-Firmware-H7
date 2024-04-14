@@ -17,6 +17,7 @@ extern "C" {
 #define ESTIMATOR_TASK_PRIORITY     osPriorityNormal
 #define LED_SEQ_TASK_PRIORITY       osPriorityLow
 #define LINK_TASK_PRIORITY          osPriorityNormal
+#define DIS_TASK_PRIORITY           osPriorityNormal
 
 /*
  * Make sure the stack size is large enough to handle the task.
@@ -31,6 +32,7 @@ extern "C" {
 #define ESTIMATOR_TASK_STACK_SIZE   (4 * configMINIMAL_STACK_SIZE)
 #define LED_SEQ_TASK_STACK_SIZE     (2 * configMINIMAL_STACK_SIZE)
 #define LINK_TASK_STACK_SIZE        (4 * configMINIMAL_STACK_SIZE)
+#define DIS_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
 
 #define TASK_INIT_SUCCESS           0
 #define TASK_INIT_FAILED(index)     (1 << index)
@@ -43,6 +45,7 @@ extern "C" {
 #define BARO_TASK_INDEX             5
 #define LED_SEQ_TASK_INDEX          6
 #define LINK_TASK_INDEX             7
+#define DIS_TASK_INDEX              8
 
 #ifdef __cplusplus
 }

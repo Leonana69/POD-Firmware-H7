@@ -19,7 +19,7 @@
 
 STATIC_TASK_DEF(tofTask, TOF_TASK_PRIORITY, TOF_TASK_STACK_SIZE);
 
-#define TOF_RATE RATE_25_HZ
+#define TOF_TASK_RATE RATE_25_HZ
 static VL53L1_Dev_t vl53l1Dev;
 
 uint32_t tofInit(void) {
@@ -51,7 +51,7 @@ void tofTask(void *argument) {
     VL53L1_RangingMeasurementData_t vl53l1RangingData;
     systemWaitStart();
     uint32_t lastTime = getTimeUs();
-    TASK_TIMER_DEF(TOF, TOF_RATE);
+    TASK_TIMER_DEF(TOF, TOF_TASK_RATE);
 	while (1) {
 		TASK_TIMER_WAIT(TOF);
 		VL53L1_WaitMeasurementDataReady(&vl53l1Dev);

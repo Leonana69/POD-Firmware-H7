@@ -19,7 +19,7 @@
 #include "led_seq.h"
 #include "link.h"
 #include "command.h"
-#include "grid_tof.h"
+#include "distance.h"
 
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
@@ -57,7 +57,7 @@ void systemTask(void *argument) {
     estimatorKalmanInit();
     ledSeqInit();
 
-    gridTofInit();
+    distanceInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
     isInit = true;

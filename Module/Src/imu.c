@@ -12,7 +12,7 @@
 #include "stabilizer_types.h"
 #include "estimator_kalman.h"
 
-#define IMU_RATE RATE_1000_HZ
+#define IMU_TASK_RATE RATE_1000_HZ
 
 STATIC_MUTEX_DEF(imuDataMutex);
 STATIC_SEMAPHORE_DEF(imuDataReady);
@@ -147,7 +147,7 @@ void imuTask(void *argument) {
     imu_t imuBuffer = { 0 };
     systemWaitStart();
     while (!imuCalibration());
-    TASK_TIMER_DEF(IMU, IMU_RATE);
+    TASK_TIMER_DEF(IMU, IMU_TASK_RATE);
     
     while (1) {
         TASK_TIMER_WAIT(IMU);

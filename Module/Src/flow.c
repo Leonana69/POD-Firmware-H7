@@ -13,7 +13,7 @@
 
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
-#define FLOW_RATE RATE_50_HZ
+#define FLOW_TASK_RATE RATE_50_HZ
 #define FLOW_STD_DEV 1.0f
 static paa3905_dev_t paa3905_dev;
 
@@ -40,7 +40,7 @@ void flowTask(void *argument) {
     paa3905_motion_t motion;
     uint32_t lastTime = getTimeUs();
     systemWaitStart();
-    TASK_TIMER_DEF(FLOW, FLOW_RATE);
+    TASK_TIMER_DEF(FLOW, FLOW_TASK_RATE);
     while (1) {
         TASK_TIMER_WAIT(FLOW);
         paa3905_motion_burst(&paa3905_dev, &motion);
