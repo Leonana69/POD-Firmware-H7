@@ -415,13 +415,14 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
     tmpq2 = dq[2] * coreData->q[0] - dq[3] * coreData->q[1] + dq[0] * coreData->q[2] + dq[1] * coreData->q[3];
     tmpq3 = dq[3] * coreData->q[0] + dq[2] * coreData->q[1] - dq[1] * coreData->q[2] + dq[0] * coreData->q[3];
 
-    if (!isFlying) {
-        float keep = 1.0f - ROLLPITCH_ZERO_REVERSION;
-        tmpq0 = keep * tmpq0 + ROLLPITCH_ZERO_REVERSION * 1.0;
-        tmpq1 = keep * tmpq1 + ROLLPITCH_ZERO_REVERSION * 0;
-        tmpq2 = keep * tmpq2 + ROLLPITCH_ZERO_REVERSION * 0;
-        tmpq3 = keep * tmpq3 + ROLLPITCH_ZERO_REVERSION * 0;
-    }
+    /* This reversion would cause yaw estimation diminish to zero */
+    // if (!isFlying) {
+    //     float keep = 1.0f - ROLLPITCH_ZERO_REVERSION;
+    //     tmpq0 = keep * tmpq0 + ROLLPITCH_ZERO_REVERSION * 1.0;
+    //     tmpq1 = keep * tmpq1 + ROLLPITCH_ZERO_REVERSION * 0;
+    //     tmpq2 = keep * tmpq2 + ROLLPITCH_ZERO_REVERSION * 0;
+    //     tmpq3 = keep * tmpq3 + ROLLPITCH_ZERO_REVERSION * 0;
+    // }
 
     // normalize and store the result
     float norm = sqrt_f32(tmpq0 * tmpq0 + tmpq1 * tmpq1 + tmpq2 * tmpq2 + tmpq3 * tmpq3, EPSILON);
