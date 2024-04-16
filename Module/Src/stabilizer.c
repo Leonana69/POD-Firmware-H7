@@ -25,8 +25,19 @@ uint32_t stabilizerInit(void) {
     return TASK_INIT_SUCCESS;
 }
 
+void compressState(state_com_t *s, state_t *state) {
+    s->x = state->position.x * 1000;
+    s->y = state->position.y * 1000;
+    s->z = state->position.z * 1000;
+    float const deg2millirad = ((float)M_PI * 1000.0f) / 180.0f;
+    s->roll = state->attitude.roll * deg2millirad;
+    s->pitch = state->attitude.pitch * deg2millirad;
+    s->yaw = state->attitude.yaw * deg2millirad;
+}
+
 void stabilizerTask(void *argument) {
     state_t state;
+    state_com_t stateCom;
     control_t control;
     setpoint_t setpoint;
     imu_t imu;
@@ -40,6 +51,11 @@ void stabilizerTask(void *argument) {
         supervisorUpdate(&imu);
 
         estimatorKalmanUpdate(&state);
+        compressState(&stateCom, &state);
+
+        if (tick % 100 == 0) {
+            linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
+        }
 
         if (supervisorCommandTimeout())
             memset(&setpoint, 0, sizeof(setpoint_t));
