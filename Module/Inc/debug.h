@@ -18,7 +18,7 @@ extern "C" {
 #else
 #define DEBUG_WRITE(FMT, ...) eprintf(debugUartTransmit, DEBUG_FMT(FMT), ## __VA_ARGS__)
 #endif
-#define DEBUG_REMOTE(FMT, ...) eprintf(linkSendData, DEBUG_FMT(FMT), ## __VA_ARGS__)
+#define DEBUG_REMOTE(FMT, ...) eprintf(linkSendLog, DEBUG_FMT(FMT), ## __VA_ARGS__)
 
 #ifdef MODULE_NAME
 #define DEBUG_PRINT(FMT, ...) DEBUG_WRITE("%s: "FMT, MODULE_NAME, ## __VA_ARGS__)

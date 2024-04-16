@@ -10,10 +10,11 @@ static pid_t pid_x, pid_y, pid_r;
 #define CUTOFF_FREQ 10.0f
 
 void controllerGearInit() {
-    pidInit(&pid_x, 2.0f, 0.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
-    pidInit(&pid_y, 2.0f, 0.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
+    pidInit(&pid_x, 20.0f, 2.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
+    pidInit(&pid_y, 20.0f, 2.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
     pidInit(&pid_r, 10.0f, 2.0f, 0.5f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
 }
+
 extern MotorPower_t motorPower;
 void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint32_t tick, control_t *control_out) {
     static control_t control;
@@ -24,7 +25,7 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         float vx, vy, vr;
 
         if (setpoint->mode.x == STABILIZE_ABSOLUTE) {
-        vx = pidUpdate(&pid_x, setpoint->position.x - state->position.x);
+            vx = pidUpdate(&pid_x, setpoint->position.x - state->position.x);
         } else if (setpoint->velocity_body) {
             vx = setpoint->velocity.x * cos_yaw - setpoint->velocity.y * sin_yaw;
         } else {
@@ -53,9 +54,10 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         control.thrust = vx * MOTOR_THRUST_SCALE;
     }
 
-    if (fabs(control.attitude.roll) < motorPowerGetMinThrust()
+    if ((fabs(control.attitude.roll) < motorPowerGetMinThrust()
     && fabs(control.attitude.yaw) < motorPowerGetMinThrust()
-    && fabs(control.thrust) < motorPowerGetMinThrust()) {
+    && fabs(control.thrust) < motorPowerGetMinThrust())
+    || supervisorCommandTimeout()) {
         pidReset(&pid_x);
         pidReset(&pid_y);
         pidReset(&pid_r);

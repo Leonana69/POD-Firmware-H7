@@ -20,6 +20,8 @@ float canonicalize_angle(float value);
 uint32_t getTimeUs();
 uint32_t getDurationUs(uint32_t start, uint32_t end);
 
+#define ABS(x) ((x) > 0 ? (x) : -(x))
+
 #ifdef __cplusplus
 }
 #endif
