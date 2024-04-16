@@ -75,10 +75,14 @@ void linkBufferPutChar(uint8_t c) {
     }
 }
 
-void linkSendData(const uint8_t *data, uint16_t length) {
+void linkSendLog(const uint8_t *data, uint16_t length) {
+    linkSendData(PODTP_TYPE_LOG, PORT_LOG_STRING, data, length);
+}
+
+void linkSendData(uint8_t type, uint8_t port, const uint8_t *data, uint16_t length) {
     PodtpPacket packet = { 0 };
-    packet.type = PODTP_TYPE_LOG;
-    packet.port = PODTP_PORT_STRING;
+    packet.type = type;
+    packet.port = port;
     packet.length = length + 1;
     for (uint16_t i = 0; i < length; i++) {
         packet.data[i] = data[i];
@@ -105,7 +109,7 @@ bool linkProcessPacket(PodtpPacket *packet) {
             commandProcessPacket(packet);
             break;
         case PODTP_TYPE_CTRL:
-            if (packet->port == PODTP_PORT_LOCK) {
+            if (packet->port == PORT_CTRL_LOCK) {
                 if (packet->data[0] == 0) {
                     DEBUG_PRINT("UNLOCK DRONE\n");
                     supervisorLockDrone(false);
@@ -113,8 +117,8 @@ bool linkProcessPacket(PodtpPacket *packet) {
                     DEBUG_PRINT("LOCK DRONE\n");
                     supervisorLockDrone(true);
                 }
-                packet->port = PODTP_PORT_OK;
-            } else if (packet->port == PODTP_PORT_KEEP_ALIVE) {
+                packet->port = PORT_ACK_OK;
+            } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
                 DEBUG_PRINT("KEEP ALIVE\n");
                 supervisorUpdateCommand();
             }

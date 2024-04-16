@@ -63,7 +63,7 @@ typedef struct {
 
 bool commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(hover_t)) {
-        packet->port = PODTP_PORT_ERROR;
+        packet->port = PORT_ACK_ERROR;
         return false;
     }
     hover_t *hover = (hover_t *)packet->data;
@@ -80,7 +80,7 @@ typedef struct {
 
 bool commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
-        packet->port = PODTP_PORT_ERROR;
+        packet->port = PORT_ACK_ERROR;
         return false;
     }
     rpyt_t *rpyt = (rpyt_t *)packet->data;
@@ -97,7 +97,7 @@ typedef struct {
 
 bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
-        packet->port = PODTP_PORT_ERROR;
+        packet->port = PORT_ACK_ERROR;
         return false;
     }
     xyzy_t *xyzy = (xyzy_t *)packet->data;
@@ -144,30 +144,30 @@ void commandProcessPacket(PodtpPacket *packet) {
     bool ret = false;
     memset(&sp, 0, sizeof(setpoint_t));
     switch (packet->port) {
-        case PODTP_PORT_RPYT:
+        case PORT_COMMAND_RPYT:
             ret = commandDecodeRpytPacket(packet, &sp);
             break;
-        case PODTP_PORT_TAKEOFF:
+        case PORT_COMMAND_TAKEOFF:
             
             break;
-        case PODTP_PORT_LAND:
+        case PORT_COMMAND_LAND:
             
             break;
-        case PODTP_PORT_HOVER:
+        case PORT_COMMAND_HOVER:
             ret = commandDecodeHoverPacket(packet, &sp);
             break;
-        case PODTP_PORT_POSITION:
+        case PORT_COMMAND_POSITION:
             ret = commandDecodeXyzyPacket(packet, &sp);
             break;
         default:
-            packet->port = PODTP_PORT_ERROR;
+            packet->port = PORT_ACK_ERROR;
             break;
     }
     if (ret) {
-        packet->port = PODTP_PORT_OK;
+        packet->port = PORT_ACK_OK;
         supervisorUpdateCommand();
         commandSetSetpoint(&sp);
     } else {
-        packet->port = PODTP_PORT_ERROR;
+        packet->port = PORT_ACK_ERROR;
     }
 }

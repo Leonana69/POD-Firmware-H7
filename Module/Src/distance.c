@@ -11,7 +11,8 @@
 VL53L8CX_Configuration vl53l8Dev;
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
 
-#define DIS_TASK_RATE 1
+#define DIS_TASK_RATE 2
+#define RESOLUTION VL53L8CX_RESOLUTION_8X8
 // #define DIS_TASK_RATE RATE_25_HZ
 
 volatile uint8_t data __attribute__((section(".ramd3"), aligned(4))) = 0;
@@ -65,7 +66,7 @@ void distanceTask(void *argument) {
     uint8_t isReady, status;
     systemWaitStart();
     status = vl53l8cx_set_ranging_mode(&vl53l8Dev, VL53L8CX_RANGING_MODE_CONTINUOUS);
-    status |= vl53l8cx_set_resolution(&vl53l8Dev, VL53L8CX_RESOLUTION_8X8);
+    status |= vl53l8cx_set_resolution(&vl53l8Dev, RESOLUTION);
     status |= vl53l8cx_set_ranging_frequency_hz(&vl53l8Dev, 15);
 
     if (status) {
@@ -87,13 +88,13 @@ void distanceTask(void *argument) {
         if (isReady) {
             status = vl53l8cx_get_ranging_data(&vl53l8Dev, &rangingData);
             if (status == 0) {
-                // for (int i = 0; i < 8; i++) {
-                //     for (int j = 0; j < 8; j++) {
-                //         DEBUG_PRINT("%4d\t",
-                //         rangingData.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * i]);
-                //     }
-                //     DEBUG_PRINT("\n");
-                // }
+                for (int i = 0; i < RESOLUTION; i++) {
+                    uint8_t status = rangingData.target_status[VL53L8CX_NB_TARGET_PER_ZONE * i];
+                    int16_t distance = rangingData.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * i];
+                    rangingData.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * i] = 
+                        (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                }
+                linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)rangingData.distance_mm, RESOLUTION * sizeof(int16_t));
             } else {
                 DEBUG_PRINT("VL53L8CX Ranging [FAILED]: %d\n", status);
             }

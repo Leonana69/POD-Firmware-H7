@@ -42,7 +42,7 @@ C_SOURCES += arm_common_tables.c
 
 all: $(PROG).bin
 
-COPY_PATH = /Users/guojun/Workspace/github/POD-XIAO-Firmware-idf/scripts/examples
+COPY_PATH = /Users/guojun/Workspace/github/POD-XIAO-Python/examples
 
 copy:
 	@echo "Copy $(TARGET).bin to scripts folder"
