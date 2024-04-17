@@ -8,10 +8,12 @@
 #include "stabilizer_types.h"
 #include "system.h"
 
-VL53L8CX_Configuration vl53l8Dev;
+#define DIS_SENSOR_COUNT 3
+
+VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
 
-#define DIS_TASK_RATE 2
+#define DIS_TASK_RATE 10
 #define RESOLUTION VL53L8CX_RESOLUTION_8X8
 // #define DIS_TASK_RATE RATE_25_HZ
 
@@ -25,36 +27,45 @@ bool pca9546Init(void) {
     return true;
 }
 
-void enableChannel(uint8_t channel) {
+void selectChannel(uint8_t channel) {
     uint8_t data = 1 << channel;
     HAL_I2C_Master_Transmit(&VL53L8CX_I2C_HANDLE, 0x70 << 1, &data, 1, 1000);
 }
+
+typedef struct {
+    uint32_t timestamp;
+    int16_t distance[RESOLUTION];
+} distance_t;
 
 uint32_t distanceInit(void) {
     if (!pca9546Init()) {
         return TASK_INIT_FAILED(DIS_TASK_INDEX);
     }
-    enableChannel(0);
     uint8_t status, isAlive;
 
-    vl53l8Dev.platform.read = vl53l8cx_read_dma;
-    vl53l8Dev.platform.write = vl53l8cx_write_normal;
-    vl53l8Dev.platform.delay = sensorsDelayMs;
-    vl53l8Dev.platform.millis = sensorsGetMilli;
-    vl53l8Dev.platform.address = VL53L8CX_DEFAULT_I2C_ADDRESS >> 1;
+    for (int i = 0; i < DIS_SENSOR_COUNT; i++) {
+        selectChannel(i);
+        vl53l8Dev[i].platform.read = vl53l8cx_read_dma;
+        vl53l8Dev[i].platform.write = vl53l8cx_write_normal;
+        vl53l8Dev[i].platform.delay = sensorsDelayMs;
+        vl53l8Dev[i].platform.millis = sensorsGetMilli;
+        vl53l8Dev[i].platform.address = VL53L8CX_DEFAULT_I2C_ADDRESS >> 1;
 
-    status = vl53l8cx_is_alive(&vl53l8Dev, &isAlive);
-    if (!isAlive || status) {
-		DEBUG_PRINT("VL53L8CX not found\n");
-		return status;
-	}
+        status = vl53l8cx_is_alive(&vl53l8Dev[i], &isAlive);
+        if (!isAlive || status) {
+            DEBUG_PRINT("VL53L8CX[%d] not found\n", i);
+            return status;
+        }
 
-	/* (Mandatory) Init VL53L8CX sensor */
-	status = vl53l8cx_init(&vl53l8Dev);
-	if (status) {
-		DEBUG_PRINT("VL53L8CX Init [FAILED]\n");
-		return status;
-	} else {
+        /* (Mandatory) Init VL53L8CX sensor */
+        status = vl53l8cx_init(&vl53l8Dev[i]);
+        if (status) {
+            DEBUG_PRINT("VL53L8CX[%d] Init [FAILED]\n", i);
+            return status;
+        }
+    }
+
+    if (status == 0) {
         DEBUG_PRINT("VL53L8CX Init [OK]\n");
         STATIC_TASK_INIT(distanceTask, NULL);
     }
@@ -62,44 +73,62 @@ uint32_t distanceInit(void) {
 }
 
 void distanceTask(void *argument) {
-    VL53L8CX_ResultsData rangingData;
+    VL53L8CX_ResultsData rangingData[DIS_SENSOR_COUNT];
     uint8_t isReady, status;
     systemWaitStart();
-    status = vl53l8cx_set_ranging_mode(&vl53l8Dev, VL53L8CX_RANGING_MODE_CONTINUOUS);
-    status |= vl53l8cx_set_resolution(&vl53l8Dev, RESOLUTION);
-    status |= vl53l8cx_set_ranging_frequency_hz(&vl53l8Dev, 15);
-
-    if (status) {
-        DEBUG_PRINT("VL53L8CX Config Ranging [FAILED]: %u\n", status);
-		return;
+    for (int i = 0; i < DIS_SENSOR_COUNT; i++) {
+        selectChannel(i);
+        status = vl53l8cx_set_ranging_mode(&vl53l8Dev[i], VL53L8CX_RANGING_MODE_CONTINUOUS);
+        status |= vl53l8cx_set_resolution(&vl53l8Dev[i], RESOLUTION);
+        status |= vl53l8cx_set_ranging_frequency_hz(&vl53l8Dev[i], 15);
+        if (status) {
+            DEBUG_REMOTE("VL53L8CX[%d] Config Ranging [FAILED]: %u\n", i, status);
+            return;
+        }
+        status = vl53l8cx_start_ranging(&vl53l8Dev[i]);
+        if (status) {
+            DEBUG_REMOTE("VL53L8CX[%d] Start Ranging [FAILED]: %u\n", i, status);
+            return;
+        }
     }
-
-    status = vl53l8cx_start_ranging(&vl53l8Dev);
-    if (status) {
-        DEBUG_PRINT("VL53L8CX Start Ranging [FAILED]: %u\n", status);
-        return;
-    }
-
     
     TASK_TIMER_DEF(DIS, DIS_TASK_RATE);
+
+    distance_t distanceBuffer;
     while (1) {
         TASK_TIMER_WAIT(DIS);
-        vl53l8cx_check_data_ready(&vl53l8Dev, &isReady);
-        if (isReady) {
-            status = vl53l8cx_get_ranging_data(&vl53l8Dev, &rangingData);
-            if (status == 0) {
-                for (int i = 0; i < RESOLUTION; i++) {
-                    uint8_t status = rangingData.target_status[VL53L8CX_NB_TARGET_PER_ZONE * i];
-                    int16_t distance = rangingData.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * i];
-                    rangingData.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * i] = 
-                        (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+        memset(&distanceBuffer, -1, sizeof(distance_t));
+        for (int i = 0; i < DIS_SENSOR_COUNT; i++) {
+            selectChannel(i);
+            vl53l8cx_check_data_ready(&vl53l8Dev[i], &isReady);
+            if (isReady) {
+                status = vl53l8cx_get_ranging_data(&vl53l8Dev[i], &rangingData[i]);
+                if (status != 0) {
+                    DEBUG_REMOTE("VL53L8CX[%d] Ranging [FAILED]: %d\n", i, status);
+                    continue;
                 }
-                linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)rangingData.distance_mm, RESOLUTION * sizeof(int16_t));
+
+                if (i == 0) {
+                    for (int j = 0; j < RESOLUTION; j++) {
+                        uint8_t status = rangingData[i].target_status[VL53L8CX_NB_TARGET_PER_ZONE * j];
+                        int16_t distance = rangingData[i].distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * j];
+                        distanceBuffer.distance[j] = 
+                            (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                    }
+                } else {
+                    for (int j = 0; j < 8; j++) {
+                        uint8_t index = 3 * 8 + j;
+                        uint8_t status = rangingData[i].target_status[VL53L8CX_NB_TARGET_PER_ZONE * index];
+                        int16_t distance = rangingData[i].distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * index];
+                        distanceBuffer.distance[j + (i + 5) * 8] = 
+                            (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                    }
+                }
             } else {
-                DEBUG_PRINT("VL53L8CX Ranging [FAILED]: %d\n", status);
+                DEBUG_REMOTE("VL53L8CX Data not ready\n");
             }
-        } else {
-            DEBUG_PRINT("VL53L8CX Data not ready\n");
         }
+        distanceBuffer.timestamp = osKernelGetTickCount();
+        linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)&distanceBuffer, sizeof(distance_t));
     }
 }

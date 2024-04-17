@@ -7,6 +7,7 @@
 #include "led.h"
 #include "command.h"
 #include "supervisor.h"
+#include "estimator_kalman.h"
 
 STATIC_QUEUE_DEF(linkTxPacketQueue, 10, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
@@ -121,6 +122,9 @@ bool linkProcessPacket(PodtpPacket *packet) {
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
                 DEBUG_PRINT("KEEP ALIVE\n");
                 supervisorUpdateCommand();
+            } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {
+                DEBUG_PRINT("RESET LOCATION\n");
+                estimatorKalmanReset();
             }
             break;
         case PODTP_TYPE_ESP32:

@@ -128,3 +128,7 @@ void estimatorKalmanTask(void *argument) {
         STATIC_MUTEX_UNLOCK(estimatorDataMutex);
     }
 }
+
+void estimatorKalmanReset() {
+    kalmanCoreInit(&coreData);
+}

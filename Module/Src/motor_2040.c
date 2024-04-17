@@ -117,11 +117,11 @@ void motor2040Task(void *argument) {
             }
             memcpy(&prevEncoder, &motorEncoder, sizeof(motor_encoder_t));
             float dx = (diff.count[0] + diff.count[1] + diff.count[2] + diff.count[3]) / DX_COEFF;
-            float dy = -(diff.count[0] - diff.count[1] + diff.count[2] - diff.count[3]) / DY_COEFF;
+            float dy = (diff.count[0] - diff.count[1] + diff.count[2] - diff.count[3]) / DY_COEFF;
             packet.motor.dx = dx;
             packet.motor.dy = dy;
-            packet.motor.stdDevX = 0.03;
-            packet.motor.stdDevY = 0.03;
+            packet.motor.stdDevX = 0.005;
+            packet.motor.stdDevY = 0.005;
             packet.motor.dt = deltaTime / 1e6f;
             estimatorKalmanEnqueue(&packet);
         }

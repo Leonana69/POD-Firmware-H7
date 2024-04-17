@@ -33,8 +33,10 @@ void compressState(state_com_t *s, state_t *state) {
     s->roll = state->attitude.roll * deg2millirad;
     s->pitch = state->attitude.pitch * deg2millirad;
     s->yaw = state->attitude.yaw * deg2millirad;
+    s->timestamp = osKernelGetTickCount();
 }
 
+extern MotorPower_t motorPower;
 void stabilizerTask(void *argument) {
     state_t state;
     state_com_t stateCom;

@@ -6,16 +6,17 @@
 #include "supervisor.h"
 #include "debug.h"
 
-static pid_t pid_x, pid_y, pid_r;
+static pid_t gear_pid_x;
+static pid_t gear_pid_y;
+static pid_t gear_pid_r;
 #define CUTOFF_FREQ 10.0f
 
 void controllerGearInit() {
-    pidInit(&pid_x, 20.0f, 2.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
-    pidInit(&pid_y, 20.0f, 2.5f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
-    pidInit(&pid_r, 10.0f, 2.0f, 0.5f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
+    pidInit(&gear_pid_x, 20.0f, 0.0f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
+    pidInit(&gear_pid_y, 20.0f, 0.0f, 0.0f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
+    pidInit(&gear_pid_r, 10.0f, 2.0f, 0.5f, POSITION_RATE, CUTOFF_FREQ, 0.3f, 4.0f);
 }
 
-extern MotorPower_t motorPower;
 void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint32_t tick, control_t *control_out) {
     static control_t control;
     if (RATE_DO_EXECUTE(POSITION_RATE, tick)) {
@@ -25,7 +26,7 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         float vx, vy, vr;
 
         if (setpoint->mode.x == STABILIZE_ABSOLUTE) {
-            vx = pidUpdate(&pid_x, setpoint->position.x - state->position.x);
+            vx = pidUpdate(&gear_pid_x, setpoint->position.x - state->position.x);
         } else if (setpoint->velocity_body) {
             vx = setpoint->velocity.x * cos_yaw - setpoint->velocity.y * sin_yaw;
         } else {
@@ -33,7 +34,7 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         }
 
         if (setpoint->mode.y == STABILIZE_ABSOLUTE) {
-            vy = pidUpdate(&pid_y, setpoint->position.y - state->position.y);
+            vy = pidUpdate(&gear_pid_y, setpoint->position.y - state->position.y);
         } else if (setpoint->velocity_body) {
             vy = setpoint->velocity.x * sin_yaw + setpoint->velocity.y * cos_yaw;
         } else {
@@ -41,7 +42,7 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
         }
 
         if (setpoint->mode.yaw == STABILIZE_ABSOLUTE) {
-            vr = pidUpdate(&pid_r, radians(canonicalize_angle(setpoint->attitude.yaw - state->attitude.yaw)));
+            vr = pidUpdate(&gear_pid_r, radians(canonicalize_angle(setpoint->attitude.yaw - state->attitude.yaw)));
         } else if (setpoint->mode.yaw == STABILIZE_VELOCITY) {
             vr = setpoint->palstance.yaw;
         } else {
@@ -58,9 +59,9 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
     && fabs(control.attitude.yaw) < motorPowerGetMinThrust()
     && fabs(control.thrust) < motorPowerGetMinThrust())
     || supervisorCommandTimeout()) {
-        pidReset(&pid_x);
-        pidReset(&pid_y);
-        pidReset(&pid_r);
+        pidReset(&gear_pid_x);
+        pidReset(&gear_pid_y);
+        pidReset(&gear_pid_r);
         control.attitude.roll = 0;
         control.attitude.pitch = 0;
         control.attitude.yaw = 0;

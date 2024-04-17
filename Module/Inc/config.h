@@ -7,16 +7,16 @@ extern "C" {
 
 #define DEBUG
 
-#define SYSTEM_TASK_PRIORITY        osPriorityNormal
+#define SYSTEM_TASK_PRIORITY        osPriorityLow
 
 #define STABILIZER_TASK_PRIORITY    osPriorityRealtime
-#define IMU_TASK_PRIORITY           osPriorityNormal
+#define IMU_TASK_PRIORITY           osPriorityHigh
 #define BARO_TASK_PRIORITY          osPriorityNormal
 #define FLOW_TASK_PRIORITY          osPriorityNormal
 #define TOF_TASK_PRIORITY           osPriorityNormal
-#define ESTIMATOR_TASK_PRIORITY     osPriorityNormal
+#define ESTIMATOR_TASK_PRIORITY     osPriorityHigh
 #define LED_SEQ_TASK_PRIORITY       osPriorityLow
-#define LINK_TASK_PRIORITY          osPriorityNormal
+#define LINK_TASK_PRIORITY          osPriorityHigh
 #define DIS_TASK_PRIORITY           osPriorityNormal
 #define MOTOR_2040_TASK_PRIORITY    osPriorityNormal
 
@@ -25,15 +25,15 @@ extern "C" {
  */
 #define SYSTEM_TASK_STACK_SIZE      (4 * configMINIMAL_STACK_SIZE)
 
-#define STABILIZER_TASK_STACK_SIZE  (2 * configMINIMAL_STACK_SIZE)
-#define IMU_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
-#define BARO_TASK_STACK_SIZE        (2 * configMINIMAL_STACK_SIZE)
-#define FLOW_TASK_STACK_SIZE        (2 * configMINIMAL_STACK_SIZE)
-#define TOF_TASK_STACK_SIZE         (2 * configMINIMAL_STACK_SIZE)
+#define STABILIZER_TASK_STACK_SIZE  (8 * configMINIMAL_STACK_SIZE)
+#define IMU_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
+#define BARO_TASK_STACK_SIZE        (4 * configMINIMAL_STACK_SIZE)
+#define FLOW_TASK_STACK_SIZE        (4 * configMINIMAL_STACK_SIZE)
+#define TOF_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
 #define ESTIMATOR_TASK_STACK_SIZE   (4 * configMINIMAL_STACK_SIZE)
-#define LED_SEQ_TASK_STACK_SIZE     (2 * configMINIMAL_STACK_SIZE)
-#define LINK_TASK_STACK_SIZE        (4 * configMINIMAL_STACK_SIZE)
-#define DIS_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
+#define LED_SEQ_TASK_STACK_SIZE     (4 * configMINIMAL_STACK_SIZE)
+#define LINK_TASK_STACK_SIZE        (8 * configMINIMAL_STACK_SIZE)
+#define DIS_TASK_STACK_SIZE         (12 * configMINIMAL_STACK_SIZE)
 #define MOTOR_2040_TASK_STACK_SIZE  (4 * configMINIMAL_STACK_SIZE)
 
 #define TASK_INIT_SUCCESS           0
