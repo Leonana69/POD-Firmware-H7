@@ -94,7 +94,6 @@ typedef struct {
     scalar_t z;
     scalar_t yaw;
 } __attribute__((packed)) xyzy_t;
-
 bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
         packet->port = PORT_ACK_ERROR;

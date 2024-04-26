@@ -9,7 +9,7 @@
 #include "supervisor.h"
 #include "estimator_kalman.h"
 
-STATIC_QUEUE_DEF(linkTxPacketQueue, 10, PodtpPacket);
+STATIC_QUEUE_DEF(linkTxPacketQueue, 15, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
 STATIC_TASK_DEF(linkTxTask, LINK_TASK_PRIORITY, LINK_TASK_STACK_SIZE);
 STATIC_TASK_DEF(linkRxTask, LINK_TASK_PRIORITY, LINK_TASK_STACK_SIZE);

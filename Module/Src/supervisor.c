@@ -38,5 +38,8 @@ bool supervisorCanFly() {
 }
 
 void supervisorLockDrone(bool lock) {
+    if (!lock && isLocked) {
+        isTumbled = false;
+    }
     isLocked = lock;
 }

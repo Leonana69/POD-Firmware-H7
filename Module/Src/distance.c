@@ -72,10 +72,12 @@ uint32_t distanceInit(void) {
     return 0;
 }
 
+static int16_t front[8], left[8], right[8];
 void distanceTask(void *argument) {
     VL53L8CX_ResultsData rangingData[DIS_SENSOR_COUNT];
     uint8_t isReady, status;
     systemWaitStart();
+    DEBUG_PRINT("Distance Task [START]\n");
     for (int i = 0; i < DIS_SENSOR_COUNT; i++) {
         selectChannel(i);
         status = vl53l8cx_set_ranging_mode(&vl53l8Dev[i], VL53L8CX_RANGING_MODE_CONTINUOUS);
@@ -115,13 +117,22 @@ void distanceTask(void *argument) {
                         distanceBuffer.distance[j] = 
                             (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
                     }
-                } else {
-                    for (int j = 0; j < 8; j++) {
-                        uint8_t index = 3 * 8 + j;
-                        uint8_t status = rangingData[i].target_status[VL53L8CX_NB_TARGET_PER_ZONE * index];
-                        int16_t distance = rangingData[i].distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * index];
-                        distanceBuffer.distance[j + (i + 5) * 8] = 
-                            (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                }
+
+                for (int j = 0; j < 8; j++) {
+                    uint8_t index = 2 * 8 + j;
+                    uint8_t status = rangingData[i].target_status[VL53L8CX_NB_TARGET_PER_ZONE * index];
+                    int16_t distance = rangingData[i].distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * index];
+                    switch (i) {
+                        case 0:
+                            front[j] = (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                            break;
+                        case 1:
+                            left[j] = (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                            break;
+                        case 2:
+                            right[j] = (distance & 0x7FFF) | ((status != 5 && status != 9) << 15);
+                            break;
                     }
                 }
             } else {
@@ -129,6 +140,10 @@ void distanceTask(void *argument) {
             }
         }
         distanceBuffer.timestamp = osKernelGetTickCount();
+        for (int i = 0; i < 8; i++) {
+            distanceBuffer.distance[i] = left[i];
+            distanceBuffer.distance[i + 8 * 7] = right[i];
+        }
         linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)&distanceBuffer, sizeof(distance_t));
     }
 }

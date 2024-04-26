@@ -59,11 +59,7 @@ void stabilizerTask(void *argument) {
             linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
         }
 
-        if (supervisorCommandTimeout())
-            memset(&setpoint, 0, sizeof(setpoint_t));
-        else {
-            commandGetSetpoint(&setpoint);
-        }
+        commandGetSetpoint(&setpoint);
 
         controllerUpdate(&setpoint, &imu, &state, tick, &control);
         
