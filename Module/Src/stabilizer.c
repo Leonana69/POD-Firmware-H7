@@ -36,7 +36,8 @@ void compressState(state_com_t *s, state_t *state) {
     s->timestamp = osKernelGetTickCount();
 }
 
-extern MotorPower_t motorPower;
+extern bool isTumbled;
+extern bool isLocked;
 void stabilizerTask(void *argument) {
     state_t state;
     state_com_t stateCom;
@@ -66,7 +67,6 @@ void stabilizerTask(void *argument) {
         if (supervisorCanFly()) {
             motorPowerUpdate(&control);
         } else {
-            supervisorLockDrone(true);
             motorPowerStop();
         }
 

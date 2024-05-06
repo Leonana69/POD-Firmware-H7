@@ -21,20 +21,20 @@ typedef struct {
     uint32_t dma_buffer[DSHOT_DMA_BUFFER_SIZE];
 } MotorConfig_t;
 
-// static MotorConfig_t motorConfig[MOTOR_COUNT] = {
-//     { &MOTOR_1_TIM, MOTOR_1_CHANNEL, 0, { 0 }},
-//     { &MOTOR_2_TIM, MOTOR_2_CHANNEL, 0, { 0 }},
-//     { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
-//     { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }}
-// };
-
-// for reverse ESC installation
 static MotorConfig_t motorConfig[MOTOR_COUNT] = {
-    { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
-    { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }},
     { &MOTOR_1_TIM, MOTOR_1_CHANNEL, 0, { 0 }},
     { &MOTOR_2_TIM, MOTOR_2_CHANNEL, 0, { 0 }},
+    { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
+    { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }}
 };
+
+// for reverse ESC installation
+// static MotorConfig_t motorConfig[MOTOR_COUNT] = {
+//     { &MOTOR_3_TIM, MOTOR_3_CHANNEL, 0, { 0 }},
+//     { &MOTOR_4_TIM, MOTOR_4_CHANNEL, 0, { 0 }},
+//     { &MOTOR_1_TIM, MOTOR_1_CHANNEL, 0, { 0 }},
+//     { &MOTOR_2_TIM, MOTOR_2_CHANNEL, 0, { 0 }},
+// };
 
 static void dshot_dma_tc_callback(DMA_HandleTypeDef *hdma) {
 	TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *)((DMA_HandleTypeDef *)hdma)->Parent;
@@ -48,7 +48,7 @@ static void dshot_dma_tc_callback(DMA_HandleTypeDef *hdma) {
 		__HAL_TIM_DISABLE_DMA(htim, TIM_DMA_CC4);
 }
 
-void motorDShotInit(void) {
+void motorDShotInit(void) { 
     uint32_t prescaler = (MOTOR_CLOCK_FREQ_KHZ / DSHOT300_FREQ_KHZ / DSHOT_DMA_BUFFER_SIZE) - 1;
     for (int i = 0; i < MOTOR_COUNT; i++) {
         __HAL_TIM_SET_PRESCALER(motorConfig[i].tim, prescaler);

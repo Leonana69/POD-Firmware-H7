@@ -6,8 +6,8 @@
 #define Z_ACCEL_THRESHOLD   -0.5f
 #define Z_ACCEL_COUNT       30
 
-static bool isTumbled = false;
-static bool isLocked = true;
+bool isTumbled = false;
+bool isLocked = true;
 static uint32_t lastCommandTime = 0;
 
 void supervisorUpdate(const imu_t *imu) {
@@ -22,6 +22,10 @@ void supervisorUpdate(const imu_t *imu) {
         isTumbled = true;
         supervisorLockDrone(true);
     }
+
+    if (supervisorCommandTimeout()) {
+        supervisorLockDrone(true);
+    }
 }
 
 void supervisorUpdateCommand() {
@@ -33,13 +37,12 @@ bool supervisorCommandTimeout() {
 }
 
 bool supervisorCanFly() {
-    return !isTumbled && !isLocked
-        && !(motorPowerIsFlying() && supervisorCommandTimeout());
+    return !isTumbled && !isLocked;
 }
 
 void supervisorLockDrone(bool lock) {
-    if (!lock && isLocked) {
-        isTumbled = false;
+    if (!lock) {
+        supervisorUpdateCommand();
     }
     isLocked = lock;
 }

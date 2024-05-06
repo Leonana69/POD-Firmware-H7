@@ -25,7 +25,7 @@ MotorPower_t motorPower = {
     .send = motorDShotWriteDma,
     .setRatio = motorDShotSetThrust,
     .getRatio = motorDShotGetThrust,
-    .baseThrust = 30000,
+    .baseThrust = 15000,
     .maxThrust = INT16_MAX,
     .minThrust = 1000,
     .maxEncodedThrust = DSHOT_MAX_THRUST,
@@ -49,6 +49,10 @@ void motorPowerStop(void) {
 
 int16_t motorPowerGetMinThrust() {
     return motorPower.minThrust;
+}
+
+int16_t motorPowerGetBaseThrust() {
+    return motorPower.baseThrust;
 }
 
 static int16_t thrustToRatio(float thrust) {

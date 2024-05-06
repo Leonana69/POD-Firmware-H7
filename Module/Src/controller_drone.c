@@ -140,7 +140,7 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
 
     attitude_target->roll = ax * sin_yaw - ay * cos_yaw;
     attitude_target->pitch = -(ax * cos_yaw + ay * sin_yaw);
-    *thrust = (az + 1.0f) * MOTOR_THRUST_SCALE;
+    *thrust = az * MOTOR_THRUST_SCALE + motorPowerGetBaseThrust();
 }
 
 void controllerPidPositionReset() {
@@ -175,6 +175,9 @@ void controllerDroneUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uin
         controllerPidAttitudeReset();
         controllerPidPositionReset();
         attitude_target.yaw = state->attitude.yaw;
+        control.attitude.roll = 0;
+        control.attitude.pitch = 0;
+        control.attitude.yaw = 0;
         control.thrust = 0;
     }
 

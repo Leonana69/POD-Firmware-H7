@@ -32,6 +32,7 @@ void motorPowerInit();
 void motorPowerStop();
 void motorPowerSend();
 int16_t motorPowerGetMinThrust();
+int16_t motorPowerGetBaseThrust();
 void motorPowerUpdate(const control_t *control);
 bool motorPowerIsFlying();
 

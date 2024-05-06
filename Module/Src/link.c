@@ -81,7 +81,7 @@ void linkSendLog(const uint8_t *data, uint16_t length) {
 }
 
 void linkSendData(uint8_t type, uint8_t port, const uint8_t *data, uint16_t length) {
-    PodtpPacket packet = { 0 };
+    static PodtpPacket packet = { 0 };
     packet.type = type;
     packet.port = port;
     packet.length = length + 1;

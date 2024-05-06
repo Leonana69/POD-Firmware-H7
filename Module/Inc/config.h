@@ -23,7 +23,7 @@ extern "C" {
 /*
  * Make sure the stack size is large enough to handle the task.
  */
-#define SYSTEM_TASK_STACK_SIZE      (4 * configMINIMAL_STACK_SIZE)
+#define SYSTEM_TASK_STACK_SIZE      (8 * configMINIMAL_STACK_SIZE)
 
 #define STABILIZER_TASK_STACK_SIZE  (8 * configMINIMAL_STACK_SIZE)
 #define IMU_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
@@ -32,7 +32,7 @@ extern "C" {
 #define TOF_TASK_STACK_SIZE         (4 * configMINIMAL_STACK_SIZE)
 #define ESTIMATOR_TASK_STACK_SIZE   (4 * configMINIMAL_STACK_SIZE)
 #define LED_SEQ_TASK_STACK_SIZE     (4 * configMINIMAL_STACK_SIZE)
-#define LINK_TASK_STACK_SIZE        (8 * configMINIMAL_STACK_SIZE)
+#define LINK_TASK_STACK_SIZE        (12 * configMINIMAL_STACK_SIZE)
 #define DIS_TASK_STACK_SIZE         (12 * configMINIMAL_STACK_SIZE)
 #define MOTOR_2040_TASK_STACK_SIZE  (4 * configMINIMAL_STACK_SIZE)
 
