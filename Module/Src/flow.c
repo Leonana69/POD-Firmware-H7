@@ -47,8 +47,8 @@ void flowTask(void *argument) {
     while (1) {
         TASK_TIMER_WAIT(FLOW);
         paa3905_motion_burst(&paa3905_dev, &motion);
-        packet.flow.dpixelx = motion.delta_x;
-        packet.flow.dpixely = motion.delta_y;
+        packet.flow.dpixelx = -motion.delta_y;
+        packet.flow.dpixely = motion.delta_x;
         packet.flow.stdDevX = FLOW_STD_DEV;
         packet.flow.stdDevY = FLOW_STD_DEV;
         uint32_t currentTime = getTimeUs();

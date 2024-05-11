@@ -12,7 +12,7 @@ extern "C" {
 #define MOTOR_THRUST_SCALE  500.0f
 #define MOTOR_THRUST_BASE   15000.0f
 #define MOTOR_THRUST_MIN    1000.0f
-#define MOTOR_THRUST_MAX    32000.0f
+#define MOTOR_THRUST_MAX    32700.0f
 
 typedef struct {
     void (*init)();

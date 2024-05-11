@@ -89,7 +89,7 @@ int8_t paa3905_init(paa3905_dev_t *dev) {
     }
 
     register_write(dev, PAA3905_REG_POWER_UP_RESET, 0x5A);
-    dev->delay(1);
+    dev->delay(2);
     register_read(dev, PAA3905_REG_MOTION);
     register_read(dev, PAA3905_REG_DELTA_X_L);
     register_read(dev, PAA3905_REG_DELTA_X_H);

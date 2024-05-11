@@ -2,8 +2,8 @@
 #include "utils.h"
 
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool isTakingOff) {
-    float h[KC_STATE_DIM] = { 0 };
-    arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
+    DATA_REGION static float h[KC_STATE_DIM] = { 0 };
+    static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     if (fabs(coreData->R[2][2]) > 0.1 && coreData->R[2][2] > 0) {
         // tracking the offset to avoid jumps in the distance after taking off
@@ -32,21 +32,21 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
 }
 
 void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, const vec3f_t *gyro) {
-    static float predictedNX;
-    static float predictedNY;
-    static float measuredNX;
-    static float measuredNY;
-    // Inclusion of flow measurements in the EKF done by two scalar updates
-    // ~~~ Camera constants ~~~
-    float MPC = 0.1;                 // Meter per count coefficient
-    float pixelNbr = 35.0;           // [pixels] (same in x and y)
-    float thetapix = 0.71674f;       // 2 * sin(FOV/2) [rad] (same in x and y
-    //~~~ Body rates ~~~
-    // TODO check if this is feasible or if some filtering has to be done
+    DATA_REGION static float hx[KC_STATE_DIM] = { 0 };
+    DATA_REGION static float hy[KC_STATE_DIM] = { 0 };
+    static arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
+    static arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
+
+    /* For PAA3905, CPI (count per inch) = 12.198 / height * (resolution + 1) / 43
+     * Default resolution s 0x2A, which is 42 pixels, so CPI = 12.198 / height
+     * CPM (count per meter) = 12.198 / (height * 0.0254)
+     */
+    // Body rates
     float omegax_b = radians(gyro->x);
     float omegay_b = radians(gyro->y);
     float dx_g = coreData->S[KC_STATE_PX];
     float dy_g = coreData->S[KC_STATE_PY];
+
     float z_g;
     // Saturate elevation in prediction and correction to avoid singularities
     if (coreData->S[KC_STATE_Z] < 0.1f)
@@ -54,41 +54,31 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     else
         z_g = coreData->S[KC_STATE_Z];
 
-    // ~~~ X velocity prediction and update ~~~
+    float co = flow->dt * 12.198 / 0.0254;
+    // X displacement prediction and update
     // predics the number of accumulated pixels in the x-direction
-    float hx[KC_STATE_DIM] = { 0 };
-    arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
-    predictedNX = (flow->dt * pixelNbr / thetapix) * ((dx_g * coreData->R[2][2] / z_g) - omegay_b);
-    measuredNX = flow->dpixelx * MPC;
+    float predictedNX = co * ((dx_g * coreData->R[2][2] / z_g) - omegay_b);
+    float measuredNX = flow->dpixelx;
 
-    // derive measurement equation with respect to dx (and z?)
-    hx[KC_STATE_Z] = (pixelNbr * flow->dt / thetapix) * ((coreData->R[2][2] * dx_g) / (-z_g * z_g));
-    hx[KC_STATE_PX] = (pixelNbr * flow->dt / thetapix) * (coreData->R[2][2] / z_g);
+    // derive measurement equation with respect to dx and z
+    hx[KC_STATE_Z] = co * ((dx_g * coreData->R[2][2]) / (-z_g * z_g));
+    hx[KC_STATE_PX] = co * (coreData->R[2][2] / z_g);
 
-    /*! X update */
-    kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX * MPC);
+    kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
-    // ~~~ Y velocity prediction and update ~~~
-    float hy[KC_STATE_DIM] = { 0 };
-    arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
-    predictedNY = (flow->dt * pixelNbr / thetapix) * ((dy_g * coreData->R[2][2] / z_g) + omegax_b);
-    measuredNY = flow->dpixely * MPC;
+    // Y displacement prediction and update
+    float predictedNY = co * ((dy_g * coreData->R[2][2] / z_g) + omegax_b);
+    float measuredNY = flow->dpixely;
 
-    // derive measurement equation with respect to dy (and z?)
-    hy[KC_STATE_Z] = (pixelNbr * flow->dt / thetapix) * ((coreData->R[2][2] * dy_g) / (-z_g * z_g));
-    hy[KC_STATE_PY] = (pixelNbr * flow->dt / thetapix) * (coreData->R[2][2] / z_g);
+    // derive measurement equation with respect to dy and z
+    hy[KC_STATE_Z] = co * ((dy_g * coreData->R[2][2]) / (-z_g * z_g));
+    hy[KC_STATE_PY] = co * (coreData->R[2][2] / z_g);
 
-    /*! Y update */
-    kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY * MPC);
+    kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
 }
 
 void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor) {
-    static float predictedNX;
-    static float predictedNY;
-    static float measuredNX;
-    static float measuredNY;
     // Inclusion of flow measurements in the EKF done by two scalar updates
-    // ~~~ Camera constants ~~~
     //~~~ Body rates ~~~
     // TODO check if this is feasible or if some filtering has to be done
     float dx_g = coreData->S[KC_STATE_PX];
@@ -98,8 +88,8 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     // predics the number of accumulated pixels in the x-direction
     float hx[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
-    predictedNX = dx_g;
-    measuredNX = motor->dx / motor->dt;
+    float predictedNX = dx_g;
+    float measuredNX = motor->dx / motor->dt;
     hx[KC_STATE_PX] = 1;
 
     /*! X update */
@@ -108,8 +98,8 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     // ~~~ Y velocity prediction and update ~~~
     float hy[KC_STATE_DIM] = { 0 };
     arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
-    predictedNY = dy_g;
-    measuredNY = motor->dy / motor->dt;
+    float predictedNY = dy_g;
+    float measuredNY = motor->dy / motor->dt;
 
     // derive measurement equation with respect to dy (and z?)
     hy[KC_STATE_PY] = 1;
@@ -120,8 +110,8 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
 
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro, bool isFlying) {
     static float measNoiseBaro = 2.0f; // meters
-    float h[KC_STATE_DIM] = { 0 };
-    arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
+    DATA_REGION static float h[KC_STATE_DIM] = { 0 };
+    static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     h[KC_STATE_Z] = 1;
 

@@ -7,7 +7,6 @@ extern "C" {
 
 uint32_t flowInit(void);
 
-
 #ifdef __cplusplus
 }
 #endif

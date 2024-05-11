@@ -108,6 +108,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM2_Init();
   MX_TIM7_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_PRINT("Firmware start\n");
   /* USER CODE END 2 */

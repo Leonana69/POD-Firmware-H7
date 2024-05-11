@@ -49,7 +49,6 @@ extern "C" {
 #define LED_L_B_GPIO_PORT       GPIOB
 #define LED_L_B_GPIO_PIN        GPIO_PIN_0
 
-
 #ifdef __cplusplus
 }
 #endif
