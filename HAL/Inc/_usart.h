@@ -13,7 +13,7 @@ typedef int8_t (*usart_write_func_t)(const uint8_t *data, uint16_t len);
 /*
  * USART DMA dma write function
  */
-#define USART_DMA_WRITE_FUNC_DEF(NAME, USART_HANDLE) \
+#define USART_DMA_READ_WRITE_FUNC_DEF(NAME, USART_HANDLE) \
     STATIC_SEMAPHORE_DEF(NAME##_tx_sem); \
     STATIC_SEMAPHORE_DEF(NAME##_rx_sem); \
     int8_t NAME##_write_dma(const uint8_t *data, uint16_t len) { \
