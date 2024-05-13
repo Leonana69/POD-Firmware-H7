@@ -19,7 +19,7 @@
 
 STATIC_TASK_DEF(tofTask, TOF_TASK_PRIORITY, TOF_TASK_STACK_SIZE);
 
-#define TOF_TASK_RATE RATE_25_HZ
+#define TOF_TASK_RATE RATE_50_HZ
 static VL53L1_Dev_t vl53l1Dev;
 
 uint32_t tofInit(void) {

@@ -10,9 +10,6 @@ extern "C" {
 #include "stabilizer_types.h"
 
 #define MOTOR_THRUST_SCALE  500.0f
-#define MOTOR_THRUST_BASE   15000.0f
-#define MOTOR_THRUST_MIN    1000.0f
-#define MOTOR_THRUST_MAX    32700.0f
 
 typedef struct {
     void (*init)();
@@ -32,6 +29,7 @@ void motorPowerInit();
 void motorPowerStop();
 void motorPowerSend();
 int16_t motorPowerGetMinThrust();
+int16_t motorPowerGetMaxThrust();
 int16_t motorPowerGetBaseThrust();
 void motorPowerUpdate(const control_t *control);
 bool motorPowerIsFlying();

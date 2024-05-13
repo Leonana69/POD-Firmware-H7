@@ -25,11 +25,11 @@ MotorPower_t motorPower = {
     .send = motorDShotWriteDma,
     .setRatio = motorDShotSetThrust,
     .getRatio = motorDShotGetThrust,
-    .baseThrust = 15000,
-    .maxThrust = INT16_MAX,
-    .minThrust = 1000,
-    .maxEncodedThrust = DSHOT_MAX_THRUST,
-    .minEncodedThrust = DSHOT_MIN_THRUST,
+    .baseThrust = MOTOR_DSHOT_BASE_THRUST,
+    .maxThrust = MOTOR_DSHOT_MAX_VALUE,
+    .minThrust = MOTOR_DSHOT_MIN_VALUE,
+    .maxEncodedThrust = MOTOR_DSHOT_MAX_THRUST,
+    .minEncodedThrust = MOTOR_DSHOT_MIN_THRUST,
     .isFlying = false,
     .allowNegativeThrust = false
 };
@@ -49,6 +49,10 @@ void motorPowerStop(void) {
 
 int16_t motorPowerGetMinThrust() {
     return motorPower.minThrust;
+}
+
+int16_t motorPowerGetMaxThrust() {
+    return motorPower.maxThrust;
 }
 
 int16_t motorPowerGetBaseThrust() {

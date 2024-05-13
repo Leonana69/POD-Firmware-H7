@@ -60,6 +60,11 @@ void stabilizerTask(void *argument) {
             linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
         }
 
+        if (tick % 250 == 0) {
+            DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.1f, %.1f, %.1f)\n", state.position.x, state.position.y, state.position.z, 
+            state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
+        }
+
         commandGetSetpoint(&setpoint);
 
         controllerUpdate(&setpoint, &imu, &state, tick, &control);

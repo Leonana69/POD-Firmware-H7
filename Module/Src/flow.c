@@ -14,7 +14,7 @@
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
 #define FLOW_TASK_RATE RATE_50_HZ
-#define FLOW_STD_DEV 1.0f
+#define FLOW_STD_DEV 0.2f
 static paa3905_dev_t paa3905_dev;
 
 uint32_t flowInit(void) {
@@ -38,6 +38,9 @@ uint32_t flowInit(void) {
     return TASK_INIT_SUCCESS;
 }
 
+uint8_t squalThreshold[3] = { 0x19, 0x46, 0x55 };
+uint32_t shutterThreshold[3] = { 0x00FF80, 0x00FF80, 0x025998 };
+
 void flowTask(void *argument) {
     estimatorPacket_t packet = { .type = FLOW_TASK_INDEX };
     paa3905_motion_t motion;
@@ -47,8 +50,15 @@ void flowTask(void *argument) {
     while (1) {
         TASK_TIMER_WAIT(FLOW);
         paa3905_motion_burst(&paa3905_dev, &motion);
-        packet.flow.dpixelx = -motion.delta_y;
-        packet.flow.dpixely = motion.delta_x;
+
+        int mode = (motion.observation >> 6) & 0x03;
+        uint32_t shutter = motion.shutter_lower | (motion.shutter_middle << 8) | (motion.shutter_upper << 16);
+        if (motion.squal < squalThreshold[mode] && shutter >= shutterThreshold[mode]) {
+            continue;
+        } else {
+            packet.flow.dpixelx = -motion.delta_y;
+            packet.flow.dpixely = motion.delta_x;
+        }
         packet.flow.stdDevX = FLOW_STD_DEV;
         packet.flow.stdDevY = FLOW_STD_DEV;
         uint32_t currentTime = getTimeUs();

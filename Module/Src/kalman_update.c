@@ -5,26 +5,20 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
-    if (fabs(coreData->R[2][2]) > 0.1 && coreData->R[2][2] > 0) {
+    if (coreData->R[2][2] > 0.5) {
         // tracking the offset to avoid jumps in the distance after taking off
-        if (!isTakingOff) {
-            if (coreData->tofPreviousHeight > 0.0f
-                && fabs((coreData->tofPreviousHeight - tof->distance) / tof->dt) > 0.8f) {
-                coreData->tofReferenceHeight += tof->distance - coreData->tofPreviousHeight;
-            }
-        }
+        // if (!isTakingOff) {
+        //     if (coreData->tofPreviousHeight > 0.0f
+        //         && fabs((coreData->tofPreviousHeight - tof->distance) / tof->dt) > 0.8f) {
+        //         coreData->tofReferenceHeight += tof->distance - coreData->tofPreviousHeight;
+        //     }
+        // }
         coreData->tofPreviousHeight = tof->distance;
-
-        float angle = fabsf(acosf(coreData->R[2][2])) - radians(15.0f / 2.0f);
-        if (angle < 0.0f)
-            angle = 0.0f;
-        float predictedDistance = coreData->S[KC_STATE_Z] / cosf(angle);
-        // float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
-        float measuredDistance = tof->distance - coreData->tofReferenceHeight; // [m]
+        float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
+        float measuredDistance = tof->distance;// - coreData->tofReferenceHeight; // [m]
 
         // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
-        h[KC_STATE_Z] = 1.0 / cosf(angle);
-        // h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
+        h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
 
         // Scalar update
         kalmanCoreScalarUpdate(coreData, &H, measuredDistance - predictedDistance, tof->stdDev);
@@ -50,7 +44,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     float z_g;
     // Saturate elevation in prediction and correction to avoid singularities
     if (coreData->S[KC_STATE_Z] < 0.1f)
-        z_g = 0.1;
+        z_g = 0.1f;
     else
         z_g = coreData->S[KC_STATE_Z];
 

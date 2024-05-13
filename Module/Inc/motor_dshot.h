@@ -8,8 +8,11 @@ extern "C" {
 #include <stdint.h>
 
 // TODO: test this base value
-#define DSHOT_MAX_THRUST 2047
-#define DSHOT_MIN_THRUST 48
+#define MOTOR_DSHOT_MAX_THRUST  2047
+#define MOTOR_DSHOT_MIN_THRUST  48
+#define MOTOR_DSHOT_BASE_THRUST 10000.0f
+#define MOTOR_DSHOT_MIN_VALUE   1000.0f
+#define MOTOR_DSHOT_MAX_VALUE  25000.0f
 
 void motorDShotInit(void);
 void motorDShotSetThrust(uint8_t id, int16_t thrust);
