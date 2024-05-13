@@ -23,7 +23,12 @@ C_INCLUDES += \
 
 CFLAGS += -Wno-comment
 
-C_SOURCES += $(wildcard Module/Src/*.c)
+C_SOURCES += $(filter-out Module/Src/motor_2040.c, $(wildcard Module/Src/*.c))
+
+ifdef GEAR
+C_SOURCES += Module/Src/motor_2040.c
+endif
+
 C_SOURCES += $(wildcard HAL/Src/*.c)
 C_SOURCES += $(wildcard Drivers/Bosch/Src/*.c)
 C_SOURCES += $(wildcard Drivers/Pixart/Src/*.c)
