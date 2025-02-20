@@ -25,7 +25,7 @@ float pidUpdate(pid_t *pid, float error) {
 
     if (pid->tau > 0) {
         float alpha = pid->dt / (pid->tau + pid->dt);
-        pid->filtered_derivative = pid->filtered_derivative * alpha + raw_derivative * (1 - alpha);
+        pid->filtered_derivative = pid->filtered_derivative * (1.0f - alpha) + raw_derivative * alpha;
     } else {
         pid->filtered_derivative = raw_derivative;
     }
