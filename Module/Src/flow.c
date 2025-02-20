@@ -13,7 +13,7 @@
 
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
-#define FLOW_TASK_RATE RATE_50_HZ
+#define FLOW_TASK_RATE RATE_25_HZ
 #define FLOW_STD_DEV 0.2f
 static paa3905_dev_t paa3905_dev;
 
@@ -54,16 +54,19 @@ void flowTask(void *argument) {
         int mode = (motion.observation >> 6) & 0x03;
         uint32_t shutter = motion.shutter_lower | (motion.shutter_middle << 8) | (motion.shutter_upper << 16);
         if (motion.squal < squalThreshold[mode] && shutter >= shutterThreshold[mode]) {
-            continue;
+            packet.flow.dpixelx = 0;
+            packet.flow.dpixely = 0;
         } else {
             packet.flow.dpixelx = -motion.delta_y;
             packet.flow.dpixely = motion.delta_x;
         }
+
         packet.flow.stdDevX = FLOW_STD_DEV;
         packet.flow.stdDevY = FLOW_STD_DEV;
         uint32_t currentTime = getTimeUs();
         packet.flow.dt = getDurationUs(lastTime, currentTime) / 1e6f;
         lastTime = currentTime;
+
         estimatorKalmanEnqueue(&packet);
     }
 }

@@ -8,7 +8,8 @@
 #include "stabilizer_types.h"
 #include "system.h"
 
-#define DIS_SENSOR_COUNT 3
+// 3 for car, 1 for drone
+#define DIS_SENSOR_COUNT 0
 
 VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
@@ -41,7 +42,7 @@ uint32_t distanceInit(void) {
     if (!pca9546Init()) {
         return TASK_INIT_FAILED(DIS_TASK_INDEX);
     }
-    uint8_t status, isAlive;
+    uint8_t status = 0, isAlive;
 
     for (int i = 0; i < DIS_SENSOR_COUNT; i++) {
         selectChannel(i);
@@ -140,10 +141,15 @@ void distanceTask(void *argument) {
             }
         }
         distanceBuffer.timestamp = osKernelGetTickCount();
-        for (int i = 0; i < 8; i++) {
-            distanceBuffer.distance[i] = left[i];
-            distanceBuffer.distance[i + 8 * 7] = right[i];
+        if (DIS_SENSOR_COUNT > 1) {
+            for (int i = 0; i < 8; i++) {
+                distanceBuffer.distance[i] = left[i];
+                distanceBuffer.distance[i + 8 * 7] = right[i];
+            }
         }
-        linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)&distanceBuffer, sizeof(distance_t));
+
+        if (DIS_SENSOR_COUNT > 0) {
+            linkSendData(PODTP_TYPE_LOG, PORT_LOG_DISTANCE, (uint8_t *)&distanceBuffer, sizeof(distance_t));
+        }
     }
 }

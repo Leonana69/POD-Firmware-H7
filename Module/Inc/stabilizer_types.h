@@ -61,7 +61,7 @@ typedef union {
 }__attribute__((packed, aligned(4))) vec3f_t;
 
 typedef struct {
-    attitude_t attitude;      // deg (legacy CF2 body coordinate system, where pitch is inverted)
+    attitude_t attitude;
     quaternion_t attitudeQuat;
     position_t position;      // m
     velocity_t velocity;      // m/s

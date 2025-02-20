@@ -76,10 +76,10 @@ void motorPowerUpdate(const control_t *control) {
     float p = control->attitude.pitch / 2.0f;
     float y = control->attitude.yaw;
     float t = control->thrust;
-    int16_t m0 = thrustToRatio(t - r + p - y);
-    int16_t m1 = thrustToRatio(t - r - p + y);
-    int16_t m2 = thrustToRatio(t + r - p - y);
-    int16_t m3 = thrustToRatio(t + r + p + y);
+    int16_t m0 = thrustToRatio(t - r - p - y);
+    int16_t m1 = thrustToRatio(t - r + p + y);
+    int16_t m2 = thrustToRatio(t + r + p - y);
+    int16_t m3 = thrustToRatio(t + r - p + y);
     motorPower.setRatio(0, m0);
     motorPower.setRatio(1, m1);
     motorPower.setRatio(2, m2);

@@ -202,7 +202,14 @@ void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 
     // (K_n * H - I) * P_n,n-1 * (K_n * H - I)^T
     arm_mat_mult_f32(&tmpNN3m, &tmpNN2m, &coreData->Pm);
 
-    // add the measurement variance and ensure boundedness and symmetry
+    // add the measurement variance and ensure boundedness and symmetry, but this would cause the covariance to be too small
+    // for (int i = 0; i < KC_STATE_DIM; i++) {
+    //     for (int j = i; j < KC_STATE_DIM; j++) {
+    //         coreData->P[i][j] += K[i] * R * K[j];
+    //         coreData->P[j][i] = coreData->P[i][j];
+    //     }
+    // }
+
     capCovariance(coreData);
 }
 
@@ -435,19 +442,35 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
 
 void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt) {
     if (dt > 0) {
-        coreData->P[KC_STATE_X][KC_STATE_X] += powf(procNoiseAcc_xy * dt * dt + procNoiseVel * dt + procNoisePos, 2);  // add process noise on position
-        coreData->P[KC_STATE_Y][KC_STATE_Y] += powf(procNoiseAcc_xy * dt * dt + procNoiseVel * dt + procNoisePos, 2);  // add process noise on position
-        coreData->P[KC_STATE_Z][KC_STATE_Z] += powf(procNoiseAcc_z * dt * dt + procNoiseVel * dt + procNoisePos, 2);  // add process noise on position
+        // Add process noise on position
+        coreData->P[KC_STATE_X][KC_STATE_X] += powf(procNoiseAcc_xy * dt * dt, 2) 
+                                             + powf(procNoiseVel * dt, 2) 
+                                             + powf(procNoisePos, 2);
+        coreData->P[KC_STATE_Y][KC_STATE_Y] += powf(procNoiseAcc_xy * dt * dt, 2) 
+                                             + powf(procNoiseVel * dt, 2) 
+                                             + powf(procNoisePos, 2);
+        coreData->P[KC_STATE_Z][KC_STATE_Z] += powf(procNoiseAcc_z * dt * dt, 2) 
+                                             + powf(procNoiseVel * dt, 2) 
+                                             + powf(procNoisePos, 2);
 
-        coreData->P[KC_STATE_PX][KC_STATE_PX] += powf(procNoiseAcc_xy * dt + procNoiseVel, 2); // add process noise on velocity
-        coreData->P[KC_STATE_PY][KC_STATE_PY] += powf(procNoiseAcc_xy * dt + procNoiseVel, 2); // add process noise on velocity
-        coreData->P[KC_STATE_PZ][KC_STATE_PZ] += powf(procNoiseAcc_z * dt + procNoiseVel, 2); // add process noise on velocity
+        // Add process noise on velocity
+        coreData->P[KC_STATE_PX][KC_STATE_PX] += powf(procNoiseAcc_xy * dt, 2) 
+                                               + powf(procNoiseVel, 2);
+        coreData->P[KC_STATE_PY][KC_STATE_PY] += powf(procNoiseAcc_xy * dt, 2) 
+                                               + powf(procNoiseVel, 2);
+        coreData->P[KC_STATE_PZ][KC_STATE_PZ] += powf(procNoiseAcc_z * dt, 2) 
+                                               + powf(procNoiseVel, 2);
 
-        coreData->P[KC_STATE_D0][KC_STATE_D0] += powf(measNoiseGyro_roll_pitch * dt + procNoiseAtt, 2);
-        coreData->P[KC_STATE_D1][KC_STATE_D1] += powf(measNoiseGyro_roll_pitch * dt + procNoiseAtt, 2);
-        coreData->P[KC_STATE_D2][KC_STATE_D2] += powf(measNoiseGyro_yaw * dt + procNoiseAtt, 2);
+        // Add process noise on attitude
+        coreData->P[KC_STATE_D0][KC_STATE_D0] += powf(measNoiseGyro_roll_pitch * dt, 2) 
+                                               + powf(procNoiseAtt, 2);
+        coreData->P[KC_STATE_D1][KC_STATE_D1] += powf(measNoiseGyro_roll_pitch * dt, 2) 
+                                               + powf(procNoiseAtt, 2);
+        coreData->P[KC_STATE_D2][KC_STATE_D2] += powf(measNoiseGyro_yaw * dt, 2) 
+                                               + powf(procNoiseAtt, 2);
     }
 
+    // Cap covariance values to ensure numerical stability
     capCovariance(coreData);
 }
 
@@ -580,7 +603,7 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
         2 * (coreData->q[1] * coreData->q[2] + coreData->q[0] * coreData->q[3]),
         coreData->q[0] * coreData->q[0] + coreData->q[1] * coreData->q[1] - coreData->q[2] * coreData->q[2] - coreData->q[3] * coreData->q[3]
     );
-    float pitch = -asinf(-2 * (coreData->q[1] * coreData->q[3] - coreData->q[0] * coreData->q[2]));
+    float pitch = asinf(-2 * (coreData->q[1] * coreData->q[3] - coreData->q[0] * coreData->q[2]));
     float roll = atan2f(
         2 * (coreData->q[2] * coreData->q[3]+coreData->q[0] * coreData->q[1]),
         coreData->q[0] * coreData->q[0] - coreData->q[1] * coreData->q[1] - coreData->q[2] * coreData->q[2] + coreData->q[3] * coreData->q[3]

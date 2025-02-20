@@ -56,14 +56,25 @@ void stabilizerTask(void *argument) {
         estimatorKalmanUpdate(&state);
         compressState(&stateCom, &state);
 
-        if (tick % 100 == 0) {
-            linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
-        }
+        // if (tick % 100 == 0) {
+        //     linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
+        // }
 
-        if (tick % 250 == 0) {
-            DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.1f, %.1f, %.1f)\n", state.position.x, state.position.y, state.position.z, 
+        // if (tick % 250 == 0) {
+        //     DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.1f, %.1f, %.1f)\n", state.position.x, state.position.y, state.position.z, 
+        //     state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
+        // }
+        if (tick % 500 == 0) {
+            DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;\t%.1f,\t%.1f,\t%.1f;\t%.1f,\t%.1f,\t%.1f\n", state.position.x, state.position.y, state.position.z, 
+            state.accel.x, state.accel.y, state.accel.z,
             state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
         }
+
+        // if (tick % 250 == 0) {
+        //     DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;    %.2f,\t%.2f,\t%.2f\n", 
+        //         imu.accel.x, imu.accel.y, imu.accel.z,
+        //         imu.gyro.x, imu.gyro.y, imu.gyro.z);
+        // }
 
         commandGetSetpoint(&setpoint);
 
