@@ -13,7 +13,7 @@ void pidInit(pid_t *pid, float kp, float ki, float kd, float rate, float cutoff_
     pid->last_error = 0;
     pid->integral = 0;
     pid->filtered_derivative = 0;
-    pid->tau = 1 / (2 * PI * cutoff_freq);
+    pid->tau = cutoff_freq > 0 ? 1 / (2 * PI * cutoff_freq) : 0;  // Guard against div-by-zero
 }
 
 float pidUpdate(pid_t *pid, float error) {
@@ -23,7 +23,12 @@ float pidUpdate(pid_t *pid, float error) {
     float raw_derivative = (error - pid->last_error) * pid->rate;
     pid->last_error = error;
 
-    pid->filtered_derivative = pid->filtered_derivative * pid->tau + raw_derivative * (1 - pid->tau);
+    if (pid->tau > 0) {
+        float alpha = pid->dt / (pid->tau + pid->dt);
+        pid->filtered_derivative = pid->filtered_derivative * alpha + raw_derivative * (1 - alpha);
+    } else {
+        pid->filtered_derivative = raw_derivative;
+    }
     
     output += pid->kd * pid->filtered_derivative;
 

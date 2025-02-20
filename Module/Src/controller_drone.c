@@ -7,25 +7,19 @@
 static pid_t pid_roll, pid_pitch, pid_yaw;
 static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
 
-#define OUTTER_LOOP_CUTOFF_FREQ 60.0f
-#define INNER_LOOP_CUTOFF_FREQ 30.0f
+#define ATTI_OUTTER_LOOP_CUTOFF_FREQ 40.0f
+#define ATTI_INNER_LOOP_CUTOFF_FREQ 100.0f
+#define POS_OUTTER_LOOP_CUTOFF_FREQ 15.0f
+#define POS_INNER_LOOP_CUTOFF_FREQ 30.0f
 
 void controllerPidAttitudeInit(void) {
-    // pidInit(&pid_roll, 5.0f, 2.0f, 0.0f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    // pidInit(&pid_pitch, 5.0f, 2.0f, 0.0f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    // pidInit(&pid_yaw, 3.0f, 1.0f, 0.35f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
+    pidInit(&pid_roll,  5.0f, 1.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
+    pidInit(&pid_pitch, 5.0f, 1.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
+    pidInit(&pid_yaw,   4.0f, 1.0f, 0.35f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
 
-    pidInit(&pid_roll,  5.0f, 1.0f, 0.0f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    pidInit(&pid_pitch, 5.0f, 1.0f, 0.0f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    pidInit(&pid_yaw,   4.0f, 1.0f, 0.35f, ATTITUDE_RATE, OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
-
-    pidInit(&pid_roll_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
-    pidInit(&pid_pitch_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
-    pidInit(&pid_yaw_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 33.0f, 0.0f);
-    // Lower P, lower I, and add a small D:
-    // pidInit(&pid_roll_rate,  25.0f, 12.0f, 1.0f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
-    // pidInit(&pid_pitch_rate, 25.0f, 12.0f, 1.0f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
-    // pidInit(&pid_yaw_rate,   30.0f, 10.0f, 0.5f, ATTITUDE_RATE, INNER_LOOP_CUTOFF_FREQ, 33.0f, 0.0f);
+    pidInit(&pid_roll_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
+    pidInit(&pid_pitch_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 30.0f, 0.0f);
+    pidInit(&pid_yaw_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 33.0f, 0.0f);
 }
 
 void controllerPidAttitudeUpdateValue(attitude_t *estimation, attitude_t *target, palstance_t *palstance) {
@@ -96,14 +90,17 @@ static pid_t pid_x, pid_y, pid_z;
 static pid_t pid_x_rate, pid_y_rate, pid_z_rate;
 
 void controllerPidPositionInit(void) {
-    pidInit(&pid_x, 4.0f, 0.5f, 0.0f, POSITION_RATE, OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.0f);
-    pidInit(&pid_y, 4.0f, 0.5f, 0.0f, POSITION_RATE, OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.0f);
-    pidInit(&pid_z, 3.0f, 0.5f, 0.0f, POSITION_RATE, OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.0f);
+    pidInit(&pid_x, 3.0f, 0.5f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 0.0f);
+    pidInit(&pid_y, 3.0f, 0.5f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 0.0f);
+    pidInit(&pid_z, 6.0f, 1.0f, 0.5f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 1.0f);
 
-    pidInit(&pid_x_rate, 15.0f, 2.0f, 0.0f, POSITION_RATE, INNER_LOOP_CUTOFF_FREQ, 25.0f, 20.0f);
-    pidInit(&pid_y_rate, 15.0f, 2.0f, 0.0f, POSITION_RATE, INNER_LOOP_CUTOFF_FREQ, 25.0f, 20.0f);
-    pidInit(&pid_z_rate, 25.0f, 10.0f, 1.0f, POSITION_RATE, INNER_LOOP_CUTOFF_FREQ, 20.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
+    pidInit(&pid_x_rate, 8.0f, 5.0f, 0.5f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 25.0f, 20.0f);
+    pidInit(&pid_y_rate, 8.0f, 5.0f, 0.5f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 25.0f, 20.0f);
+    pidInit(&pid_z_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 40.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
 }
+
+int local_count = 0;
+#include "debug.h"
 
 void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_t *attitude_target, scalar_t *thrust) {
     float cos_yaw = cosf(radians(state->attitude.yaw));
@@ -140,7 +137,15 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     attitude_target->roll = -(ay * cos_yaw - ax * sin_yaw);
     attitude_target->pitch = ax * cos_yaw + ay * sin_yaw;
 
-    *thrust = az * MOTOR_THRUST_SCALE + motorPowerGetBaseThrust();
+    // attitude_target-> roll = 0;
+    // attitude_target-> pitch = 0;
+
+    *thrust = clamp_f(az * MOTOR_THRUST_SCALE + motorPowerGetBaseThrust(), motorPowerGetMinThrust(), motorPowerGetMaxThrust());
+
+
+    if (local_count++ % 25 == 0) {
+        DEBUG_REMOTE("vz: %.2f, z: %.2f, az: %.2f, t: %.1f\n", state->velocity.z, state->position.z, az, *thrust);
+    }
 }
 
 void controllerPidPositionReset() {
@@ -170,6 +175,11 @@ void controllerDroneUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uin
     if (RATE_DO_EXECUTE(ATTITUDE_RATE, tick)) {
         controllerPidAttitudeUpdate(setpoint, imu, state, &attitude_target, &palstance_target, &thrust, &control);
     }
+
+    // if (local_count % 100 == 0) {
+    //     DEBUG_REMOTE("2 r: %.2f, p: %.2f, y: %.2f, thrust: %.2f\n", 
+    //         control.attitude.roll, control.attitude.pitch, control.attitude.yaw, control.thrust);
+    // }
 
     if (control.thrust < (float) motorPowerGetMinThrust()) {
         controllerPidAttitudeReset();
