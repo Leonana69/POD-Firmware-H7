@@ -42,38 +42,38 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      * Default resolution s 0x2A, which is 42 pixels, so CPI = 12.198 / height
      * CPM (count per meter) = 12.198 / (height * 0.0254)
      */
-    // Body rates
+    // Saturate height to avoid division by zero
+    float z_g = coreData->S[KC_STATE_Z] < 0.1f ? 0.1f : coreData->S[KC_STATE_Z];
+    
+    // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
+    float vx_body = coreData->S[KC_STATE_PX];
+    float vy_body = coreData->S[KC_STATE_PY];
+    
+    // Convert gyro to rad/s (correct for sensor axis orientation if needed)
     float omegax_b = radians(gyro->x);
     float omegay_b = radians(gyro->y);
-    float dx_g = coreData->S[KC_STATE_PX];
-    float dy_g = coreData->S[KC_STATE_PY];
 
-    float z_g;
-    // Saturate elevation in prediction and correction to avoid singularities
-    if (coreData->S[KC_STATE_Z] < 0.1f)
-        z_g = 0.1f;
-    else
-        z_g = coreData->S[KC_STATE_Z];
-
-    float co = flow->dt * 12.198 / 0.0254;
-    // X displacement prediction and update
+    float co = (flow->dt * 12.198) / (0.0254 * z_g);
+    // X displacement in body frame prediction and update
     // predics the number of accumulated pixels in the x-direction
-    float predictedNX = co * ((dx_g * coreData->R[2][2] / z_g) - omegay_b);
+
+    // height_body = z_g / R[2][2]
+    // predictedNX = (vx_body - omegay_b * height_body) * dt * CPI
+    float predictedNX = co * (vx_body * coreData->R[2][2] - omegay_b * z_g);
     float measuredNX = flow->dpixelx;
 
     // derive measurement equation with respect to dx and z
-    hx[KC_STATE_Z] = co * ((dx_g * coreData->R[2][2]) / (-z_g * z_g));
-    hx[KC_STATE_PX] = co * (coreData->R[2][2] / z_g);
+    memset(hx, 0, sizeof(hx));
+    hx[KC_STATE_Z] = co * ((vx_body * coreData->R[2][2]) / (-z_g));
+    hx[KC_STATE_PX] = co * coreData->R[2][2];
 
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
-    // Y displacement prediction and update
-    float predictedNY = co * ((dy_g * coreData->R[2][2] / z_g) + omegax_b);
+    float predictedNY = co * (vy_body * coreData->R[2][2] + omegax_b * z_g);
     float measuredNY = flow->dpixely;
-
-    // derive measurement equation with respect to dy and z
-    hy[KC_STATE_Z] = co * ((dy_g * coreData->R[2][2]) / (-z_g * z_g));
-    hy[KC_STATE_PY] = co * (coreData->R[2][2] / z_g);
+    memset(hy, 0, sizeof(hy));
+    hy[KC_STATE_Z] = co * ((vy_body * coreData->R[2][2]) / (-z_g));
+    hy[KC_STATE_PY] = co * coreData->R[2][2];
 
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
 }

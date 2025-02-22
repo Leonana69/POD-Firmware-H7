@@ -45,7 +45,7 @@ static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, 
     estimatorKalmanUpdate(&state);
     sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
     sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
-    sp->position = (position_t) { .x = x + state.position.x, .y = y + state.position.y, .z = z + state.position.z };
+    sp->position = (position_t) { .x = x, .y = y, .z = z };
     sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
     sp->mode.x = STABILIZE_ABSOLUTE;
     sp->mode.y = STABILIZE_ABSOLUTE;

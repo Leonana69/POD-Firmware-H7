@@ -13,8 +13,8 @@
 
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
-#define FLOW_TASK_RATE RATE_25_HZ
-#define FLOW_STD_DEV 0.2f
+#define FLOW_TASK_RATE RATE_50_HZ
+#define FLOW_STD_DEV 0.1f
 static paa3905_dev_t paa3905_dev;
 
 uint32_t flowInit(void) {

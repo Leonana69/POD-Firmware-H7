@@ -51,7 +51,7 @@ class PID:
 # Simple simulator for drone height control with two PID loops
 def simulate_pid():
     outer_pid = PID(kp=6.0, ki=1.0, kd=0.5, rate=100, cutoff_freq=15, i_limit=2, o_limit=4)
-    inner_pid = PID(kp=10.0, ki=5.0, kd=5.0, rate=100, cutoff_freq=30, i_limit=40, o_limit=200)
+    inner_pid = PID(kp=5.0, ki=5.0, kd=5.0, rate=100, cutoff_freq=30, i_limit=40, o_limit=200)
     
     target_height = 1.0  # Desired height in meters
     height = 0.0  # Initial height
