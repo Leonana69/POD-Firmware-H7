@@ -11,6 +11,7 @@
 #include "system.h"
 #include "stabilizer_types.h"
 #include "estimator_kalman.h"
+#include "filter.h"
 
 #define IMU_TASK_RATE RATE_1000_HZ
 
@@ -24,11 +25,17 @@ struct bmi2_sens_config bmi270Config[2];
 static float accelValue2Gravity;
 static float gyroVale2Degree;
 
+static lpf2pData lpf2pAccel[3];
+static lpf2pData lpf2pGyro[3];
 static imu_t imuData;
 static vec3f_t gyroBias;
 static float accelScale;
 
 static bool imuCalibration();
+static void applyLpf(lpf2pData *lpfData, vec3f_t *data) {
+    for (uint8_t i = 0; i < 3; i++)
+        data->v[i] = lpf2pApply(&lpfData[i], data->v[i]);
+}
 
 uint32_t imuInit() {
     int8_t rslt;
@@ -83,6 +90,12 @@ uint32_t imuInit() {
     STATIC_MUTEX_INIT(imuDataMutex);
     STATIC_SEMAPHORE_INIT(imuDataReady, 1, 0);
     STATIC_TASK_INIT(imuTask, NULL);
+
+    for (uint8_t i = 0; i < 3; i++) {
+        lpf2pInit(&lpf2pAccel[i], 1000, 40);
+        lpf2pInit(&lpf2pGyro[i], 1000, 80);
+    }
+
     return TASK_INIT_SUCCESS;
 }
 
@@ -161,13 +174,12 @@ void imuTask(void *argument) {
         imuBuffer.gyro.y = (bmi270Data[GYRO].sens_data.gyr.y - gyroBias.y) * gyroVale2Degree;
         imuBuffer.gyro.z = (bmi270Data[GYRO].sens_data.gyr.z - gyroBias.z) * gyroVale2Degree;
 
+        applyLpf(lpf2pAccel, &imuBuffer.accel);
+        applyLpf(lpf2pGyro, &imuBuffer.gyro);
+
         STATIC_MUTEX_LOCK(imuDataMutex, osWaitForever);
         imuData = imuBuffer;
         STATIC_MUTEX_UNLOCK(imuDataMutex);
-        // TOOD: verify the LPF
-        // applyAxis3fLpf((lpf2pData*)(&gyroLpf), &imuBuffer.gyro);
-
-        // TODO: potential alignment calibration
 
         packet.imu = imuBuffer;
         estimatorKalmanEnqueue(&packet);

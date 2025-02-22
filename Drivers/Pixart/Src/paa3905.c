@@ -79,6 +79,12 @@ void paa3905_enhanced_mode(paa3905_dev_t *dev) {
     }
 }
 
+void paa3905_set_auto_switch(paa3905_dev_t *dev) {
+    register_write(dev, 0x7F, 0x08);
+    register_write(dev, 0x68, 0x01);
+    register_write(dev, 0x7F, 0x00);
+}
+
 int8_t paa3905_init(paa3905_dev_t *dev) {
     dev->delay(40);
     uint8_t chip_id = register_read(dev, PAA3905_REG_PRODUCT_ID);
@@ -101,6 +107,8 @@ int8_t paa3905_init(paa3905_dev_t *dev) {
     else
         paa3905_standard_mode(dev);
 
+    dev->delay(2);
+    paa3905_set_auto_switch(dev);
     return PAA3905_OK;
 }
 
