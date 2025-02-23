@@ -21,6 +21,7 @@ typedef struct {
 uint32_t estimatorKalmanInit();
 void estimatorKalmanUpdate(state_t *state);
 void estimatorKalmanEnqueue(estimatorPacket_t *packet);
+void estimatorKalmanSetBaroReference(float height);
 void estimatorKalmanReset();
 
 #ifdef __cplusplus

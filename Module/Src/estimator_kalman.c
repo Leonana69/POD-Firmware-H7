@@ -129,6 +129,10 @@ void estimatorKalmanTask(void *argument) {
     }
 }
 
+void estimatorKalmanSetBaroReference(float height) {
+    coreData.baroReferenceHeight = height;
+}
+
 void estimatorKalmanReset() {
     kalmanCoreInit(&coreData);
 }

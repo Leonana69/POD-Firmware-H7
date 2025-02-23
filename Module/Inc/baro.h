@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 uint32_t baroInit(void);
+float pressureToAltitude(float pressure);
 
 #ifdef __cplusplus
 }

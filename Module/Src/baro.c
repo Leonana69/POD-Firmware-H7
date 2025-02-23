@@ -62,10 +62,28 @@ uint32_t baroInit(void) {
     return TASK_INIT_SUCCESS;
 }
 
+float pressureToAltitude(float pressure) {
+    float seaLevelPressure = 101325.0f;
+    return 44330.0f * (1.0f - powf(pressure / seaLevelPressure, 0.1903f));
+}
+
+void baroCalibration(void) {
+    struct bmp3_data bmp388_data;
+    float pressure = 0;
+    for (int i = 0; i < 10; i++) {
+        bmp3_get_sensor_data(BMP3_PRESS | BMP3_TEMP, &bmp388_data, &bmp388_dev);
+        pressure += bmp388_data.pressure;
+        osDelay(100);
+    }
+    pressure /= 10;
+    estimatorKalmanSetBaroReference(pressureToAltitude(pressure));
+}
+
 void baroTask(void *argument) {
     estimatorPacket_t packet = { .type = BARO_TASK_INDEX };
     struct bmp3_data bmp388_data;
     systemWaitStart();
+    baroCalibration();
     TASK_TIMER_DEF(BARO, BARO_TASK_RATE);
     while (1) {
         TASK_TIMER_WAIT(BARO);

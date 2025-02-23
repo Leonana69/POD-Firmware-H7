@@ -1,8 +1,9 @@
 #include "kalman_update.h"
 #include "utils.h"
+#include "baro.h"
 #include "debug.h"
 
-// static int count = 0;
+static int count = 0;
 
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool isTakingOff) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
@@ -110,16 +111,13 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
 }
 
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro, bool isFlying) {
-    static float measNoiseBaro = 2.0f; // meters
+    static float measNoiseBaro = 0.6f; // meters
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     h[KC_STATE_Z] = 1;
 
-    float asl = (1 - powf(baro->pressure / 101315.0f, 0.28686299f)) * (273.15 + 25) / 0.0098f;
-    if (!isFlying || coreData->baroReferenceHeight < 1)
-        coreData->baroReferenceHeight = asl;
-
+    float asl = pressureToAltitude(baro->pressure);
     float meas = (asl - coreData->baroReferenceHeight);
     kalmanCoreScalarUpdate(coreData, &H, meas - coreData->S[KC_STATE_Z], measNoiseBaro);
 }
