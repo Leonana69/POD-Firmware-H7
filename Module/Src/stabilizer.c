@@ -64,11 +64,11 @@ void stabilizerTask(void *argument) {
         //     DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.1f, %.1f, %.1f)\n", state.position.x, state.position.y, state.position.z, 
         //     state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
         // }
-        if (tick % 250 == 0) {
-            DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;\t%.2f,\t%.2f,\t%.2f;\t%.1f,\t%.1f,\t%.1f\n", state.position.x, state.position.y, state.position.z, 
-            state.velocity.x, state.velocity.y, state.velocity.z,
-            state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
-        }
+        // if (tick % 250 == 0) {
+        //     DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;\t%.2f,\t%.2f,\t%.2f;\t%.1f,\t%.1f,\t%.1f\n", state.position.x, state.position.y, state.position.z, 
+        //     state.velocity.x, state.velocity.y, state.velocity.z,
+        //     state.attitude.roll, state.attitude.pitch, state.attitude.yaw);
+        // }
 
         // if (tick % 250 == 0) {
         //     DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;    %.2f,\t%.2f,\t%.2f\n", 

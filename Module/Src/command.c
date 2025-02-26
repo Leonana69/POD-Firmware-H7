@@ -18,7 +18,7 @@ static void getHoverSetpoint(setpoint_t *sp, scalar_t height, scalar_t vx, scala
     sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = vyaw };
     sp->position = (position_t) { .x = 0, .y = 0, .z = height };
     sp->velocity = (velocity_t) { .x = vx, .y = vy, .z = 0 };
-    sp->velocity_body = false;
+    sp->velocity_body = true;
     sp->mode.x = STABILIZE_VELOCITY;
     sp->mode.y = STABILIZE_VELOCITY;
     sp->mode.z = STABILIZE_ABSOLUTE;
