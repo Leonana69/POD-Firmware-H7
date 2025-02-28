@@ -29,15 +29,18 @@ class lpf:
 def draw_lpf(sample_rate, cutoff_freq):
     lpf_filter = lpf(sample_rate, cutoff_freq)
     x = np.linspace(0, 1, sample_rate)
-    # add noise
-    y = np.sin(2 * np.pi * 20 * x)
-    y_noise = y + 1 * np.sin(2 * np.pi * 500 * x)
+    # step function
+    y = np.zeros(sample_rate)
+    y[sample_rate//2:] = 1
+    y[sample_rate//2+10:] = 0
+
+    y_noise = y + 0.5 * np.random.normal(0, 0.1, sample_rate)
     y_output = np.zeros(sample_rate)
     for i in range(sample_rate):
         y_output[i] = lpf_filter.update(y_noise[i])
     plt.plot(x, y_output)
-    # plt.plot(x, y)
     plt.plot(x, y_noise)
+    plt.legend(['output', 'input'])
     plt.show()
 
-draw_lpf(1000, 200)
+draw_lpf(100, 20)

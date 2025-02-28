@@ -21,7 +21,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
         //         coreData->tofReferenceHeight += tof->distance - coreData->tofPreviousHeight;
         //     }
         // }
-        coreData->tofPreviousHeight = tof->distance;
+        // coreData->tofPreviousHeight = tof->distance;
         float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
         float measuredDistance = tof->distance;// - coreData->tofReferenceHeight; // [m]
 

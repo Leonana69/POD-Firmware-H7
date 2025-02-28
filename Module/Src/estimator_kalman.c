@@ -133,6 +133,10 @@ void estimatorKalmanSetBaroReference(float height) {
     coreData.baroReferenceHeight = height;
 }
 
+void estimatorKalmanGetCoreData(kalmanCoreData_t *data) {
+    *data = coreData;
+}
+
 void estimatorKalmanReset() {
     kalmanCoreInit(&coreData);
 }
