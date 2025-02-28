@@ -9,7 +9,7 @@
 #include "estimator_kalman.h"
 #include "system.h"
 
-#define BARO_TASK_RATE RATE_25_HZ
+#define BARO_TASK_RATE RATE_50_HZ
 
 STATIC_TASK_DEF(baroTask, BARO_TASK_PRIORITY, BARO_TASK_STACK_SIZE);
 
@@ -38,10 +38,10 @@ uint32_t baroInit(void) {
     struct bmp3_settings settings;
     settings.press_en = BMP3_ENABLE;
     settings.temp_en = BMP3_ENABLE;
-    settings.odr_filter.press_os = BMP3_OVERSAMPLING_4X;
+    settings.odr_filter.press_os = BMP3_OVERSAMPLING_8X;
     settings.odr_filter.temp_os = BMP3_NO_OVERSAMPLING;
     settings.odr_filter.odr = BMP3_ODR_50_HZ;
-    settings.odr_filter.iir_filter = BMP3_IIR_FILTER_COEFF_7;
+    settings.odr_filter.iir_filter = BMP3_IIR_FILTER_COEFF_3;
     settings.op_mode = BMP3_MODE_NORMAL;
 
     rslt = bmp3_set_sensor_settings(BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN | BMP3_SEL_PRESS_OS 
