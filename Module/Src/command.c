@@ -27,6 +27,21 @@ static void getHoverSetpoint(setpoint_t *sp, scalar_t height, scalar_t vx, scala
     sp->mode.yaw = STABILIZE_VELOCITY;
 };
 
+static void getVelocitySetpoint(setpoint_t *sp, scalar_t vx, scalar_t vy, scalar_t vz, scalar_t vyaw) {
+    sp->thrust = 0;
+    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = 0 };
+    sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = vyaw };
+    sp->position = (position_t) { .x = 0, .y = 0, .z = 0 };
+    sp->velocity = (velocity_t) { .x = vx, .y = vy, .z = vz };
+    sp->velocity_body = true;
+    sp->mode.x = STABILIZE_VELOCITY;
+    sp->mode.y = STABILIZE_VELOCITY;
+    sp->mode.z = STABILIZE_VELOCITY;
+    sp->mode.roll = STABILIZE_DISABLE;
+    sp->mode.pitch = STABILIZE_DISABLE;
+    sp->mode.yaw = STABILIZE_VELOCITY;
+};
+
 static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scalar_t yaw, scalar_t thrust) {
     sp->thrust = clamp_f(thrust, 0, motorPowerGetMaxThrust());
     sp->attitude = (attitude_t) { .roll = roll, .pitch = pitch, .yaw = yaw };
@@ -61,7 +76,6 @@ typedef struct {
     scalar_t vy;
     scalar_t vyaw;
 } __attribute__((packed)) hover_t;
-
 bool commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(hover_t)) {
         packet->port = PORT_ACK_ERROR;
@@ -69,6 +83,22 @@ bool commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
     }
     hover_t *hover = (hover_t *)packet->data;
     getHoverSetpoint(sp, hover->height, hover->vx, hover->vy, hover->vyaw);
+    return true;
+}
+
+typedef struct {
+    scalar_t vx;
+    scalar_t vy;
+    scalar_t vz;
+    scalar_t vyaw;
+} __attribute__((packed)) vxyzy_t;
+bool commandDecodeVelocityPacket(PodtpPacket *packet, setpoint_t *sp) {
+    if (packet->length - 1 != sizeof(vxyzy_t)) {
+        packet->port = PORT_ACK_ERROR;
+        return false;
+    }
+    vxyzy_t *vxyzy = (vxyzy_t *)packet->data;
+    getVelocitySetpoint(sp, vxyzy->vx, vxyzy->vy, vxyzy->vz, vxyzy->vyaw);
     return true;
 }
 
@@ -158,6 +188,9 @@ void commandProcessPacket(PodtpPacket *packet) {
             break;
         case PORT_COMMAND_POSITION:
             ret = commandDecodeXyzyPacket(packet, &sp);
+            break;
+        case PORT_COMMAND_VELOCITY:
+            ret = commandDecodeVelocityPacket(packet, &sp);
             break;
         default:
             packet->port = PORT_ACK_ERROR;

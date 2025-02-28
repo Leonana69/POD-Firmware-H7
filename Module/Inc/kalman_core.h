@@ -100,9 +100,6 @@ typedef struct {
 
     // Indicates that the internal state is corrupt and should be reset
     bool reset;
-    float baroReferenceHeight;
-    float tofReferenceHeight;
-    float tofPreviousHeight;
 } kalmanCoreData_t;
 
 void kalmanCoreInit(kalmanCoreData_t* coreData);

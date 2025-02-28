@@ -135,10 +135,6 @@ void kalmanCoreInit(kalmanCoreData_t* coreData) {
     coreData->Pm.numRows = KC_STATE_DIM;
     coreData->Pm.numCols = KC_STATE_DIM;
     coreData->Pm.pData = (float *)coreData->P;
-
-    coreData->baroReferenceHeight = 0.0;
-    coreData->tofReferenceHeight = 0.0;
-    coreData->tofPreviousHeight = 0.0;
 }
 
 void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise) {

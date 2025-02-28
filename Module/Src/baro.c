@@ -15,6 +15,7 @@ STATIC_TASK_DEF(baroTask, BARO_TASK_PRIORITY, BARO_TASK_STACK_SIZE);
 
 static uint8_t BMP388_I2C_ADDR = 0x76;
 struct bmp3_dev bmp388_dev;
+static float groundPressure = 0;
 
 uint32_t baroInit(void) {
     if (HAL_I2C_IsDeviceReady(&BMP388_I2C_HANDLE, BMP388_I2C_ADDR << 1, 3, 100) != HAL_OK) {
@@ -63,20 +64,18 @@ uint32_t baroInit(void) {
 }
 
 float pressureToAltitude(float pressure) {
-    float seaLevelPressure = 101325.0f;
-    return 44330.0f * (1.0f - powf(pressure / seaLevelPressure, 0.1903f));
+    return 44330.0f * (1.0f - powf(pressure / groundPressure, 0.1903f));
 }
 
 void baroCalibration(void) {
     struct bmp3_data bmp388_data;
     float pressure = 0;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         bmp3_get_sensor_data(BMP3_PRESS | BMP3_TEMP, &bmp388_data, &bmp388_dev);
         pressure += bmp388_data.pressure;
-        osDelay(100);
+        osDelay(40);
     }
-    pressure /= 10;
-    estimatorKalmanSetBaroReference(pressureToAltitude(pressure));
+    groundPressure = pressure / 20;
 }
 
 void baroTask(void *argument) {
