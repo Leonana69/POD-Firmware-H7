@@ -62,11 +62,11 @@ bool processDataQueue() {
                 break;
             case TOF_TASK_INDEX:
                 // TODO: implement taking off and landing
-                kalmanCoreUpdateWithTof(&coreData, &packet.tof, false);
+                kalmanCoreUpdateWithTof(&coreData, &packet.tof);
                 update = true;
                 break;
             case BARO_TASK_INDEX:
-                kalmanCoreUpdateWithBaro(&coreData, &packet.baro, motorPowerIsFlying());
+                kalmanCoreUpdateWithBaro(&coreData, &packet.baro);
                 update = true;
                 break;
             case MOTOR_2040_TASK_INDEX:

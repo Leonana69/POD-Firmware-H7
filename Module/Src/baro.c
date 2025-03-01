@@ -67,15 +67,24 @@ float pressureToAltitude(float pressure) {
     return 44330.0f * (1.0f - powf(pressure / groundPressure, 0.1903f));
 }
 
+static uint8_t count = 0;
+static uint8_t bufferIndex = 0;
+static float filterdBaro = 0;
+static float aveSumBaro = 0;
+static float baroBuffer[20] = { 0 };
+
 void baroCalibration(void) {
     struct bmp3_data bmp388_data;
     float pressure = 0;
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
         bmp3_get_sensor_data(BMP3_PRESS | BMP3_TEMP, &bmp388_data, &bmp388_dev);
         pressure += bmp388_data.pressure;
-        osDelay(40);
+        baroBuffer[bufferIndex] = bmp388_data.pressure;
+        bufferIndex = (bufferIndex + 1) % 20;
+        osDelay(20);
     }
-    groundPressure = pressure / 20;
+    filterdBaro = groundPressure = pressure / 50;
+    aveSumBaro = filterdBaro * 20;
 }
 
 void baroTask(void *argument) {
@@ -87,8 +96,31 @@ void baroTask(void *argument) {
     while (1) {
         TASK_TIMER_WAIT(BARO);
         bmp3_get_sensor_data(BMP3_PRESS | BMP3_TEMP, &bmp388_data, &bmp388_dev);
-        packet.baro.pressure = bmp388_data.pressure;
+
+        aveSumBaro -= baroBuffer[bufferIndex];
+        aveSumBaro += bmp388_data.pressure;
+        baroBuffer[bufferIndex] = bmp388_data.pressure;
+        bufferIndex = (bufferIndex + 1) % 20;
+
+        float newBaro = aveSumBaro / 20;
+        filterdBaro = 0.985 * filterdBaro + 0.015 * newBaro;
+        float diff = filterdBaro - newBaro;
+        if (diff < -3) {
+            diff = -3;
+        } else if (diff > 3) {
+            diff = 3;
+        }
+
+        if (diff > 1 || diff < -1) {
+            filterdBaro -= diff / 5;
+        }
+
+        packet.baro.pressure = filterdBaro;
         packet.baro.temperature = bmp388_data.temperature;
         estimatorKalmanEnqueue(&packet);
+
+        // if (count++ % 5 == 0) {
+        //     DEBUG_REMOTE("P:%.1f %.1f %.2f\n", groundPressure, filterdBaro, pressureToAltitude(filterdBaro));
+        // }
     }
 }

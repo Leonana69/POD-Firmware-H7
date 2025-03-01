@@ -3,24 +3,13 @@
 #include "baro.h"
 #include "debug.h"
 
-void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool isTakingOff) {
+void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
-    // if (count++ % 10 == 0) {
-    //     DEBUG_PRINT("TOF: %.2f, %.2f\n", coreData->R[2][2], tof->distance);
-    // }
     if (coreData->R[2][2] > 0.5) {
-        // tracking the offset to avoid jumps in the distance after taking off
-        // if (!isTakingOff) {
-        //     if (coreData->tofPreviousHeight > 0.0f
-        //         && fabs((coreData->tofPreviousHeight - tof->distance) / tof->dt) > 0.8f) {
-        //         coreData->tofReferenceHeight += tof->distance - coreData->tofPreviousHeight;
-        //     }
-        // }
-        // coreData->tofPreviousHeight = tof->distance;
         float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
-        float measuredDistance = tof->distance;// - coreData->tofReferenceHeight; // [m]
+        float measuredDistance = tof->distance;
 
         // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
         h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
@@ -107,8 +96,8 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, motor->stdDevY);
 }
 
-void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro, bool isFlying) {
-    static float measNoiseBaro = 0.4f; // meters
+void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro) {
+    static float measNoiseBaro = 0.02f; // meters
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
