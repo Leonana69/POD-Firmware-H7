@@ -8,8 +8,6 @@
 #include "stabilizer_types.h"
 #include "system.h"
 
-// TODO: define unused data section
-
 // 3 for car, 1 for drone
 #define DIS_SENSOR_COUNT 3
 

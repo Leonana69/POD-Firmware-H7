@@ -94,8 +94,8 @@ void controllerPidPositionInit(void) {
     pidInit(&pid_y, 3.0f, 0.5f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 1.0f);
     pidInit(&pid_z, 6.0f, 1.0f, 0.5f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 1.0f);
 
-    pidInit(&pid_x_rate, 15.0f, 5.0f, 0.5f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 10.0f);
-    pidInit(&pid_y_rate, 15.0f, 5.0f, 0.5f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 10.0f);
+    pidInit(&pid_x_rate, 15.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 10.0f);
+    pidInit(&pid_y_rate, 15.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 10.0f);
     pidInit(&pid_z_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 40.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
 }
 
