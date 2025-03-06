@@ -8,8 +8,10 @@
 #include "stabilizer_types.h"
 #include "system.h"
 
+// TODO: define unused data section
+
 // 3 for car, 1 for drone
-#define DIS_SENSOR_COUNT 0
+#define DIS_SENSOR_COUNT 1
 
 VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
@@ -96,6 +98,8 @@ void distanceTask(void *argument) {
     }
     
     TASK_TIMER_DEF(DIS, DIS_TASK_RATE);
+
+    DEBUG_PRINT("Datalen: %ld\n", vl53l8Dev[0].data_read_size);
 
     distance_t distanceBuffer;
     while (1) {

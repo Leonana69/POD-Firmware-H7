@@ -97,7 +97,7 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
 }
 
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro) {
-    static float measNoiseBaro = 0.02f; // meters
+    static float measNoiseBaro = 0.1f; // meters
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
