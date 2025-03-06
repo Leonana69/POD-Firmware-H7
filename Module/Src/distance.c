@@ -11,12 +11,12 @@
 // TODO: define unused data section
 
 // 3 for car, 1 for drone
-#define DIS_SENSOR_COUNT 1
+#define DIS_SENSOR_COUNT 3
 
 VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
 
-#define DIS_TASK_RATE 10
+#define DIS_TASK_RATE 14
 #define RESOLUTION VL53L8CX_RESOLUTION_8X8
 // #define DIS_TASK_RATE RATE_25_HZ
 
@@ -68,11 +68,11 @@ uint32_t distanceInit(void) {
         }
     }
 
-    if (status == 0) {
-        DEBUG_PRINT("VL53L8CX Init [OK]\n");
+    if (status == 0 && DIS_SENSOR_COUNT > 0) {
+        DEBUG_PRINT("VL53L8CX Init [OK] x %d\n", DIS_SENSOR_COUNT);
         STATIC_TASK_INIT(distanceTask, NULL);
     }
-    return 0;
+    return status;
 }
 
 static int16_t front[8], left[8], right[8];
@@ -98,8 +98,6 @@ void distanceTask(void *argument) {
     }
     
     TASK_TIMER_DEF(DIS, DIS_TASK_RATE);
-
-    DEBUG_PRINT("Datalen: %ld\n", vl53l8Dev[0].data_read_size);
 
     distance_t distanceBuffer;
     while (1) {

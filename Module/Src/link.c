@@ -106,21 +106,21 @@ bool linkProcessPacket(PodtpPacket *packet) {
     bool ret = packet->ack;
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
-            DEBUG_PRINT("COMMAND\n");
+            // DEBUG_PRINT("COMMAND\n");
             commandProcessPacket(packet);
             break;
         case PODTP_TYPE_CTRL:
             if (packet->port == PORT_CTRL_LOCK) {
                 if (packet->data[0] == 0) {
-                    DEBUG_PRINT("UNLOCK DRONE\n");
+                    // DEBUG_PRINT("UNLOCK DRONE\n");
                     supervisorLockDrone(false);
                 } else if (packet->data[0] == 1) {
-                    DEBUG_PRINT("LOCK DRONE\n");
+                    // DEBUG_PRINT("LOCK DRONE\n");
                     supervisorLockDrone(true);
                 }
                 packet->port = PORT_ACK_OK;
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
-                DEBUG_PRINT("KEEP ALIVE\n");
+                // DEBUG_PRINT("KEEP ALIVE\n");
                 supervisorUpdateCommand();
             } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {
                 DEBUG_PRINT("RESET LOCATION\n");
@@ -175,8 +175,9 @@ int8_t linkSendPacketUart(PodtpPacket *packet, usart_write_func_t write) {
 void linkTxTask(void *argument) {
     PodtpPacket packet = { 0 };
     systemWaitStart();
+
     while (1) {
         STATIC_QUEUE_RECEIVE(linkTxPacketQueue, &packet, osWaitForever);
-        ASSERT(linkSendPacketUart(&packet, esp_write_dma) == 0);
+        linkSendPacketUart(&packet, esp_write_dma);
     }
 }

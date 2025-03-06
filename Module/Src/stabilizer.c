@@ -56,9 +56,9 @@ void stabilizerTask(void *argument) {
         estimatorKalmanUpdate(&state);
         compressState(&stateCom, &state);
 
-        // if (tick % 100 == 0) {
-        //     linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(stateCom));
-        // }
+        if (tick % 20 == 0) {
+            linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(state_com_t));
+        }
 
         // if (tick % 250 == 0) {
         //     DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.1f, %.1f, %.1f)\n", state.position.x, state.position.y, state.position.z, 
