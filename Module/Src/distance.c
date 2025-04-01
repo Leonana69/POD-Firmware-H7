@@ -16,11 +16,10 @@ STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
 
 #define DIS_TASK_RATE 14
 #define RESOLUTION VL53L8CX_RESOLUTION_8X8
-// #define DIS_TASK_RATE RATE_25_HZ
 
 volatile uint8_t data __attribute__((section(".ramd3"), aligned(4))) = 0;
 
-bool pca9546Init(void) {
+static bool pca9546Init(void) {
     if (HAL_I2C_IsDeviceReady(&VL53L8CX_I2C_HANDLE, 0x70 << 1, 3, 1000) != HAL_OK) {
         DEBUG_PRINT("PCA9546 not found\n");
         return false;
@@ -28,7 +27,7 @@ bool pca9546Init(void) {
     return true;
 }
 
-void selectChannel(uint8_t channel) {
+static void selectChannel(uint8_t channel) {
     uint8_t data = 1 << channel;
     HAL_I2C_Master_Transmit(&VL53L8CX_I2C_HANDLE, 0x70 << 1, &data, 1, 1000);
 }

@@ -8,7 +8,8 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
     if (coreData->R[2][2] > 0.5) {
-        float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2];
+        float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2] 
+            - 0.033 * coreData->R[2][0]; // The tof installation is not at the center of the drone
         float measuredDistance = tof->distance;
 
         // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
