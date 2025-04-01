@@ -4,7 +4,6 @@
 #include "debug.h"
 
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
-    return;
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
@@ -22,7 +21,6 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
 }
 
 void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, const vec3f_t *gyro) {
-    return;
     DATA_REGION static float hx[KC_STATE_DIM] = { 0 };
     DATA_REGION static float hy[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
@@ -34,6 +32,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      */
     // Saturate height to avoid division by zero
     float z_g = coreData->S[KC_STATE_Z] < 0.1f ? 0.1f : coreData->S[KC_STATE_Z];
+    float z_body = z_g / coreData->R[2][2] - 0.033 * coreData->R[2][0]; // The flow sensor is not at the center of the drone
     
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
     float vx_body = coreData->S[KC_STATE_PX];
@@ -43,29 +42,44 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     float omegax_b = radians(gyro->x);
     float omegay_b = radians(gyro->y);
 
-    float co = (flow->dt * 12.198) / (0.0254 * z_g);
+    float co = (flow->dt * 12.198) / (0.0254 * z_body);
     // X displacement in body frame prediction and update
     // predics the number of accumulated pixels in the x-direction
 
     // height_body = z_g / R[2][2]
     // predictedNX = (vx_body - omegay_b * height_body) * dt * CPI
-    float predictedNX = co * (vx_body * coreData->R[2][2] - omegay_b * z_g);
+    float predictedNX = co * (vx_body - omegay_b * z_body);
     float measuredNX = flow->dpixelx;
 
     // derive measurement equation with respect to dx and z
     memset(hx, 0, sizeof(hx));
-    hx[KC_STATE_Z] = co * ((vx_body * coreData->R[2][2]) / (-z_g));
-    hx[KC_STATE_PX] = co * coreData->R[2][2];
+    hx[KC_STATE_Z] = co * vx_body / (-z_body) / coreData->R[2][2];
+    hx[KC_STATE_PX] = co;
 
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
-    float predictedNY = co * (vy_body * coreData->R[2][2] + omegax_b * z_g);
+    float predictedNY = co * (vy_body + omegax_b * z_body);
     float measuredNY = flow->dpixely;
     memset(hy, 0, sizeof(hy));
-    hy[KC_STATE_Z] = co * ((vy_body * coreData->R[2][2]) / (-z_g));
-    hy[KC_STATE_PY] = co * coreData->R[2][2];
+    hy[KC_STATE_Z] = co * vy_body / (-z_body) / coreData->R[2][2];
+    hy[KC_STATE_PY] = co;
 
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
+
+
+    // float co = (flow->dt * 12.198) / (0.0254 * z_g);
+    // // X displacement in body frame prediction and update
+    // // predics the number of accumulated pixels in the x-direction
+
+    // // height_body = z_g / R[2][2]
+    // // predictedNX = (vx_body - omegay_b * height_body) * dt * CPI
+    // float predictedNX = co * (vx_body * coreData->R[2][2] - omegay_b * z_g);
+    // float measuredNX = flow->dpixelx;
+
+    // // derive measurement equation with respect to dx and z
+    // memset(hx, 0, sizeof(hx));
+    // hx[KC_STATE_Z] = co * ((vx_body * coreData->R[2][2]) / (-z_g));
+    // hx[KC_STATE_PX] = co * coreData->R[2][2];
 }
 
 void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor) {

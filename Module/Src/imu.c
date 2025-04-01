@@ -23,7 +23,7 @@ static struct bmi2_dev bmi2Dev;
 enum { ACCEL = 0, GYRO = 1 };
 struct bmi2_sens_config bmi270Config[2];
 static float accelValue2Gravity;
-static float gyroVale2Degree;
+static float gyroValue2Degree;
 
 static lpf2pData lpf2pAccel[3];
 static lpf2pData lpf2pGyro[3];
@@ -78,7 +78,7 @@ uint32_t imuInit() {
     bmi270Config[GYRO].cfg.gyr.filter_perf = BMI2_PERF_OPT_MODE;
 
     accelValue2Gravity = (float)16 / 32768.0f;
-    gyroVale2Degree = (float)2000 / 32768.0f;
+    gyroValue2Degree = (float)2000 / 32768.0f;
 
     rslt = bmi2_set_sensor_config(bmi270Config, 2, &bmi2Dev);
     if (rslt != BMI2_OK) {
@@ -170,9 +170,9 @@ void imuTask(void *argument) {
         imuBuffer.accel.x = bmi270Data[ACCEL].sens_data.acc.x / accelScale;
         imuBuffer.accel.y = bmi270Data[ACCEL].sens_data.acc.y / accelScale;
         imuBuffer.accel.z = bmi270Data[ACCEL].sens_data.acc.z / accelScale;
-        imuBuffer.gyro.x = (bmi270Data[GYRO].sens_data.gyr.x - gyroBias.x) * gyroVale2Degree;
-        imuBuffer.gyro.y = (bmi270Data[GYRO].sens_data.gyr.y - gyroBias.y) * gyroVale2Degree;
-        imuBuffer.gyro.z = (bmi270Data[GYRO].sens_data.gyr.z - gyroBias.z) * gyroVale2Degree;
+        imuBuffer.gyro.x = (bmi270Data[GYRO].sens_data.gyr.x - gyroBias.x) * gyroValue2Degree;
+        imuBuffer.gyro.y = (bmi270Data[GYRO].sens_data.gyr.y - gyroBias.y) * gyroValue2Degree;
+        imuBuffer.gyro.z = (bmi270Data[GYRO].sens_data.gyr.z - gyroBias.z) * gyroValue2Degree;
 
         applyLpf(lpf2pAccel, &imuBuffer.accel);
         applyLpf(lpf2pGyro, &imuBuffer.gyro);

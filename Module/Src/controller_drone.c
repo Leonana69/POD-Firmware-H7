@@ -13,8 +13,8 @@ static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
 #define POS_INNER_LOOP_CUTOFF_FREQ 30.0f
 
 void controllerPidAttitudeInit(void) {
-    pidInit(&pid_roll,  6.0f, 3.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    pidInit(&pid_pitch, 6.0f, 3.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
+    pidInit(&pid_roll,  8.0f, 5.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
+    pidInit(&pid_pitch, 8.0f, 5.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
     pidInit(&pid_yaw,   4.0f, 2.0f, 0.4f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
 
     pidInit(&pid_roll_rate, 60.0f, 20.0f, 2.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 30.0f, 6000.0f);
@@ -32,11 +32,8 @@ void controllerPidAttitudeUpdateRate(palstance_t *measurement, palstance_t *targ
     control->attitude.roll = pidUpdate(&pid_roll_rate, target->roll - measurement->roll);
     control->attitude.pitch = pidUpdate(&pid_pitch_rate, target->pitch - measurement->pitch);
     control->attitude.yaw = pidUpdate(&pid_yaw_rate, target->yaw - measurement->yaw);
-    control->attitude.yaw = 0;
 }
 
-#include "debug.h"
-static int count = 0;
 void controllerPidAttitudeUpdate(
     setpoint_t *setpoint, imu_t *imu, state_t *state,
     attitude_t *attitude_target, palstance_t *palstance_target,
@@ -57,11 +54,6 @@ void controllerPidAttitudeUpdate(
     if (setpoint->mode.roll == STABILIZE_ABSOLUTE || setpoint->mode.pitch == STABILIZE_ABSOLUTE) {
         attitude_target->roll = setpoint->attitude.roll;
         attitude_target->pitch = setpoint->attitude.pitch;
-    }
-
-    if (count++ % 100 == 0) {
-        DEBUG_REMOTE("p: %.2f\n", state->attitude.pitch);
-        DEBUG_PRINT("p: %.2f\n", state->attitude.pitch);
     }
 
     controllerPidAttitudeUpdateValue(&state->attitude, attitude_target, palstance_target);

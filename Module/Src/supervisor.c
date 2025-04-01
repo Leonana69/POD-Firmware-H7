@@ -1,6 +1,7 @@
 #include "supervisor.h"
 #include "cmsis_os.h"
 #include "motor_power.h"
+#include "debug.h"
 
 #define COMMAND_TIMEOUT     1000
 #define Z_ACCEL_THRESHOLD   -0.8f
@@ -18,12 +19,14 @@ void supervisorUpdate(const imu_t *imu) {
         z_accel_count = 0;
     }
 
-    if (z_accel_count > Z_ACCEL_COUNT) {
+    if (isTumbled == false && z_accel_count > Z_ACCEL_COUNT) {
+        DEBUG_REMOTE("** Tumbled [LOCK] **\n");
         isTumbled = true;
         supervisorLockDrone(true);
     }
 
-    if (supervisorCommandTimeout()) {
+    if (isLocked == false && supervisorCommandTimeout()) {
+        DEBUG_REMOTE("** Timeout [LOCK] **\n");
         supervisorLockDrone(true);
     }
 }
