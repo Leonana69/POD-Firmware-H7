@@ -32,7 +32,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      */
     // Saturate height to avoid division by zero
     float z_g = coreData->S[KC_STATE_Z] < 0.1f ? 0.1f : coreData->S[KC_STATE_Z];
-    float z_body = z_g / coreData->R[2][2] - 0.033 * coreData->R[2][0]; // The flow sensor is not at the center of the drone
+    float z_body = z_g / coreData->R[2][2] - 0.038 * coreData->R[2][0]; // The flow sensor is not at the center of the drone
     
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
     float vx_body = coreData->S[KC_STATE_PX];
@@ -65,21 +65,6 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     hy[KC_STATE_PY] = co;
 
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
-
-
-    // float co = (flow->dt * 12.198) / (0.0254 * z_g);
-    // // X displacement in body frame prediction and update
-    // // predics the number of accumulated pixels in the x-direction
-
-    // // height_body = z_g / R[2][2]
-    // // predictedNX = (vx_body - omegay_b * height_body) * dt * CPI
-    // float predictedNX = co * (vx_body * coreData->R[2][2] - omegay_b * z_g);
-    // float measuredNX = flow->dpixelx;
-
-    // // derive measurement equation with respect to dx and z
-    // memset(hx, 0, sizeof(hx));
-    // hx[KC_STATE_Z] = co * ((vx_body * coreData->R[2][2]) / (-z_g));
-    // hx[KC_STATE_PX] = co * coreData->R[2][2];
 }
 
 void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor) {
