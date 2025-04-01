@@ -53,8 +53,8 @@ typedef int8_t (*usart_write_func_t)(const uint8_t *data, uint16_t len);
 
 void _UART_Init();
 void debugUartTransmit(const uint8_t *data, uint16_t len);
-void ESP_UART_HANDLE_IRQHandler();
 USART_DMA_WRITE_FUNC_DECL(esp);
+USART_DMA_WRITE_FUNC_DECL(debug);
 
 #ifdef GEAR
 USART_DMA_WRITE_FUNC_DECL(gear);

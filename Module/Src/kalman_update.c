@@ -4,6 +4,7 @@
 #include "debug.h"
 
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
+    return;
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
@@ -21,6 +22,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
 }
 
 void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, const vec3f_t *gyro) {
+    return;
     DATA_REGION static float hx[KC_STATE_DIM] = { 0 };
     DATA_REGION static float hy[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };

@@ -67,7 +67,6 @@ float pressureToAltitude(float pressure) {
     return 44330.0f * (1.0f - powf(pressure / groundPressure, 0.1903f));
 }
 
-static uint8_t count = 0;
 static uint8_t bufferIndex = 0;
 static float filterdBaro = 0;
 static float aveSumBaro = 0;
