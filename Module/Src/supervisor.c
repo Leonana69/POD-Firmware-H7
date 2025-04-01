@@ -1,11 +1,14 @@
 #include "supervisor.h"
 #include "cmsis_os.h"
 #include "motor_power.h"
+#include "freeRTOS_helper.h"
 #include "debug.h"
 
 #define COMMAND_TIMEOUT     1000
 #define Z_ACCEL_THRESHOLD   -0.8f
 #define Z_ACCEL_COUNT       100
+
+STATIC_MUTEX_DEF(supervisorMutex);
 
 bool isTumbled = false;
 bool isLocked = true;
@@ -32,11 +35,16 @@ void supervisorUpdate(const imu_t *imu) {
 }
 
 void supervisorUpdateCommand() {
+    STATIC_MUTEX_LOCK(supervisorMutex, osWaitForever);
     lastCommandTime = osKernelGetTickCount();
+    STATIC_MUTEX_UNLOCK(supervisorMutex);
 }
 
 bool supervisorCommandTimeout() {
-    return osKernelGetTickCount() - lastCommandTime > COMMAND_TIMEOUT;
+    STATIC_MUTEX_LOCK(supervisorMutex, osWaitForever);
+    uint32_t t = lastCommandTime;
+    STATIC_MUTEX_UNLOCK(supervisorMutex);
+    return osKernelGetTickCount() - t > COMMAND_TIMEOUT;
 }
 
 bool supervisorCanFly() {
@@ -49,4 +57,11 @@ void supervisorLockDrone(bool lock) {
         supervisorUpdateCommand();
     }
     isLocked = lock;
+}
+
+void supervisorInit() {
+    STATIC_MUTEX_INIT(supervisorMutex);
+    isTumbled = false;
+    isLocked = true;
+    lastCommandTime = osKernelGetTickCount();
 }
