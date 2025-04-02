@@ -3,6 +3,7 @@
 #include "motor_power.h"
 #include "freeRTOS_helper.h"
 #include "debug.h"
+#include "command.h"
 
 #define COMMAND_TIMEOUT     1000
 #define Z_ACCEL_THRESHOLD   -0.8f
@@ -28,7 +29,7 @@ void supervisorUpdate(const imu_t *imu) {
         supervisorLockDrone(true);
     }
 
-    if (isLocked == false && supervisorCommandTimeout()) {
+    if (isLocked == false && commandGetState() == COMMAND_STATE_LANDED) {
         DEBUG_REMOTE("** Timeout [LOCK] **\n");
         supervisorLockDrone(true);
     }
@@ -54,7 +55,7 @@ bool supervisorCanFly() {
 void supervisorLockDrone(bool lock) {
     if (!lock) {
         isTumbled = false;
-        supervisorUpdateCommand();
+        commandSetState(COMMAND_STATE_NORMAL);
     }
     isLocked = lock;
 }

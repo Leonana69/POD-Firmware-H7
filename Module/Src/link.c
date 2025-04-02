@@ -98,30 +98,27 @@ static void linkSetAckPacket(PodtpPacket *packet, uint8_t port) {
 }
 
 bool linkProcessPacket(PodtpPacket *packet) {
-    uint8_t len = packet->length;
+    if (packet->length < 1) return false;
     ledToggle(LED_COM);
-    if (len < 1)
-        return false;
+
+    // Update the last command time
+    supervisorUpdateCommand();
 
     bool ret = packet->ack;
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
-            // DEBUG_PRINT("COMMAND\n");
             commandProcessPacket(packet);
             break;
         case PODTP_TYPE_CTRL:
             if (packet->port == PORT_CTRL_LOCK) {
                 if (packet->data[0] == 0) {
-                    // DEBUG_PRINT("UNLOCK DRONE\n");
                     supervisorLockDrone(false);
                 } else if (packet->data[0] == 1) {
-                    // DEBUG_PRINT("LOCK DRONE\n");
                     supervisorLockDrone(true);
                 }
                 packet->port = PORT_ACK_OK;
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
-                // DEBUG_PRINT("KEEP ALIVE\n");
-                supervisorUpdateCommand();
+                // Do nothing
             } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {
                 DEBUG_PRINT("RESET LOCATION\n");
                 estimatorKalmanReset();
