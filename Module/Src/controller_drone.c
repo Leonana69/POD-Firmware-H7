@@ -4,6 +4,7 @@
 #include "motor_power.h"
 #include "arm_math.h"
 #include "distance.h"
+#include "debug.h"
 
 static pid_t pid_roll, pid_pitch, pid_yaw;
 static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
@@ -104,8 +105,18 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     float cos_yaw = cosf(radians(state->attitude.yaw));
     float sin_yaw = sinf(radians(state->attitude.yaw));
 
-    float vx, vy, vz;
+    // apply obstacle avoidance for velocity moving
+    if (setpoint->mode.x == STABILIZE_VELOCITY
+        && setpoint->mode.y == STABILIZE_VELOCITY
+        && setpoint->velocity_body) {
+        float test_vx = setpoint->velocity.x;
+        float test_vy = setpoint->velocity.y;
+        distanceAdjustSpeed(&test_vx, &test_vy);
+        setpoint->velocity.x = test_vx;
+        setpoint->velocity.y = test_vy;
+    }
 
+    float vx, vy, vz;
     if (setpoint->mode.x == STABILIZE_ABSOLUTE) {
         vx = pidUpdate(&pid_x, setpoint->position.x - state->position.x);
     } else if (setpoint->velocity_body) {
@@ -121,9 +132,6 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     } else {
         vy = setpoint->velocity.y;
     }
-
-    // TODO: test this
-    // distanceAdjustSpeed(&vx, &vy);
 
     if (setpoint->mode.z == STABILIZE_ABSOLUTE) {
         vz = pidUpdate(&pid_z, setpoint->position.z - state->position.z);

@@ -112,8 +112,10 @@ bool linkProcessPacket(PodtpPacket *packet) {
         case PODTP_TYPE_CTRL:
             if (packet->port == PORT_CTRL_LOCK) {
                 if (packet->data[0] == 0) {
+                    DEBUG_PRINT("** UNLOCK **\n");
                     supervisorLockDrone(false);
                 } else if (packet->data[0] == 1) {
+                    DEBUG_PRINT("** LOCK **\n");
                     supervisorLockDrone(true);
                 }
                 packet->port = PORT_ACK_OK;

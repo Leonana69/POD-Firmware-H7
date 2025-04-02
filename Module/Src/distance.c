@@ -9,7 +9,7 @@
 #include "system.h"
 
 // 3 for car, 1 for drone
-#define DIS_SENSOR_COUNT 0
+#define DIS_SENSOR_COUNT 3
 
 VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
@@ -152,39 +152,34 @@ void distanceTask(void *argument) {
     }
 }
 
-#define LONG_OBSTACLE_DIST 2500
+#define LONG_OBSTACLE_DIST 2000
 #define SHORT_OBSTACLE_DIST 500
 #define NOISE_LEVEL 500
-static float last_vy = 0, last_vx = 0;
-
 static bool canMove(int16_t *dist, int size) {
     for (int i = 0; i < size; i++) {
-        if (dist[i] < SHORT_OBSTACLE_DIST) return false;
+        if (dist[i] > 0 && dist[i] < SHORT_OBSTACLE_DIST) return false;
     }
     return true;
 }
 
 static bool canFreelyMove(int16_t *dist, int size) {
     for (int i = 0; i < size; i++) {
-        if (dist[i] > LONG_OBSTACLE_DIST) return false;
+        if (dist[i] > 0 && dist[i] < LONG_OBSTACLE_DIST) return false;
     }
     return true;
 }
 
 void distanceAdjustSpeed(float *vx, float *vy) {
     // only apply to moving forward command
-    if (*vx != 0 || *vy <= 0) return;
+    if (*vy != 0 || *vx <= 0) return;
 
     // if central front is clear, just go
-    if (canFreelyMove(&front[3], 2)) {
-        last_vx = 0;
-        last_vy = *vy;
+    if (canFreelyMove(&front[2], 4)) {
         return;
     }
 
     // if central front is closely blocked, stop
-    if (!canMove(&front[3], 2)) {
-        last_vx = last_vy = 0;
+    if (!canMove(&front[2], 4)) {
         *vx = *vy = 0;
         return;
     }
@@ -193,24 +188,19 @@ void distanceAdjustSpeed(float *vx, float *vy) {
     // TODO: test sensor
     float front_l_sum = 0, front_r_sum = 0;
     for (int i = 0; i < 4; i++) {
-        front_l_sum += front[i];
-        front_r_sum += front[i + 4];
+        front_l_sum += front[i] > 0 ? front[i] : 5000;
+        front_r_sum += front[i + 4] > 0 ? front[i + 4] : 5000;
     }
 
     // front left/right is clear for move
-    last_vy = *vy;
     if (front_l_sum < front_r_sum - NOISE_LEVEL) {
         if (canMove(&right[3], 2)) {
-            *vx = last_vx = -0.5 * (*vy);
-        } else {
-            last_vx = 0;
+            *vy = -0.5 * (*vx);
         }
         return;
     } else if (front_r_sum < front_l_sum - NOISE_LEVEL) {
         if (canMove(&left[3], 2)) {
-            *vx = last_vx = 0.5 * (*vy);
-        } else {
-            last_vx = 0;
+            *vy = 0.5 * (*vx);
         }
         return;
     }
@@ -218,15 +208,15 @@ void distanceAdjustSpeed(float *vx, float *vy) {
     // no clear forward side, align to the center of left/right
     float left_sum = 0, right_sum = 0;
     for (int i = 0; i < 2; i++) {
-        left_sum += left[3 + i];
-        right_sum += right[3 + i];
+        left_sum += left[3 + i] > 0 ? left[3 + i] : 5000;
+        right_sum += right[3 + i] > 0 ? right[3 + i] : 5000;
     }
 
     if (left_sum < right_sum - NOISE_LEVEL) {
-        *vx = last_vx = -1.5 * (*vy);
+        *vy = -1.5 * (*vx);
     } else if (right_sum < left_sum - NOISE_LEVEL) {
-        *vx = last_vx = 1.5 * (*vy);
+        *vy = 1.5 * (*vx);
     } else {
-        *vx = last_vx = 0;
+        *vy = 0;
     }
 }
