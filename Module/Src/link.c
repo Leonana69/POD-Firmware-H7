@@ -23,6 +23,10 @@ uint32_t linkInit() {
     return TASK_INIT_SUCCESS;
 }
 
+static void linkSendPacket(PodtpPacket *packet) {
+    STATIC_QUEUE_SEND(linkTxPacketQueue, packet, 0);
+}
+
 typedef enum {
     PODTP_STATE_START_1,
     PODTP_STATE_START_2,
@@ -91,58 +95,57 @@ void linkSendData(uint8_t type, uint8_t port, const uint8_t *data, uint16_t leng
     linkSendPacket(&packet);
 }
 
-static void linkSetAckPacket(PodtpPacket *packet, uint8_t port) {
-    packet->type = PODTP_TYPE_ACK;
-    packet->port = port;
-    packet->length = 1;
-}
-
 bool linkProcessPacket(PodtpPacket *packet) {
-    if (packet->length < 1) return false;
+    podtp_error_type ret = PODTP_ERROR_NONE;
     ledToggle(LED_COM);
 
     // Update the last command time
     supervisorUpdateCommand();
 
-    bool ret = packet->ack;
+    bool ack = packet->ack;
     switch (packet->type) {
         case PODTP_TYPE_COMMAND:
-            commandProcessPacket(packet);
+            ret = commandProcessPacket(packet);
             break;
+
         case PODTP_TYPE_CTRL:
             if (packet->port == PORT_CTRL_LOCK) {
                 if (packet->data[0] == 0) {
                     DEBUG_PRINT("** UNLOCK **\n");
                     supervisorLockDrone(false);
                 } else if (packet->data[0] == 1) {
-                    DEBUG_PRINT("** LOCK **\n");
+                    DEBUG_PRINT("** FORCE LOCK **\n");
                     supervisorLockDrone(true);
                 }
-                packet->port = PORT_ACK_OK;
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
-                // Do nothing
+                // Do nothing, just to keep the drone flying
             } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {
-                DEBUG_PRINT("RESET LOCATION\n");
-                estimatorKalmanReset();
+                if (commandGetState() != COMMAND_STATE_LANDED) {
+                    ret = PODTP_ERROR_LOCKED;
+                } else {
+                    DEBUG_PRINT("** RESET ESTIMATOR **\n");
+                    estimatorKalmanReset();
+                }
             }
             break;
-        case PODTP_TYPE_ESP32:
-            DEBUG_PRINT("ESP32\n");
-            break;
-        case PODTP_TYPE_BOOT_LOADER:
-            DEBUG_PRINT("BL\n");
-            break;
-        default:
-            break;
-    }
-    if (ret) {
-        linkSetAckPacket(packet, packet->port);
-    }
-    return ret;
-}
 
-void linkSendPacket(PodtpPacket *packet) {
-    STATIC_QUEUE_SEND(linkTxPacketQueue, packet, 0);
+        default:
+            ret = PODTP_ERROR_UNKNOWN_COMMAND;
+            break;
+    }
+
+    if (ack) {
+        packet->type = PODTP_TYPE_ACK;
+        if (ret == PODTP_ERROR_NONE) {
+            packet->port = PORT_ACK_OK;
+            packet->length = 1;
+        } else {
+            packet->port = PORT_ACK_ERROR;
+            packet->data[0] = ret;
+            packet->length = 2;
+        }
+    }
+    return ack;
 }
 
 void linkRxTask(void *argument) {
@@ -151,7 +154,7 @@ void linkRxTask(void *argument) {
     while (1) {
         STATIC_QUEUE_RECEIVE(linkRxPacketQueue, &packet, osWaitForever);
         if (linkProcessPacket(&packet)) {
-            STATIC_QUEUE_SEND(linkTxPacketQueue, &packet, 0);
+            linkSendPacket(&packet);
         }
     }
 }

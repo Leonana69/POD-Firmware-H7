@@ -13,11 +13,11 @@ typedef enum {
     COMMAND_STATE_LANDED = 0,
     COMMAND_STATE_NORMAL = 1,
     COMMAND_STATE_LANDING = 2,
+    COMMAND_STATE_HOVERING = 3,
 } command_state_t;
 
 void commandInit(void);
-void commandProcessPacket(PodtpPacket *packet);
-void commandSetSetpoint(setpoint_t *s);
+podtp_error_type commandProcessPacket(const PodtpPacket *packet);
 void commandGetSetpoint(setpoint_t *s);
 
 command_state_t commandGetState(void);

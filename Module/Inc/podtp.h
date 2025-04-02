@@ -8,16 +8,23 @@
 #define PODTP_START_BYTE_1 0xAD
 #define PODTP_START_BYTE_2 0x6E
 
-enum {
+typedef enum {
+    PODTP_ERROR_NONE = 0x0,
+    PODTP_ERROR_SIZE = 0x1,
+    PODTP_ERROR_LOCKED = 0x2,
+    PODTP_ERROR_UNKNOWN_COMMAND = 0x3,
+} podtp_error_type;
+
+typedef enum {
     PODTP_TYPE_ACK = 0x1,
     PODTP_TYPE_COMMAND = 0x2,
     PODTP_TYPE_LOG = 0x3,
     PODTP_TYPE_CTRL = 0x4,
     PODTP_TYPE_ESP32 = 0xE,
     PODTP_TYPE_BOOT_LOADER = 0xF,
-};
+} podtp_type;
 
-enum {
+typedef enum {
     // PODTP_TYPE_ACK
     PORT_ACK_ERROR = 0x0,
     PORT_ACK_OK = 0x1,
@@ -50,7 +57,7 @@ enum {
     // PODTP_TYPE_BOOT_LOADER
     PORT_BOOT_LOADER_LOAD_BUFFER = 0x1,
     PORT_BOOT_LOADER_WRITE_FLASH = 0x2,
-};
+} podtp_port;
 
 typedef struct {
     uint8_t length;

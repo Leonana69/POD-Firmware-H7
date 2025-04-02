@@ -13,7 +13,6 @@ extern "C" {
 
 void linkBufferPutChar(uint8_t c);
 uint32_t linkInit();
-void linkSendPacket(PodtpPacket *packet);
 void linkSendLog(const uint8_t *data, uint16_t length);
 void linkSendData(uint8_t type, uint8_t port, const uint8_t *data, uint16_t length);
 int8_t linkSendPacketUart(PodtpPacket *packet, usart_write_func_t write);
