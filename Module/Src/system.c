@@ -6,7 +6,7 @@
 #include "_spi.h"
 #include "_usart.h"
 #include "_tim.h"
-#include "config.h"
+#include "task_config.h"
 #include "freeRTOS_helper.h"
 #include "imu.h"
 #include "baro.h"

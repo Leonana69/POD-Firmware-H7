@@ -3,7 +3,7 @@
 
 #include "estimator_kalman.h"
 #include "stabilizer_types.h"
-#include "config.h"
+#include "task_config.h"
 #include "kalman_core.h"
 #include "kalman_update.h"
 #include "freeRTOS_helper.h"

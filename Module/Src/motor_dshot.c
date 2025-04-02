@@ -1,7 +1,7 @@
 #include "motor_dshot.h"
 #include "tim.h"
 #include "_config.h"
-#include "config.h"
+#include "task_config.h"
 #include <stdbool.h>
 
 #include "debug.h"

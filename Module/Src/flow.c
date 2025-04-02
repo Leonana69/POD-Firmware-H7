@@ -2,7 +2,7 @@
 #include "debug.h"
 
 #include "flow.h"
-#include "config.h"
+#include "task_config.h"
 #include "system.h"
 #include "paa3905.h"
 #include "utils.h"

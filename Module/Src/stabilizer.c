@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "stabilizer.h"
-#include "config.h"
+#include "task_config.h"
 #include "freeRTOS_helper.h"
 #include "motor_power.h"
 #include "motor_dshot.h"

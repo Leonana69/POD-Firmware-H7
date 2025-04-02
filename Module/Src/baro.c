@@ -2,7 +2,7 @@
 #include "debug.h"
 
 #include "baro.h"
-#include "config.h"
+#include "task_config.h"
 #include "_i2c.h"
 #include "utils.h"
 #include "bmp3.h"

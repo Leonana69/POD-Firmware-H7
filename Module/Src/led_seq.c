@@ -1,6 +1,6 @@
 #include "led_seq.h"
 #include "freeRTOS_helper.h"
-#include "config.h"
+#include "task_config.h"
 #include "system.h"
 
 STATIC_QUEUE_DEF(ledSeqQueue, 10, ledSeq_t);

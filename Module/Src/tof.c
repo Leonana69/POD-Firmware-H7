@@ -4,7 +4,7 @@
 #include "tof.h"
 #include "_i2c.h"
 #include "_config.h"
-#include "config.h"
+#include "task_config.h"
 #include "vl53l1.h"
 #include "utils.h"
 #include "system.h"

@@ -7,7 +7,7 @@ extern "C" {
 
 #include "_usart.h"
 #include "eprintf.h"
-#include "config.h"
+#include "task_config.h"
 #include "link.h"
 
 #ifndef DEBUG_FMT

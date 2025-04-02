@@ -1,6 +1,6 @@
 #include "led.h"
 #include "gpio.h"
-#include "config.h"
+#include "task_config.h"
 
 typedef struct {
     GPIO_TypeDef *port;

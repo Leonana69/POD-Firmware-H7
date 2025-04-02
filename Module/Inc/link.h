@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "podtp.h"
-#include "config.h"
+#include "task_config.h"
 #include "_usart.h"
 
 #ifdef __cplusplus
