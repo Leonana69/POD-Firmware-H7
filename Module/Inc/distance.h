@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 uint32_t distanceInit(void);
+void distanceAdjustSpeed(float *vx, float *vy);
 
 #ifdef __cplusplus
 }

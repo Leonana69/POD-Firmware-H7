@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "motor_power.h"
 #include "arm_math.h"
+#include "distance.h"
 
 static pid_t pid_roll, pid_pitch, pid_yaw;
 static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
@@ -120,6 +121,9 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     } else {
         vy = setpoint->velocity.y;
     }
+
+    // TODO: test this
+    // distanceAdjustSpeed(&vx, &vy);
 
     if (setpoint->mode.z == STABILIZE_ABSOLUTE) {
         vz = pidUpdate(&pid_z, setpoint->position.z - state->position.z);
