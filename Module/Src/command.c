@@ -8,7 +8,7 @@
 #include "stabilizer_types.h"
 #include "estimator_kalman.h"
 
-STATIC_QUEUE_DEF(commandQueue, 10, setpoint_t);
+STATIC_QUEUE_DEF(commandQueue, 20, setpoint_t);
 static setpoint_t currentSetpoint;
 static state_t state;
 
@@ -76,7 +76,7 @@ typedef struct {
     scalar_t vy;
     scalar_t vyaw;
 } __attribute__((packed)) hover_t;
-bool commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
+static bool commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(hover_t)) {
         packet->port = PORT_ACK_ERROR;
         return false;
@@ -92,7 +92,7 @@ typedef struct {
     scalar_t vz;
     scalar_t vyaw;
 } __attribute__((packed)) vxyzy_t;
-bool commandDecodeVelocityPacket(PodtpPacket *packet, setpoint_t *sp) {
+static bool commandDecodeVelocityPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(vxyzy_t)) {
         packet->port = PORT_ACK_ERROR;
         return false;
@@ -108,8 +108,7 @@ typedef struct {
     scalar_t yaw;
     scalar_t thrust;
 } __attribute__((packed)) rpyt_t;
-
-bool commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
+static bool commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
         packet->port = PORT_ACK_ERROR;
         return false;
@@ -125,7 +124,7 @@ typedef struct {
     scalar_t z;
     scalar_t yaw;
 } __attribute__((packed)) xyzy_t;
-bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
+static bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
         packet->port = PORT_ACK_ERROR;
         return false;
@@ -135,15 +134,32 @@ bool commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
     return true;
 }
 
-void commandTakeOff() {
+bool commandTakeOff() {
     setpoint_t sp;
     sp.duration = 500;
-    getRpytSetpoint(&sp, 0, 0, 0, 20000);
+    getRpytSetpoint(&sp, 0, 0, 0, 11600);
     commandSetSetpoint(&sp);
-    getRpytSetpoint(&sp, 0, 0, 0, 40000);
+
+    sp.duration = 1000;
+    getRpytSetpoint(&sp, 0, 0, 0, 12000);
     commandSetSetpoint(&sp);
-    getHoverSetpoint(&sp, 1, 0, 0, 0);
+
+    sp.duration = 1000;
+    getHoverSetpoint(&sp, .5, 0, 0, 0);
     commandSetSetpoint(&sp);
+    return true;
+}
+
+bool commandLand() {
+    setpoint_t sp;
+    sp.duration = 1000;
+    getHoverSetpoint(&sp, 0.2, 0, 0, 0);
+    commandSetSetpoint(&sp);
+
+    sp.duration = 1000;
+    getRpytSetpoint(&sp, 0, 0, 0, 11200);
+    commandSetSetpoint(&sp);
+    return true;
 }
 
 void commandInit(void) {
@@ -178,7 +194,7 @@ void commandProcessPacket(PodtpPacket *packet) {
             ret = commandDecodeRpytPacket(packet, &sp);
             break;
         case PORT_COMMAND_TAKEOFF:
-            
+            ret = commandTakeOff();
             break;
         case PORT_COMMAND_LAND:
             

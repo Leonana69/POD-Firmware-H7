@@ -20,11 +20,10 @@
 #include "link.h"
 #include "command.h"
 #include "distance.h"
+#include "supervisor.h"
 
 STATIC_TASK_DEF(systemTask, SYSTEM_TASK_PRIORITY, SYSTEM_TASK_STACK_SIZE);
 STATIC_SEMAPHORE_DEF(systemStart);
-
-static bool isInit = false;
 
 void systemInit() {
     _I2C_Init();
@@ -36,19 +35,19 @@ void systemInit() {
 }
 
 void systemWaitStart() {
-    while (!isInit) { osDelay(10); }
     STATIC_SEMAPHORE_WAIT(systemStart, osWaitForever);
     STATIC_SEMAPHORE_RELEASE(systemStart);
 }
 
 void systemTask(void *argument) {
     DEBUG_PRINT("systemTask [START]\n");
-    linkInit();
     // one-time init tasks
     motorPowerInit();
     commandInit();
+    supervisorInit();
 
     // periodic tasks
+    linkInit();
     imuInit();
     baroInit();
     tofInit();
@@ -56,10 +55,8 @@ void systemTask(void *argument) {
     stabilizerInit();
     estimatorKalmanInit();
     ledSeqInit();
-
     distanceInit();
     
     STATIC_SEMAPHORE_RELEASE(systemStart);
-    isInit = true;
-    for (;;) { osDelay(osWaitForever); }
+    osDelay(osWaitForever);
 }

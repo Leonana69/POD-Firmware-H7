@@ -8,6 +8,7 @@ extern "C" {
 #include <stdbool.h>
 #include "stabilizer_types.h"
 
+void supervisorInit();
 void supervisorUpdate(const imu_t *imu);
 void supervisorUpdateCommand();
 bool supervisorCanFly();
