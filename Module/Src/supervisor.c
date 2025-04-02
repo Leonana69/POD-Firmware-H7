@@ -6,7 +6,7 @@
 #include "command.h"
 
 #define COMMAND_TIMEOUT     1000
-#define Z_ACCEL_THRESHOLD   -0.8f
+#define Z_ACCEL_THRESHOLD   -0.4f
 #define Z_ACCEL_COUNT       100
 
 STATIC_MUTEX_DEF(supervisorMutex);
@@ -30,7 +30,7 @@ void supervisorUpdate(const imu_t *imu) {
     }
 
     if (isLocked == false && commandGetState() == COMMAND_STATE_LANDED) {
-        DEBUG_REMOTE("** Timeout [LOCK] **\n");
+        DEBUG_REMOTE("** Land [LOCK] **\n");
         supervisorLockDrone(true);
     }
 }

@@ -77,7 +77,7 @@ typedef struct {
 static void commandDecodeHoverPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(hover_t)) {
         packet->port = PORT_ACK_ERROR;
-        return false;
+        return;
     }
     hover_t *hover = (hover_t *)packet->data;
     getHoverSetpoint(sp, hover->vx, hover->vy, hover->vyaw, hover->height);
@@ -93,7 +93,7 @@ typedef struct {
 static void commandDecodeVelocityPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(vxyzy_t)) {
         packet->port = PORT_ACK_ERROR;
-        return false;
+        return;
     }
     vxyzy_t *vxyzy = (vxyzy_t *)packet->data;
     getVelocitySetpoint(sp, vxyzy->vx, vxyzy->vy, vxyzy->vyaw, vxyzy->vz);
@@ -109,7 +109,7 @@ typedef struct {
 static void commandDecodeRpytPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
         packet->port = PORT_ACK_ERROR;
-        return false;
+        return;
     }
     rpyt_t *rpyt = (rpyt_t *)packet->data;
     getRpytSetpoint(sp, rpyt->roll, rpyt->pitch, rpyt->yaw, rpyt->thrust);
@@ -125,14 +125,14 @@ typedef struct {
 static void commandDecodeXyzyPacket(PodtpPacket *packet, setpoint_t *sp) {
     if (packet->length - 1 != sizeof(rpyt_t)) {
         packet->port = PORT_ACK_ERROR;
-        return false;
+        return;
     }
     xyzy_t *xyzy = (xyzy_t *)packet->data;
     getXyzySetpoint(sp, xyzy->x, xyzy->y, xyzy->z, xyzy->yaw);
     commandSetSetpoint(sp);
 }
 
-bool commandTakeOff() {
+static void commandTakeOff() {
     setpoint_t _sp;
     _sp.timestamp = 0;
     _sp.duration = 500;
@@ -145,17 +145,15 @@ bool commandTakeOff() {
 
     // keep hovering
     _sp.duration = 0;
-    getHoverSetpoint(&_sp, 0.5, 0, 0, 0);
+    getHoverSetpoint(&_sp, 0, 0, 0, 0.5);
     commandSetSetpoint(&_sp);
-    return true;
 }
 
-bool commandLand() {
-    commandState = COMMAND_STATE_LANDING;
+static void commandLand() {
     setpoint_t _sp;
     _sp.timestamp = 0;
     _sp.duration = 1000;
-    getHoverSetpoint(&_sp, 0.2, 0, 0, 0);
+    getHoverSetpoint(&_sp, 0, 0, 0, 0.2);
     commandSetSetpoint(&_sp);
 
     _sp.duration = 1000;
@@ -166,7 +164,9 @@ bool commandLand() {
     _sp.duration = 0;
     _sp.thrust = -1.0f;
     commandSetSetpoint(&_sp);
-    return true;
+
+    // set to landing state and reject new commands
+    commandState = COMMAND_STATE_LANDING;
 }
 
 void commandInit(void) {
@@ -174,9 +174,6 @@ void commandInit(void) {
 }
 
 void commandGetSetpoint(setpoint_t *s) {
-    if (currentSetpoint.timestamp == 0)
-        currentSetpoint.timestamp = osKernelGetTickCount();
-
     if (commandState == COMMAND_STATE_NORMAL && supervisorCommandTimeout()) {
         // clear the queue
         while (STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0) == osOK) {}
@@ -187,6 +184,7 @@ void commandGetSetpoint(setpoint_t *s) {
     if (currentSetpoint.timestamp + currentSetpoint.duration < osKernelGetTickCount()
         && !STATIC_QUEUE_IS_EMPTY(commandQueue)) {
         STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0);
+        currentSetpoint.timestamp = osKernelGetTickCount();
     }
 
     if (currentSetpoint.thrust < 0) {
@@ -195,13 +193,14 @@ void commandGetSetpoint(setpoint_t *s) {
         // clear the queue
         while (STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0) == osOK) {}
         // clear the setpoint
-        memset(&currentSetpoint, 0, sizeof(setpoint_t));
+        getRpytSetpoint(&currentSetpoint, 0, 0, 0, 0);
     }
-
+    
     *s = currentSetpoint;
 }
 
 void commandSetSetpoint(setpoint_t *s) {
+    // do not accept setpoint when the it's not in normal mode
     if (commandState != COMMAND_STATE_NORMAL) {
         return;
     }
@@ -231,8 +230,9 @@ void commandProcessPacket(PodtpPacket *packet) {
             commandDecodeVelocityPacket(packet, &sp);
             break;
         default:
+            // unknown command
             packet->port = PORT_ACK_ERROR;
-            break;
+            return;
     }
 
     packet->port = PORT_ACK_OK;

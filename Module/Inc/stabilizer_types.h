@@ -95,17 +95,13 @@ typedef struct {
 
     scalar_t thrust;
     union {
-        attitude_t attitude;
-        palstance_t palstance;
+        attitude_t attitude;   // deg
+        palstance_t palstance; // deg/s
     };
-    // attitude_t attitude;    // deg
-    // palstance_t palstance;  // deg/s
     union {
-        position_t position;
-        velocity_t velocity;
+        position_t position;  // m
+        velocity_t velocity;  // m/s
     };
-    // position_t position;    // m
-    // velocity_t velocity;    // m/s
     bool velocity_body;     // true if velocity is given in body frame
 
     struct {
