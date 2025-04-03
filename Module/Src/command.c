@@ -145,6 +145,8 @@ static podtp_error_type commandTakeOff() {
     _sp.duration = 0;
     getHoverSetpoint(&_sp, 0, 0, 0, 0.5);
     ret |= commandSetSetpoint(&_sp);
+    commandState = COMMAND_STATE_HOVERING;
+
     return ret;
 }
 
@@ -175,15 +177,14 @@ void commandInit(void) {
 }
 
 void commandGetSetpoint(setpoint_t *s) {
-    if (supervisorCommandTimeout()) {
+    if (commandState != COMMAND_STATE_LANDING
+    && commandState != COMMAND_STATE_LANDED
+    && supervisorCommandTimeout()) {
         // clear the queue
         while (STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0) == osOK) {}
         if (commandState == COMMAND_STATE_HOVERING) {
             // do landing
             commandLand();
-        } else {
-            // just stop
-            commandState = COMMAND_STATE_LANDED;
         }
     }
 

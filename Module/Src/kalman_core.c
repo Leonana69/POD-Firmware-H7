@@ -623,8 +623,8 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
 }
 
 bool kalmanCoreCheckBounds(kalmanCoreData_t* coreData) {
-    float maxPosition = 100;
-    float maxVelocity = 10;
+    float maxPosition = 50;
+    float maxVelocity = 5;
     for (int i = 0; i < 3; i++) {
         if (fabsf(coreData->S[KC_STATE_X + i]) > maxPosition) {
             return false;

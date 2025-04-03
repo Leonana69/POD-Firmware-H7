@@ -28,8 +28,6 @@ static float gyroValue2Degree;
 static lpf2pData lpf2pAccel[3];
 static lpf2pData lpf2pGyro[3];
 static imu_t imuData;
-static vec3f_t gyroBias;
-static float accelScale;
 
 static bool imuCalibration();
 static void applyLpf(lpf2pData *lpfData, vec3f_t *data) {
@@ -114,6 +112,8 @@ static struct bmi2_sensor_data bmi270Data[2] = {
     { .type = BMI2_GYRO }
 };
 
+static vec3f_t gyroBias;
+static float accelScale;
 bool imuCalibration() {
     const int caliNbr = 256;
     vec3f_t gyroBiasSquared = (vec3f_t){ 0 };
