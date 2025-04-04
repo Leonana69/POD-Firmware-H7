@@ -185,6 +185,8 @@ void commandGetSetpoint(setpoint_t *s) {
         if (commandState == COMMAND_STATE_HOVERING) {
             // do landing
             commandLand();
+        } else {
+            getRpytSetpoint(&currentSetpoint, 0, 0, 0, 0);
         }
     }
 

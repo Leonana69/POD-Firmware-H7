@@ -82,10 +82,10 @@ static const float stdDevInitVel = 0.01;
 static const float stdDevInitAtt_roll_pitch = 0.01;
 static const float stdDevInitAtt_yaw = 0.01;
 
-static float procNoiseAcc_xy = 0.5f;
+static float procNoiseAcc_xy = 0.3f;
 static float procNoiseAcc_z = 1.0f;
-static float procNoiseVel = 0;
-static float procNoisePos = 0;
+static float procNoiseVel = 0.0f;
+static float procNoisePos = 0.0f;
 static float procNoiseAtt = 0;
 static float measNoiseGyro_roll_pitch = 0.1f; // radians per second
 static float measNoiseGyro_yaw = 0.1f; // radians per second

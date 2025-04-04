@@ -86,6 +86,10 @@ void stabilizerTask(void *argument) {
             motorPowerStop();
         }
 
+        if (tick % 500 == 0) {
+            ledToggle(LED_L_B);
+        }
+
         tick++;
     }
 }

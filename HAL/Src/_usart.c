@@ -37,11 +37,11 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == ESP_UART_HANDLE.Instance) {
 		uint8_t index = esp_rx_buffer_index;
-		esp_rx_buffer_index = 1 - esp_rx_buffer_index;
-		HAL_UART_Receive_DMA(&ESP_UART_HANDLE, esp_rx_buffer + ESP_RX_BUFFER_SIZE * esp_rx_buffer_index, ESP_RX_BUFFER_SIZE);
 		for (int i = 0; i < ESP_RX_BUFFER_SIZE; i++) {
 			linkBufferPutChar(esp_rx_buffer[i + ESP_RX_BUFFER_SIZE * index]);
 		}
+		esp_rx_buffer_index = 1 - esp_rx_buffer_index;
+		HAL_UART_Receive_DMA(&ESP_UART_HANDLE, esp_rx_buffer + ESP_RX_BUFFER_SIZE * esp_rx_buffer_index, ESP_RX_BUFFER_SIZE);
 	}
 
 #ifdef GEAR
