@@ -73,7 +73,7 @@
 // The bounds on the covariance, these shouldn't be hit, but sometimes are... why?
 #define MAX_COVARIANCE (100.0f)
 #define MIN_COVARIANCE (1e-6f)
-#define EPSILON        (1e-6f)
+#define EPSILON        (0.0f) //(1e-6f)
 
 // Initial variances, uncertain of position, but know we're stationary and roughly flat
 static const float stdDevInitPos_x_y = 100;
