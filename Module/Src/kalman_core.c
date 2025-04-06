@@ -62,38 +62,65 @@
 #include "utils.h"
 #include <string.h>
 
-// the reversion of pitch and roll to zero
-#ifdef LPS_2D_POSITION_HEIGHT
-#define ROLLPITCH_ZERO_REVERSION (0.0f)
-#else
 #define ROLLPITCH_ZERO_REVERSION (0.001f)
-#endif
-
-
 // The bounds on the covariance, these shouldn't be hit, but sometimes are... why?
 #define MAX_COVARIANCE (100.0f)
 #define MIN_COVARIANCE (1e-6f)
-#define EPSILON        (0.0f) //(1e-6f)
+#define EPSILON        (1e-6f)
 
 // Initial variances, uncertain of position, but know we're stationary and roughly flat
-static const float stdDevInitPos_x_y = 100;
-static const float stdDevInitPos_z = 1;
-static const float stdDevInitVel = 0.01;
-static const float stdDevInitAtt_roll_pitch = 0.01;
-static const float stdDevInitAtt_yaw = 0.01;
+static const float initStdDevPos_xy = 100;
+static const float initStdDevPos_z = 1;
+static const float initStdDevVel_xyz = 0.01;
+static const float initStdDevAtt_rpy = 0.01;
 
 static float procNoiseAcc_xy = 0.3f;
 static float procNoiseAcc_z = 1.0f;
 static float procNoiseVel = 0.0f;
 static float procNoisePos = 0.0f;
 static float procNoiseAtt = 0;
-static float measNoiseGyro_roll_pitch = 0.1f; // radians per second
-static float measNoiseGyro_yaw = 0.1f; // radians per second
+static float measNoiseGyr_rpy = 0.1f; // radians per second
 
-float sqrt_f32(float x, float epsilon) {
+float sqrt_f32(float x) {
     float result;
     arm_sqrt_f32(x, &result);
-    return result + epsilon;
+    return result;
+}
+
+void dpal2q(kalmanCoreData_t *coreData, float dr, float dp, float dy) {
+    float angle = sqrt_f32(dr * dr + dp * dp + dy * dy);
+    float ca = arm_cos_f32(angle / 2.0f);
+    float sa_a;
+    if (angle < EPSILON) {
+        sa_a = 1.0f;
+    } else {
+        sa_a = arm_sin_f32(angle / 2.0f) / angle;
+    }
+    float dq[4] = {ca , sa_a * dr , sa_a * dp , sa_a * dy};
+
+    float tmpq0, tmpq1, tmpq2, tmpq3;
+    // rotate the quad's attitude by the delta quaternion vector computed above
+    tmpq0 = dq[0] * coreData->q[0] - dq[1] * coreData->q[1] - dq[2] * coreData->q[2] - dq[3] * coreData->q[3];
+    tmpq1 = dq[1] * coreData->q[0] + dq[0] * coreData->q[1] + dq[3] * coreData->q[2] - dq[2] * coreData->q[3];
+    tmpq2 = dq[2] * coreData->q[0] - dq[3] * coreData->q[1] + dq[0] * coreData->q[2] + dq[1] * coreData->q[3];
+    tmpq3 = dq[3] * coreData->q[0] + dq[2] * coreData->q[1] - dq[1] * coreData->q[2] + dq[0] * coreData->q[3];
+
+    /* This reversion would cause rpy diminish to zero */
+    // if (!isFlying) {
+    //     float keep = 1.0f - ROLLPITCH_ZERO_REVERSION;
+    //     tmpq0 = keep * tmpq0 + ROLLPITCH_ZERO_REVERSION * 1.0;
+    //     tmpq1 = keep * tmpq1 + ROLLPITCH_ZERO_REVERSION * 0;
+    //     tmpq2 = keep * tmpq2 + ROLLPITCH_ZERO_REVERSION * 0;
+    //     tmpq3 = keep * tmpq3 + ROLLPITCH_ZERO_REVERSION * 0;
+    // }
+
+    // normalize and store the result
+    float norm = sqrt_f32(tmpq0 * tmpq0 + tmpq1 * tmpq1 + tmpq2 * tmpq2 + tmpq3 * tmpq3);
+
+    coreData->q[0] = tmpq0 / norm;
+    coreData->q[1] = tmpq1 / norm;
+    coreData->q[2] = tmpq2 / norm;
+    coreData->q[3] = tmpq3 / norm;
 }
 
 void capCovariance(kalmanCoreData_t* coreData) {
@@ -122,15 +149,15 @@ void kalmanCoreInit(kalmanCoreData_t* coreData) {
     coreData->R[2][2] = 1.0;
 
     // initialize state variances
-    coreData->P[KC_STATE_X][KC_STATE_X] = powf(stdDevInitPos_x_y, 2);
-    coreData->P[KC_STATE_Y][KC_STATE_Y] = powf(stdDevInitPos_x_y, 2);
-    coreData->P[KC_STATE_Z][KC_STATE_Z] = powf(stdDevInitPos_z, 2);
-    coreData->P[KC_STATE_PX][KC_STATE_PX] = powf(stdDevInitVel, 2);
-    coreData->P[KC_STATE_PY][KC_STATE_PY] = powf(stdDevInitVel, 2);
-    coreData->P[KC_STATE_PZ][KC_STATE_PZ] = powf(stdDevInitVel, 2);
-    coreData->P[KC_STATE_D0][KC_STATE_D0] = powf(stdDevInitAtt_roll_pitch, 2);
-    coreData->P[KC_STATE_D1][KC_STATE_D1] = powf(stdDevInitAtt_roll_pitch, 2);
-    coreData->P[KC_STATE_D2][KC_STATE_D2] = powf(stdDevInitAtt_yaw, 2);
+    coreData->P[KC_STATE_X][KC_STATE_X] = powf(initStdDevPos_xy, 2);
+    coreData->P[KC_STATE_Y][KC_STATE_Y] = powf(initStdDevPos_xy, 2);
+    coreData->P[KC_STATE_Z][KC_STATE_Z] = powf(initStdDevPos_z, 2);
+    coreData->P[KC_STATE_PX][KC_STATE_PX] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_PY][KC_STATE_PY] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_PZ][KC_STATE_PZ] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_D0][KC_STATE_D0] = powf(initStdDevAtt_rpy, 2);
+    coreData->P[KC_STATE_D1][KC_STATE_D1] = powf(initStdDevAtt_rpy, 2);
+    coreData->P[KC_STATE_D2][KC_STATE_D2] = powf(initStdDevAtt_rpy, 2);
 
     coreData->Pm.numRows = KC_STATE_DIM;
     coreData->Pm.numCols = KC_STATE_DIM;
@@ -381,7 +408,7 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         // position updates in the body frame (will be rotated to inertial frame)
         dx = coreData->S[KC_STATE_PX] * dt + accel->x * dt2_2;
         dy = coreData->S[KC_STATE_PY] * dt + accel->y * dt2_2;
-        dz = coreData->S[KC_STATE_PZ] * dt + accel->z * dt2_2; // thrust can only be produced in the body's Z direction
+        dz = coreData->S[KC_STATE_PZ] * dt + accel->z * dt2_2;
 
         // position update
         coreData->S[KC_STATE_X] += coreData->R[0][0] * dx + coreData->R[0][1] * dy + coreData->R[0][2] * dz;
@@ -401,39 +428,7 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
 
     // attitude update (rotate by gyroscope), we do this in quaternions
     // this is the gyroscope angular velocity integrated over the sample period
-    float dtwx = dt * gyro->x;
-    float dtwy = dt * gyro->y;
-    float dtwz = dt * gyro->z;
-
-    // compute the quaternion values in [w,x,y,z] order
-    float angle = sqrt_f32(dtwx * dtwx + dtwy * dtwy + dtwz * dtwz, EPSILON);
-    float ca = arm_cos_f32(angle / 2.0f);
-    float sa = arm_sin_f32(angle / 2.0f);
-    float dq[4] = {ca , sa * dtwx / angle , sa * dtwy / angle , sa * dtwz / angle};
-
-    float tmpq0, tmpq1, tmpq2, tmpq3;
-    // rotate the quad's attitude by the delta quaternion vector computed above
-    tmpq0 = dq[0] * coreData->q[0] - dq[1] * coreData->q[1] - dq[2] * coreData->q[2] - dq[3] * coreData->q[3];
-    tmpq1 = dq[1] * coreData->q[0] + dq[0] * coreData->q[1] + dq[3] * coreData->q[2] - dq[2] * coreData->q[3];
-    tmpq2 = dq[2] * coreData->q[0] - dq[3] * coreData->q[1] + dq[0] * coreData->q[2] + dq[1] * coreData->q[3];
-    tmpq3 = dq[3] * coreData->q[0] + dq[2] * coreData->q[1] - dq[1] * coreData->q[2] + dq[0] * coreData->q[3];
-
-    /* This reversion would cause yaw estimation diminish to zero */
-    // if (!isFlying) {
-    //     float keep = 1.0f - ROLLPITCH_ZERO_REVERSION;
-    //     tmpq0 = keep * tmpq0 + ROLLPITCH_ZERO_REVERSION * 1.0;
-    //     tmpq1 = keep * tmpq1 + ROLLPITCH_ZERO_REVERSION * 0;
-    //     tmpq2 = keep * tmpq2 + ROLLPITCH_ZERO_REVERSION * 0;
-    //     tmpq3 = keep * tmpq3 + ROLLPITCH_ZERO_REVERSION * 0;
-    // }
-
-    // normalize and store the result
-    float norm = sqrt_f32(tmpq0 * tmpq0 + tmpq1 * tmpq1 + tmpq2 * tmpq2 + tmpq3 * tmpq3, EPSILON);
-
-    coreData->q[0] = tmpq0 / norm;
-    coreData->q[1] = tmpq1 / norm;
-    coreData->q[2] = tmpq2 / norm;
-    coreData->q[3] = tmpq3 / norm;
+    dpal2q(coreData, dt * gyro->x, dt * gyro->y, dt * gyro->z);
 }
 
 void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt) {
@@ -458,11 +453,11 @@ void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt) {
                                                + powf(procNoiseVel, 2);
 
         // Add process noise on attitude
-        coreData->P[KC_STATE_D0][KC_STATE_D0] += powf(measNoiseGyro_roll_pitch * dt, 2) 
+        coreData->P[KC_STATE_D0][KC_STATE_D0] += powf(measNoiseGyr_rpy * dt, 2) 
                                                + powf(procNoiseAtt, 2);
-        coreData->P[KC_STATE_D1][KC_STATE_D1] += powf(measNoiseGyro_roll_pitch * dt, 2) 
+        coreData->P[KC_STATE_D1][KC_STATE_D1] += powf(measNoiseGyr_rpy * dt, 2) 
                                                + powf(procNoiseAtt, 2);
-        coreData->P[KC_STATE_D2][KC_STATE_D2] += powf(measNoiseGyro_yaw * dt, 2) 
+        coreData->P[KC_STATE_D2][KC_STATE_D2] += powf(measNoiseGyr_rpy * dt, 2) 
                                                + powf(procNoiseAtt, 2);
     }
 
@@ -489,25 +484,9 @@ void kalmanCoreFinalize(kalmanCoreData_t* coreData) {
 
     // Move attitude error into attitude if any of the angle errors are large enough
     if ((fabsf(v0) > 1e-4f || fabsf(v1) > 1e-4f || fabsf(v2) > 1e-4f) && (fabsf(v0) < 10 && fabsf(v1) < 10 && fabsf(v2) < 10)) {
-        float angle = sqrt_f32(v0 * v0 + v1 * v1 + v2 * v2, EPSILON);
-        float ca = arm_cos_f32(angle / 2.0f);
-        float sa = arm_sin_f32(angle / 2.0f);
-        float dq[4] = { ca, sa * v0 / angle, sa * v1 / angle, sa * v2 / angle };
+        dpal2q(coreData, v0, v1, v2); // rotate the attitude by the error
 
-        // rotate the quad's attitude by the delta quaternion vector computed above
-        float tmpq0 = dq[0] * coreData->q[0] - dq[1] * coreData->q[1] - dq[2] * coreData->q[2] - dq[3] * coreData->q[3];
-        float tmpq1 = dq[1] * coreData->q[0] + dq[0] * coreData->q[1] + dq[3] * coreData->q[2] - dq[2] * coreData->q[3];
-        float tmpq2 = dq[2] * coreData->q[0] - dq[3] * coreData->q[1] + dq[0] * coreData->q[2] + dq[1] * coreData->q[3];
-        float tmpq3 = dq[3] * coreData->q[0] + dq[2] * coreData->q[1] - dq[1] * coreData->q[2] + dq[0] * coreData->q[3];
-
-        // normalize and store the result
-        float norm = sqrt_f32(tmpq0 * tmpq0 + tmpq1 * tmpq1 + tmpq2 * tmpq2 + tmpq3 * tmpq3, EPSILON);
-        coreData->q[0] = tmpq0 / norm;
-        coreData->q[1] = tmpq1 / norm;
-        coreData->q[2] = tmpq2 / norm;
-        coreData->q[3] = tmpq3 / norm;
-
-    /** Rotate the covariance, since we've rotated the body
+        /** Rotate the covariance, since we've rotated the body
         *
         * This comes from a second order approximation to:
         * Sigma_post = exps(-d) Sigma_pre exps(-d)'

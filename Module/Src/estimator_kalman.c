@@ -97,7 +97,7 @@ bool processDataQueue() {
 void estimatorKalmanTask(void *argument) {
     systemWaitStart();
     TASK_TIMER_DEF(ESTIMATOR, ESTIMATOR_TASK_RATE);
-    uint32_t lastTime = getTimeUs();
+    uint32_t lastAddNoiseTime = lastImuPrediction = getTimeUs();
     bool update;
     while (1) {
         TASK_TIMER_WAIT(ESTIMATOR);
@@ -110,8 +110,8 @@ void estimatorKalmanTask(void *argument) {
         update = processDataQueue();
 
         uint32_t currentTime = getTimeUs();
-        kalmanCoreAddProcessNoise(&coreData, getDurationUs(lastTime, currentTime) / 1e6f);
-        lastTime = currentTime;
+        kalmanCoreAddProcessNoise(&coreData, getDurationUs(lastAddNoiseTime, currentTime) / 1e6f);
+        lastAddNoiseTime = currentTime;
         
         if (update) {
             kalmanCoreFinalize(&coreData);
