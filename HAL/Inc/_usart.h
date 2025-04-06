@@ -60,6 +60,8 @@ USART_DMA_WRITE_FUNC_DECL(debug);
 USART_DMA_WRITE_FUNC_DECL(gear);
 #endif
 
+void HAL_UART_RxIdleCallback(UART_HandleTypeDef *huart);
+
 #ifdef __cplusplus
 }
 #endif
