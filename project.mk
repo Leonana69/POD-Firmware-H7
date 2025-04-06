@@ -40,7 +40,7 @@ VPATH += Drivers/CMSIS/DSP/Source/FastMathFunctions
 C_SOURCES += arm_cos_f32.c arm_sin_f32.c
 
 VPATH += Drivers/CMSIS/DSP/Source/MatrixFunctions
-C_SOURCES += arm_mat_mult_f32.c arm_mat_trans_f32.c
+C_SOURCES += arm_mat_mult_f32.c arm_mat_trans_f32.c arm_mat_scale_f32.c arm_mat_add_f32.c
 
 VPATH += Drivers/CMSIS/DSP/Source/CommonTables
 C_SOURCES += arm_common_tables.c

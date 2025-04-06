@@ -209,7 +209,7 @@ void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 
         // kalman gain: K_n = (P_n,n-1 * H^T * (H * P_n,n-1 * H^T + R_n)^-1
         K[i] = PHTd[i] / HPHR; 
         // State update: x_n,n = x_n,n-1 + K_n * error
-        coreData->S[i] = coreData->S[i] + K[i] * error; // state update
+        coreData->S[i] += K[i] * error; // state update
     }
   
     // ====== COVARIANCE UPDATE: P_n,n = (K_n * H - I) * P_n,n-1 * (K_n * H - I)^T + K_n * R_n * K_n^T ======
@@ -225,13 +225,15 @@ void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 
     // (K_n * H - I) * P_n,n-1 * (K_n * H - I)^T
     arm_mat_mult_f32(&tmpNN3m, &tmpNN2m, &coreData->Pm);
 
-    // add the measurement variance and ensure boundedness and symmetry, but this would cause the covariance to be too small
-    // for (int i = 0; i < KC_STATE_DIM; i++) {
-    //     for (int j = i; j < KC_STATE_DIM; j++) {
-    //         coreData->P[i][j] += K[i] * R * K[j];
-    //         coreData->P[j][i] = coreData->P[i][j];
-    //     }
-    // }
+    /*
+     * Adding the K_n * R_n * K_n^T, but it will cause the drone less stable
+     */
+    // static arm_matrix_instance_f32 KTm = { 1, KC_STATE_DIM, K };
+    // DATA_REGION static float K_KT[KC_STATE_DIM * KC_STATE_DIM];
+    // static arm_matrix_instance_f32 K_KTm = { KC_STATE_DIM, KC_STATE_DIM, K_KT };
+    // arm_mat_mult_f32(&Km, &KTm, &K_KTm);
+    // arm_mat_scale_f32(&K_KTm, R, &K_KTm);
+    // arm_mat_add_f32(&coreData->Pm, &K_KTm, &coreData->Pm);
 
     capCovariance(coreData);
 }
