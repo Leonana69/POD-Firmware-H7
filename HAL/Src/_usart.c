@@ -48,6 +48,8 @@ void HAL_UART_RxIdleCallback(UART_HandleTypeDef *huart) {
 		for (int i = 0; i < data_len; i++) {
 			linkBufferPutChar(esp_rx_buffer[(old_pos + i) % ESP_RX_BUFFER_SIZE]);
 		}
+
+		old_pos = new_pos;
 	}
 }
 
