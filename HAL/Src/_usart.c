@@ -14,7 +14,7 @@ void debugUartTransmit(const uint8_t *data, uint16_t len) {
 	debug_write_dma(data, len);
 }
 
-#define ESP_RX_BUFFER_SIZE 256
+#define ESP_RX_BUFFER_SIZE 128
 static uint16_t old_pos = 0;
 static uint8_t esp_rx_buffer[ESP_RX_BUFFER_SIZE];
 

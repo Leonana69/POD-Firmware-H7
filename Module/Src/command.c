@@ -184,6 +184,7 @@ void commandGetSetpoint(setpoint_t *s) {
         while (STATIC_QUEUE_RECEIVE(commandQueue, &currentSetpoint, 0) == osOK) {}
         if (commandState == COMMAND_STATE_HOVERING) {
             // do landing
+            DEBUG_REMOTE("** Timeout landing... **\n");
             commandLand();
         } else {
             getRpytSetpoint(&currentSetpoint, 0, 0, 0, 0);

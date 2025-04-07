@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "command.h"
 
-#define COMMAND_TIMEOUT     1000
+#define COMMAND_TIMEOUT     1500
 #define Z_ACCEL_THRESHOLD   -0.4f
 #define Z_ACCEL_COUNT       100
 

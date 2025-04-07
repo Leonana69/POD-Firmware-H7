@@ -74,8 +74,8 @@ static const float initStdDevPos_z = 1;
 static const float initStdDevVel_xyz = 0.01;
 static const float initStdDevAtt_rpy = 0.01;
 
-static float procNoiseAcc_xy = 0.3f;
-static float procNoiseAcc_z = 1.0f;
+static float procNoiseAcc_xy = 0.2f;
+static float procNoiseAcc_z = 0.4f;
 static float procNoiseVel = 0.0f;
 static float procNoisePos = 0.0f;
 static float procNoiseAtt = 0;
@@ -184,9 +184,6 @@ void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 
 
     DATA_REGION static float PHTd[KC_STATE_DIM * 1];
     static arm_matrix_instance_f32 PHTm = { KC_STATE_DIM, 1, PHTd };
-
-    ASSERT(Hm->numRows == 1);
-    ASSERT(Hm->numCols == KC_STATE_DIM);
 
     // ====== INNOVATION COVARIANCE ======
     // H^T

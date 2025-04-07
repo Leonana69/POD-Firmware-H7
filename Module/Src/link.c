@@ -145,6 +145,7 @@ bool linkProcessPacket(PodtpPacket *packet) {
             packet->length = 2;
         }
     }
+
     return ack;
 }
 

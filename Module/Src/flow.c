@@ -14,7 +14,7 @@
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
 #define FLOW_TASK_RATE RATE_50_HZ
-#define FLOW_STD_DEV 0.2f
+#define FLOW_STD_DEV 1.0f
 static paa3905_dev_t paa3905_dev;
 
 uint32_t flowInit(void) {
@@ -42,7 +42,6 @@ uint32_t flowInit(void) {
 
 uint8_t squalThreshold[3] = { 0x19, 0x46, 0x55 };
 uint32_t shutterThreshold[3] = { 0x00FF80, 0x00FF80, 0x025998 };
-
 void flowTask(void *argument) {
     estimatorPacket_t packet = { .type = FLOW_TASK_INDEX };
     paa3905_motion_t motion;
