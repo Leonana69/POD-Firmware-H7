@@ -54,12 +54,14 @@ static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scala
     sp->mode.yaw = STABILIZE_ABSOLUTE;
 };
 
+static state_t state;
 static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, scalar_t yaw) {
-    state_t state;
-    estimatorKalmanUpdate(&state);
+    if (x == 0 && y == 0 && z == 0) {
+        estimatorKalmanUpdate(&state);
+    }
     sp->thrust = 0;
     sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
-    sp->position = (position_t) { .x = x, .y = y, .z = z };
+    sp->position = (position_t) { .x = state.position.x + x, .y = state.position.y + y, .z = state.position.z + z };
     sp->velocity_body = false;
     sp->mode.x = STABILIZE_ABSOLUTE;
     sp->mode.y = STABILIZE_ABSOLUTE;
@@ -133,12 +135,12 @@ static podtp_error_type commandTakeOff() {
     podtp_error_type ret = PODTP_ERROR_NONE;
     setpoint_t _sp;
     _sp.timestamp = 0;
-    _sp.duration = 500;
-    getRpytSetpoint(&_sp, 0, 0, 0, 11600);
+    _sp.duration = 1000;
+    getRpytSetpoint(&_sp, 0, 0, 0, 12000);
     ret |= commandSetSetpoint(&_sp);
 
     _sp.duration = 1000;
-    getRpytSetpoint(&_sp, 0, 0, 0, 12000);
+    getHoverSetpoint(&_sp, 0, 0, 0, 0.5);
     ret |= commandSetSetpoint(&_sp);
 
     // keep hovering
@@ -246,7 +248,7 @@ podtp_error_type commandProcessPacket(const PodtpPacket *packet) {
         case PORT_COMMAND_POSITION:
             ret = commandDecodeXyzyPacket(packet, &sp);
             if (ret == PODTP_ERROR_NONE) {
-                commandState = COMMAND_STATE_NORMAL;
+                commandState = COMMAND_STATE_HOVERING;
             }
             break;
         case PORT_COMMAND_VELOCITY:

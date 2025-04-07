@@ -3,21 +3,36 @@
 #include "baro.h"
 #include "debug.h"
 
+static float last_tof = 0;
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
-    if (coreData->R[2][2] > 0.5) {
-        float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2]
-            - 0.033 * coreData->R[2][0]; // The tof installation is not at the center of the drone
-        float measuredDistance = tof->distance;
+    const float suddenChangeThreshold = 0.03f;  // Threshold for detecting sudden changes
+    static float accumulatedDistance = 0;
 
-        // equation: h = z/((R*z_b)\dot z_b) = z/cos(alpha)
-        h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
-
-        // Scalar update
-        kalmanCoreScalarUpdate(coreData, &H, measuredDistance - predictedDistance, tof->stdDev);
+    // Initialize last_tof if it's the first valid measurement
+    if (last_tof == 0 && tof->distance > 0.5) {
+        last_tof = tof->distance;
     }
+   
+    float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2]
+        - 0.033 * tanf(asinf(coreData->R[2][0])); // The ToF installation is not at the center of the drone
+
+    // Apply filtering only if there is a sudden change
+    if (last_tof > 0) {
+        if (fabsf(tof->distance - last_tof) > suddenChangeThreshold)
+            accumulatedDistance += tof->distance - last_tof;
+
+        last_tof = tof->distance;
+    }
+
+    float measurement = tof->distance - accumulatedDistance;
+    // Measurement model: h = z / cos(alpha)
+    h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
+
+    // Perform the Kalman scalar update
+    kalmanCoreScalarUpdate(coreData, &H, measurement - predictedDistance, tof->stdDev);
 }
 
 void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, const vec3f_t *gyro) {
@@ -30,10 +45,10 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      * Default resolution s 0x2A, which is 42 pixels, so CPI = 12.198 / height
      * CPM (count per meter) = 12.198 / (height * 0.0254)
      */
-    // Saturate height to avoid division by zero
-    float z_g = coreData->S[KC_STATE_Z] < 0.1f ? 0.1f : coreData->S[KC_STATE_Z];
-    float z_body = z_g / coreData->R[2][2] - 0.038 * coreData->R[2][0]; // The flow sensor is not at the center of the drone
-    
+    // Use last_tof if available, otherwise use the state estimate
+    float z_g = last_tof > 0 ? last_tof : (coreData->S[KC_STATE_Z] < 0.05f ? 0.05f : coreData->S[KC_STATE_Z]) / coreData->R[2][2];
+    float z_body = z_g - 0.038 * tanf(asinf(coreData->R[2][0])); // The flow sensor is not at the center of the drone
+
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
     float vx_body = coreData->S[KC_STATE_VX];
     float vy_body = coreData->S[KC_STATE_VY];
@@ -55,7 +70,6 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     memset(hx, 0, sizeof(hx));
     hx[KC_STATE_Z] = co * vx_body / (-z_body) / coreData->R[2][2];
     hx[KC_STATE_VX] = co;
-
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
     float predictedNY = co * (vy_body + omegax_b * z_body);
@@ -63,7 +77,6 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     memset(hy, 0, sizeof(hy));
     hy[KC_STATE_Z] = co * vy_body / (-z_body) / coreData->R[2][2];
     hy[KC_STATE_VY] = co;
-
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
 }
 
