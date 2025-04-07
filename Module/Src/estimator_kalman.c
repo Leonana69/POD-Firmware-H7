@@ -78,7 +78,8 @@ bool processDataQueue() {
         }
     }
 
-    uint32_t dt = getDurationUs(lastImuPrediction, getTimeUs());
+    uint32_t currentTime = getTimeUs();
+    uint32_t dt = getDurationUs(lastImuPrediction, currentTime);
     if (imuCount > 0 && dt >= 1000000 / ESTIMATOR_PREDICTION_RATE) {
         for (int i = 0; i < 3; i++) {
             imuAccumulator.gyro.v[i] = radians(imuAccumulator.gyro.v[i] / imuCount);
@@ -87,7 +88,7 @@ bool processDataQueue() {
         kalmanCorePredict(&coreData, &imuAccumulator, dt / 1000000.0f, motorPowerIsFlying());
         imuCount = 0;
         imuAccumulator = (imu_t){ 0 };
-        lastImuPrediction = getTimeUs();
+        lastImuPrediction = currentTime;
         update = true;
     }
 
@@ -101,11 +102,6 @@ void estimatorKalmanTask(void *argument) {
     bool update;
     while (1) {
         TASK_TIMER_WAIT(ESTIMATOR);
-
-        // reset kalman core if necessary
-        if (coreData.reset) {
-            kalmanCoreInit(&coreData);
-        }
 
         update = processDataQueue();
 
@@ -127,10 +123,6 @@ void estimatorKalmanTask(void *argument) {
         kalmanCoreExternalizeState(&coreData, &stateData, &latestImu.accel, osKernelGetTickCount());
         STATIC_MUTEX_UNLOCK(estimatorDataMutex);
     }
-}
-
-void estimatorKalmanGetCoreData(kalmanCoreData_t *data) {
-    *data = coreData;
 }
 
 void estimatorKalmanReset() {

@@ -35,8 +35,8 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     float z_body = z_g / coreData->R[2][2] - 0.038 * coreData->R[2][0]; // The flow sensor is not at the center of the drone
     
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
-    float vx_body = coreData->S[KC_STATE_PX];
-    float vy_body = coreData->S[KC_STATE_PY];
+    float vx_body = coreData->S[KC_STATE_VX];
+    float vy_body = coreData->S[KC_STATE_VY];
     
     // Convert gyro to rad/s (correct for sensor axis orientation if needed)
     float omegax_b = radians(gyro->x);
@@ -54,7 +54,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     // derive measurement equation with respect to dx and z
     memset(hx, 0, sizeof(hx));
     hx[KC_STATE_Z] = co * vx_body / (-z_body) / coreData->R[2][2];
-    hx[KC_STATE_PX] = co;
+    hx[KC_STATE_VX] = co;
 
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
@@ -62,7 +62,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     float measuredNY = flow->dpixely;
     memset(hy, 0, sizeof(hy));
     hy[KC_STATE_Z] = co * vy_body / (-z_body) / coreData->R[2][2];
-    hy[KC_STATE_PY] = co;
+    hy[KC_STATE_VY] = co;
 
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, flow->stdDevY);
 }
@@ -71,8 +71,8 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     // Inclusion of flow measurements in the EKF done by two scalar updates
     //~~~ Body rates ~~~
     // TODO check if this is feasible or if some filtering has to be done
-    float dx_g = coreData->S[KC_STATE_PX];
-    float dy_g = coreData->S[KC_STATE_PY];
+    float dx_g = coreData->S[KC_STATE_VX];
+    float dy_g = coreData->S[KC_STATE_VY];
 
     // ~~~ X velocity prediction and update ~~~
     // predics the number of accumulated pixels in the x-direction
@@ -80,7 +80,7 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
     float predictedNX = dx_g;
     float measuredNX = motor->dx / motor->dt;
-    hx[KC_STATE_PX] = 1;
+    hx[KC_STATE_VX] = 1;
 
     /*! X update */
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, motor->stdDevX);
@@ -92,7 +92,7 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
     float measuredNY = motor->dy / motor->dt;
 
     // derive measurement equation with respect to dy (and z?)
-    hy[KC_STATE_PY] = 1;
+    hy[KC_STATE_VY] = 1;
 
     /*! Y update */
     kalmanCoreScalarUpdate(coreData, &Hy, measuredNY - predictedNY, motor->stdDevY);

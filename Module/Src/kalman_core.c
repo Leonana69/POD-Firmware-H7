@@ -152,9 +152,9 @@ void kalmanCoreInit(kalmanCoreData_t* coreData) {
     coreData->P[KC_STATE_X][KC_STATE_X] = powf(initStdDevPos_xy, 2);
     coreData->P[KC_STATE_Y][KC_STATE_Y] = powf(initStdDevPos_xy, 2);
     coreData->P[KC_STATE_Z][KC_STATE_Z] = powf(initStdDevPos_z, 2);
-    coreData->P[KC_STATE_PX][KC_STATE_PX] = powf(initStdDevVel_xyz, 2);
-    coreData->P[KC_STATE_PY][KC_STATE_PY] = powf(initStdDevVel_xyz, 2);
-    coreData->P[KC_STATE_PZ][KC_STATE_PZ] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_VX][KC_STATE_VX] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_VY][KC_STATE_VY] = powf(initStdDevVel_xyz, 2);
+    coreData->P[KC_STATE_VZ][KC_STATE_VZ] = powf(initStdDevVel_xyz, 2);
     coreData->P[KC_STATE_D0][KC_STATE_D0] = powf(initStdDevAtt_rpy, 2);
     coreData->P[KC_STATE_D1][KC_STATE_D1] = powf(initStdDevAtt_rpy, 2);
     coreData->P[KC_STATE_D2][KC_STATE_D2] = powf(initStdDevAtt_rpy, 2);
@@ -282,57 +282,57 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         F[i][i] = 1;
 
     // position from body-frame velocity
-    F[KC_STATE_X][KC_STATE_PX] = coreData->R[0][0] * dt;
-    F[KC_STATE_Y][KC_STATE_PX] = coreData->R[1][0] * dt;
-    F[KC_STATE_Z][KC_STATE_PX] = coreData->R[2][0] * dt;
+    F[KC_STATE_X][KC_STATE_VX] = coreData->R[0][0] * dt;
+    F[KC_STATE_Y][KC_STATE_VX] = coreData->R[1][0] * dt;
+    F[KC_STATE_Z][KC_STATE_VX] = coreData->R[2][0] * dt;
 
-    F[KC_STATE_X][KC_STATE_PY] = coreData->R[0][1] * dt;
-    F[KC_STATE_Y][KC_STATE_PY] = coreData->R[1][1] * dt;
-    F[KC_STATE_Z][KC_STATE_PY] = coreData->R[2][1] * dt;
+    F[KC_STATE_X][KC_STATE_VY] = coreData->R[0][1] * dt;
+    F[KC_STATE_Y][KC_STATE_VY] = coreData->R[1][1] * dt;
+    F[KC_STATE_Z][KC_STATE_VY] = coreData->R[2][1] * dt;
 
-    F[KC_STATE_X][KC_STATE_PZ] = coreData->R[0][2] * dt;
-    F[KC_STATE_Y][KC_STATE_PZ] = coreData->R[1][2] * dt;
-    F[KC_STATE_Z][KC_STATE_PZ] = coreData->R[2][2] * dt;
+    F[KC_STATE_X][KC_STATE_VZ] = coreData->R[0][2] * dt;
+    F[KC_STATE_Y][KC_STATE_VZ] = coreData->R[1][2] * dt;
+    F[KC_STATE_Z][KC_STATE_VZ] = coreData->R[2][2] * dt;
 
     // position from attitude error
-    F[KC_STATE_X][KC_STATE_D0] = (coreData->S[KC_STATE_PY] * coreData->R[0][2] - coreData->S[KC_STATE_PZ] * coreData->R[0][1]) * dt;
-    F[KC_STATE_Y][KC_STATE_D0] = (coreData->S[KC_STATE_PY] * coreData->R[1][2] - coreData->S[KC_STATE_PZ] * coreData->R[1][1]) * dt;
-    F[KC_STATE_Z][KC_STATE_D0] = (coreData->S[KC_STATE_PY] * coreData->R[2][2] - coreData->S[KC_STATE_PZ] * coreData->R[2][1]) * dt;
+    F[KC_STATE_X][KC_STATE_D0] = (coreData->S[KC_STATE_VY] * coreData->R[0][2] - coreData->S[KC_STATE_VZ] * coreData->R[0][1]) * dt;
+    F[KC_STATE_Y][KC_STATE_D0] = (coreData->S[KC_STATE_VY] * coreData->R[1][2] - coreData->S[KC_STATE_VZ] * coreData->R[1][1]) * dt;
+    F[KC_STATE_Z][KC_STATE_D0] = (coreData->S[KC_STATE_VY] * coreData->R[2][2] - coreData->S[KC_STATE_VZ] * coreData->R[2][1]) * dt;
 
-    F[KC_STATE_X][KC_STATE_D1] = (-coreData->S[KC_STATE_PX] * coreData->R[0][2] + coreData->S[KC_STATE_PZ] * coreData->R[0][0]) * dt;
-    F[KC_STATE_Y][KC_STATE_D1] = (-coreData->S[KC_STATE_PX] * coreData->R[1][2] + coreData->S[KC_STATE_PZ] * coreData->R[1][0]) * dt;
-    F[KC_STATE_Z][KC_STATE_D1] = (-coreData->S[KC_STATE_PX] * coreData->R[2][2] + coreData->S[KC_STATE_PZ] * coreData->R[2][0]) * dt;
+    F[KC_STATE_X][KC_STATE_D1] = (-coreData->S[KC_STATE_VX] * coreData->R[0][2] + coreData->S[KC_STATE_VZ] * coreData->R[0][0]) * dt;
+    F[KC_STATE_Y][KC_STATE_D1] = (-coreData->S[KC_STATE_VX] * coreData->R[1][2] + coreData->S[KC_STATE_VZ] * coreData->R[1][0]) * dt;
+    F[KC_STATE_Z][KC_STATE_D1] = (-coreData->S[KC_STATE_VX] * coreData->R[2][2] + coreData->S[KC_STATE_VZ] * coreData->R[2][0]) * dt;
 
-    F[KC_STATE_X][KC_STATE_D2] = (coreData->S[KC_STATE_PX] * coreData->R[0][1] - coreData->S[KC_STATE_PY] * coreData->R[0][0]) * dt;
-    F[KC_STATE_Y][KC_STATE_D2] = (coreData->S[KC_STATE_PX] * coreData->R[1][1] - coreData->S[KC_STATE_PY] * coreData->R[1][0]) * dt;
-    F[KC_STATE_Z][KC_STATE_D2] = (coreData->S[KC_STATE_PX] * coreData->R[2][1] - coreData->S[KC_STATE_PY] * coreData->R[2][0]) * dt;
+    F[KC_STATE_X][KC_STATE_D2] = (coreData->S[KC_STATE_VX] * coreData->R[0][1] - coreData->S[KC_STATE_VY] * coreData->R[0][0]) * dt;
+    F[KC_STATE_Y][KC_STATE_D2] = (coreData->S[KC_STATE_VX] * coreData->R[1][1] - coreData->S[KC_STATE_VY] * coreData->R[1][0]) * dt;
+    F[KC_STATE_Z][KC_STATE_D2] = (coreData->S[KC_STATE_VX] * coreData->R[2][1] - coreData->S[KC_STATE_VY] * coreData->R[2][0]) * dt;
 
     // body-frame velocity change from attitude change (rotation)
-    F[KC_STATE_PX][KC_STATE_PX] = 1.0;
-    F[KC_STATE_PY][KC_STATE_PX] = -gyro->z * dt;
-    F[KC_STATE_PZ][KC_STATE_PX] = gyro->y * dt;
+    F[KC_STATE_VX][KC_STATE_VX] = 1.0;
+    F[KC_STATE_VY][KC_STATE_VX] = -gyro->z * dt;
+    F[KC_STATE_VZ][KC_STATE_VX] = gyro->y * dt;
 
-    F[KC_STATE_PX][KC_STATE_PY] = gyro->z * dt;
-    F[KC_STATE_PY][KC_STATE_PY] = 1.0;
-    F[KC_STATE_PZ][KC_STATE_PY] = -gyro->x * dt;
+    F[KC_STATE_VX][KC_STATE_VY] = gyro->z * dt;
+    F[KC_STATE_VY][KC_STATE_VY] = 1.0;
+    F[KC_STATE_VZ][KC_STATE_VY] = -gyro->x * dt;
 
-    F[KC_STATE_PX][KC_STATE_PZ] = -gyro->y * dt;
-    F[KC_STATE_PY][KC_STATE_PZ] = gyro->x * dt;
-    F[KC_STATE_PZ][KC_STATE_PZ] = 1.0;
+    F[KC_STATE_VX][KC_STATE_VZ] = -gyro->y * dt;
+    F[KC_STATE_VY][KC_STATE_VZ] = gyro->x * dt;
+    F[KC_STATE_VZ][KC_STATE_VZ] = 1.0;
 
     // body-frame velocity from attitude error
-    F[KC_STATE_PX][KC_STATE_D0] = 0.0;
+    F[KC_STATE_VX][KC_STATE_D0] = 0.0;
     // delta_V_PY = -g_PZ * sin(delta_roll) * dt = -g_PZ * delta_roll * dt
-    F[KC_STATE_PY][KC_STATE_D0] = -GRAVITY_EARTH * coreData->R[2][2] * dt;
-    F[KC_STATE_PZ][KC_STATE_D0] = GRAVITY_EARTH * coreData->R[2][1] * dt;
+    F[KC_STATE_VY][KC_STATE_D0] = -GRAVITY_EARTH * coreData->R[2][2] * dt;
+    F[KC_STATE_VZ][KC_STATE_D0] = GRAVITY_EARTH * coreData->R[2][1] * dt;
 
-    F[KC_STATE_PX][KC_STATE_D1] = GRAVITY_EARTH * coreData->R[2][2] * dt;
-    F[KC_STATE_PY][KC_STATE_D1] = 0.0;
-    F[KC_STATE_PZ][KC_STATE_D1] = -GRAVITY_EARTH * coreData->R[2][0] * dt;
+    F[KC_STATE_VX][KC_STATE_D1] = GRAVITY_EARTH * coreData->R[2][2] * dt;
+    F[KC_STATE_VY][KC_STATE_D1] = 0.0;
+    F[KC_STATE_VZ][KC_STATE_D1] = -GRAVITY_EARTH * coreData->R[2][0] * dt;
 
-    F[KC_STATE_PX][KC_STATE_D2] = -GRAVITY_EARTH * coreData->R[2][1] * dt;
-    F[KC_STATE_PY][KC_STATE_D2] = GRAVITY_EARTH * coreData->R[2][0] * dt;
-    F[KC_STATE_PZ][KC_STATE_D2] = 0.0;
+    F[KC_STATE_VX][KC_STATE_D2] = -GRAVITY_EARTH * coreData->R[2][1] * dt;
+    F[KC_STATE_VY][KC_STATE_D2] = GRAVITY_EARTH * coreData->R[2][0] * dt;
+    F[KC_STATE_VZ][KC_STATE_D2] = 0.0;
 
     // attitude error from attitude error
     /**
@@ -387,9 +387,9 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         // Use accelerometer and not commanded thrust, as this has proper physical units
 
         // position updates in the body frame (will be rotated to inertial frame)
-        dx = coreData->S[KC_STATE_PX] * dt;
-        dy = coreData->S[KC_STATE_PY] * dt;
-        dz = coreData->S[KC_STATE_PZ] * dt + accel->z * dt2_2; // thrust can only be produced in the body's Z direction
+        dx = coreData->S[KC_STATE_VX] * dt;
+        dy = coreData->S[KC_STATE_VY] * dt;
+        dz = coreData->S[KC_STATE_VZ] * dt + accel->z * dt2_2; // thrust can only be produced in the body's Z direction
 
         // position update
         coreData->S[KC_STATE_X] += coreData->R[0][0] * dx + coreData->R[0][1] * dy + coreData->R[0][2] * dz;
@@ -397,20 +397,20 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         coreData->S[KC_STATE_Z] += coreData->R[2][0] * dx + coreData->R[2][1] * dy + coreData->R[2][2] * dz - GRAVITY_EARTH * dt2_2;
 
         // keep previous time step's state for the update
-        tmpSPX = coreData->S[KC_STATE_PX];
-        tmpSPY = coreData->S[KC_STATE_PY];
-        tmpSPZ = coreData->S[KC_STATE_PZ];
+        tmpSPX = coreData->S[KC_STATE_VX];
+        tmpSPY = coreData->S[KC_STATE_VY];
+        tmpSPZ = coreData->S[KC_STATE_VZ];
 
         // body-velocity update: accelerometers - gyros cross velocity - gravity in body frame
-        coreData->S[KC_STATE_PX] += dt * (gyro->z * tmpSPY - gyro->y * tmpSPZ - GRAVITY_EARTH * coreData->R[2][0]);
-        coreData->S[KC_STATE_PY] += dt * (-gyro->z * tmpSPX + gyro->x * tmpSPZ - GRAVITY_EARTH * coreData->R[2][1]);
-        coreData->S[KC_STATE_PZ] += dt * (accel->z + gyro->y * tmpSPX - gyro->x * tmpSPY - GRAVITY_EARTH * coreData->R[2][2]);
+        coreData->S[KC_STATE_VX] += dt * (gyro->z * tmpSPY - gyro->y * tmpSPZ - GRAVITY_EARTH * coreData->R[2][0]);
+        coreData->S[KC_STATE_VY] += dt * (-gyro->z * tmpSPX + gyro->x * tmpSPZ - GRAVITY_EARTH * coreData->R[2][1]);
+        coreData->S[KC_STATE_VZ] += dt * (accel->z + gyro->y * tmpSPX - gyro->x * tmpSPY - GRAVITY_EARTH * coreData->R[2][2]);
     } else {
         // Acceleration can be in any direction, as measured by the accelerometer. This occurs, eg. in freefall or while being carried.
         // position updates in the body frame (will be rotated to inertial frame)
-        dx = coreData->S[KC_STATE_PX] * dt + accel->x * dt2_2;
-        dy = coreData->S[KC_STATE_PY] * dt + accel->y * dt2_2;
-        dz = coreData->S[KC_STATE_PZ] * dt + accel->z * dt2_2;
+        dx = coreData->S[KC_STATE_VX] * dt + accel->x * dt2_2;
+        dy = coreData->S[KC_STATE_VY] * dt + accel->y * dt2_2;
+        dz = coreData->S[KC_STATE_VZ] * dt + accel->z * dt2_2;
 
         // position update
         coreData->S[KC_STATE_X] += coreData->R[0][0] * dx + coreData->R[0][1] * dy + coreData->R[0][2] * dz;
@@ -418,14 +418,14 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         coreData->S[KC_STATE_Z] += coreData->R[2][0] * dx + coreData->R[2][1] * dy + coreData->R[2][2] * dz - GRAVITY_EARTH * dt2_2;
 
         // keep previous time step's state for the update
-        tmpSPX = coreData->S[KC_STATE_PX];
-        tmpSPY = coreData->S[KC_STATE_PY];
-        tmpSPZ = coreData->S[KC_STATE_PZ];
+        tmpSPX = coreData->S[KC_STATE_VX];
+        tmpSPY = coreData->S[KC_STATE_VY];
+        tmpSPZ = coreData->S[KC_STATE_VZ];
 
         // body-velocity update: accelerometers - gyros cross velocity - gravity in body frame
-        coreData->S[KC_STATE_PX] += dt * (accel->x + gyro->z * tmpSPY - gyro->y * tmpSPZ - GRAVITY_EARTH * coreData->R[2][0]);
-        coreData->S[KC_STATE_PY] += dt * (accel->y - gyro->z * tmpSPX + gyro->x * tmpSPZ - GRAVITY_EARTH * coreData->R[2][1]);
-        coreData->S[KC_STATE_PZ] += dt * (accel->z + gyro->y * tmpSPX - gyro->x * tmpSPY - GRAVITY_EARTH * coreData->R[2][2]);
+        coreData->S[KC_STATE_VX] += dt * (accel->x + gyro->z * tmpSPY - gyro->y * tmpSPZ - GRAVITY_EARTH * coreData->R[2][0]);
+        coreData->S[KC_STATE_VY] += dt * (accel->y - gyro->z * tmpSPX + gyro->x * tmpSPZ - GRAVITY_EARTH * coreData->R[2][1]);
+        coreData->S[KC_STATE_VZ] += dt * (accel->z + gyro->y * tmpSPX - gyro->x * tmpSPY - GRAVITY_EARTH * coreData->R[2][2]);
     }
 
     // attitude update (rotate by gyroscope), we do this in quaternions
@@ -447,11 +447,11 @@ void kalmanCoreAddProcessNoise(kalmanCoreData_t* coreData, float dt) {
                                              + powf(procNoisePos, 2);
 
         // Add process noise on velocity
-        coreData->P[KC_STATE_PX][KC_STATE_PX] += powf(procNoiseAcc_xy * dt, 2) 
+        coreData->P[KC_STATE_VX][KC_STATE_VX] += powf(procNoiseAcc_xy * dt, 2) 
                                                + powf(procNoiseVel, 2);
-        coreData->P[KC_STATE_PY][KC_STATE_PY] += powf(procNoiseAcc_xy * dt, 2) 
+        coreData->P[KC_STATE_VY][KC_STATE_VY] += powf(procNoiseAcc_xy * dt, 2) 
                                                + powf(procNoiseVel, 2);
-        coreData->P[KC_STATE_PZ][KC_STATE_PZ] += powf(procNoiseAcc_z * dt, 2) 
+        coreData->P[KC_STATE_VZ][KC_STATE_VZ] += powf(procNoiseAcc_z * dt, 2) 
                                                + powf(procNoiseVel, 2);
 
         // Add process noise on attitude
@@ -508,9 +508,9 @@ void kalmanCoreFinalize(kalmanCoreData_t* coreData) {
         F[KC_STATE_Y][KC_STATE_Y] = 1;
         F[KC_STATE_Z][KC_STATE_Z] = 1;
 
-        F[KC_STATE_PX][KC_STATE_PX] = 1;
-        F[KC_STATE_PY][KC_STATE_PY] = 1;
-        F[KC_STATE_PZ][KC_STATE_PZ] = 1;
+        F[KC_STATE_VX][KC_STATE_VX] = 1;
+        F[KC_STATE_VY][KC_STATE_VY] = 1;
+        F[KC_STATE_VZ][KC_STATE_VZ] = 1;
 
         F[KC_STATE_D0][KC_STATE_D0] = 1 - d1 * d1 / 2 - d2 * d2 / 2;
         F[KC_STATE_D0][KC_STATE_D1] = d2 + d0 * d1 / 2;
@@ -561,9 +561,9 @@ void kalmanCoreExternalizeState(const kalmanCoreData_t* coreData, state_t *state
 
     // velocity is in body frame and needs to be rotated to world frame
     state->velocity = (velocity_t) {
-        .x = coreData->R[0][0] * coreData->S[KC_STATE_PX] + coreData->R[0][1] * coreData->S[KC_STATE_PY] + coreData->R[0][2] * coreData->S[KC_STATE_PZ],
-        .y = coreData->R[1][0] * coreData->S[KC_STATE_PX] + coreData->R[1][1] * coreData->S[KC_STATE_PY] + coreData->R[1][2] * coreData->S[KC_STATE_PZ],
-        .z = coreData->R[2][0] * coreData->S[KC_STATE_PX] + coreData->R[2][1] * coreData->S[KC_STATE_PY] + coreData->R[2][2] * coreData->S[KC_STATE_PZ],
+        .x = coreData->R[0][0] * coreData->S[KC_STATE_VX] + coreData->R[0][1] * coreData->S[KC_STATE_VY] + coreData->R[0][2] * coreData->S[KC_STATE_VZ],
+        .y = coreData->R[1][0] * coreData->S[KC_STATE_VX] + coreData->R[1][1] * coreData->S[KC_STATE_VY] + coreData->R[1][2] * coreData->S[KC_STATE_VZ],
+        .z = coreData->R[2][0] * coreData->S[KC_STATE_VX] + coreData->R[2][1] * coreData->S[KC_STATE_VY] + coreData->R[2][2] * coreData->S[KC_STATE_VZ],
     };
 
     // Accelerometer measurements are in the body frame and need to be rotated to world frame.
@@ -610,7 +610,7 @@ bool kalmanCoreCheckBounds(kalmanCoreData_t* coreData) {
         if (fabsf(coreData->S[KC_STATE_X + i]) > maxPosition) {
             return false;
         }
-        if (fabsf(coreData->S[KC_STATE_PX + i]) > maxVelocity) {
+        if (fabsf(coreData->S[KC_STATE_VX + i]) > maxVelocity) {
             return false;
         }
     }

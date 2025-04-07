@@ -2,7 +2,7 @@
 #define __ESTIMATOR_ATTITUDE_H__
 
 #include "stabilizer_types.h"
-#include "kalman_core.h"
+// #include "kalman_core.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +22,6 @@ typedef struct {
 uint32_t estimatorKalmanInit();
 void estimatorKalmanUpdate(state_t *state);
 void estimatorKalmanEnqueue(estimatorPacket_t *packet);
-void estimatorKalmanGetCoreData(kalmanCoreData_t *data);
 void estimatorKalmanReset();
 
 #ifdef __cplusplus
