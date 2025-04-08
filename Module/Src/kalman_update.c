@@ -8,7 +8,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
-    const float suddenChangeThreshold = 0.03f;  // Threshold for detecting sudden changes
+    const float suddenChangeThreshold = 1.25f;  // Threshold for detecting sudden changes
     static float accumulatedDistance = 0;
 
     // Initialize last_tof if it's the first valid measurement
@@ -21,7 +21,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
 
     // Apply filtering only if there is a sudden change
     if (last_tof > 0) {
-        if (fabsf(tof->distance - last_tof) > suddenChangeThreshold)
+        if (fabsf(tof->distance - last_tof) / tof->dt > suddenChangeThreshold)
             accumulatedDistance += tof->distance - last_tof;
 
         last_tof = tof->distance;
