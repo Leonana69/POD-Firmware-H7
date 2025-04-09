@@ -17,11 +17,11 @@ static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
 void controllerPidAttitudeInit(void) {
     pidInit(&pid_roll,  10.0f, 4.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
     pidInit(&pid_pitch, 10.0f, 4.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
-    pidInit(&pid_yaw,   4.0f, 2.0f, 0.4f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
+    pidInit(&pid_yaw,   15.0f, 4.0f, 0.4f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 90.0f);
 
     pidInit(&pid_roll_rate, 40.0f, 30.0f, 1.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
     pidInit(&pid_pitch_rate, 40.0f, 30.0f, 1.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
-    pidInit(&pid_yaw_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 33.0f, 0.0f);
+    pidInit(&pid_yaw_rate, 100.0f, 60.0f, 1.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
 }
 
 void controllerPidAttitudeUpdateValue(attitude_t *estimation, attitude_t *target, palstance_t *palstance) {

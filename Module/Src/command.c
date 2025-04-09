@@ -43,7 +43,8 @@ static void getVelocitySetpoint(setpoint_t *sp, scalar_t vx, scalar_t vy, scalar
 
 static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scalar_t yaw, scalar_t thrust) {
     sp->thrust = clamp_f(thrust, 0, motorPowerGetMaxThrust());
-    sp->attitude = (attitude_t) { .roll = roll, .pitch = pitch, .yaw = yaw };
+    sp->attitude = (attitude_t) { .roll = roll, .pitch = pitch, .yaw = 0 };
+    sp->palstance.yaw = yaw;
     sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
     sp->velocity_body = false;
     sp->mode.x = STABILIZE_DISABLE;
@@ -51,17 +52,21 @@ static void getRpytSetpoint(setpoint_t *sp, scalar_t roll, scalar_t pitch, scala
     sp->mode.z = STABILIZE_DISABLE;
     sp->mode.roll = STABILIZE_ABSOLUTE;
     sp->mode.pitch = STABILIZE_ABSOLUTE;
-    sp->mode.yaw = STABILIZE_ABSOLUTE;
+    sp->mode.yaw = STABILIZE_VELOCITY;
 };
 
 static state_t state;
 static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, scalar_t yaw) {
-    if (x == 0 && y == 0 && z == 0) {
-        estimatorKalmanUpdate(&state);
-    }
+    estimatorKalmanUpdate(&state);
     sp->thrust = 0;
     sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
-    sp->position = (position_t) { .x = state.position.x + x, .y = state.position.y + y, .z = state.position.z + z };
+
+    // position is body frame
+    float cos_yaw = cosf(radians(state.attitude.yaw));
+    float sin_yaw = sinf(radians(state.attitude.yaw));
+    float new_x = state.position.x + x * cos_yaw - y * sin_yaw;
+    float new_y = state.position.y + x * sin_yaw + y * cos_yaw;
+    sp->position = (position_t) { .x = new_x, .y = new_y, .z = state.position.z + z };
     sp->velocity_body = false;
     sp->mode.x = STABILIZE_ABSOLUTE;
     sp->mode.y = STABILIZE_ABSOLUTE;

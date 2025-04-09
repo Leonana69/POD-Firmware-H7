@@ -54,16 +54,16 @@ void stabilizerTask(void *argument) {
         supervisorUpdate(&imu);
 
         estimatorKalmanUpdate(&state);
-        compressState(&stateCom, &state);
-
+        
         if (tick % 20 == 0) {
+            compressState(&stateCom, &state);
             linkSendData(PODTP_TYPE_LOG, PORT_LOG_STATE, (uint8_t *) &stateCom, sizeof(state_com_t));
         }
 
-        if (tick % 250 == 0) {
-            DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n", state.position.x, state.position.y, state.position.z, 
-                state.velocity.x, state.velocity.y, state.velocity.z);
-        }
+        // if (tick % 250 == 0) {
+        //     DEBUG_REMOTE("(%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n", state.position.x, state.position.y, state.position.z, 
+        //         state.attitude.x, state.attitude.y, state.attitude.z);
+        // }
         // if (tick % 250 == 0) {
         //     DEBUG_REMOTE("%.2f,\t%.2f,\t%.2f;\t%.2f,\t%.2f,\t%.2f;\t%.1f,\t%.1f,\t%.1f\n", state.position.x, state.position.y, state.position.z, 
         //     state.velocity.x, state.velocity.y, state.velocity.z,
