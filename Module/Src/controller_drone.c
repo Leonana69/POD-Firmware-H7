@@ -19,8 +19,8 @@ void controllerPidAttitudeInit(void) {
     pidInit(&pid_pitch, 10.0f, 4.0f, 0.0f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
     pidInit(&pid_yaw,   4.0f, 2.0f, 0.4f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 360.0f, 0.0f);
 
-    pidInit(&pid_roll_rate, 40.0f, 80.0f, 2.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
-    pidInit(&pid_pitch_rate, 40.0f, 80.0f, 2.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
+    pidInit(&pid_roll_rate, 60.0f, 30.0f, 3.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
+    pidInit(&pid_pitch_rate, 60.0f, 30.0f, 3.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 50.0f, 0.0f);
     pidInit(&pid_yaw_rate, 40.0f, 20.0f, 0.0f, ATTITUDE_RATE, ATTI_INNER_LOOP_CUTOFF_FREQ, 33.0f, 0.0f);
 }
 
@@ -96,9 +96,9 @@ void controllerPidPositionInit(void) {
     pidInit(&pid_y, 2.0f, 2.0f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 1.2f);
     pidInit(&pid_z, 5.0f, 0.6f, 1.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 1.2f);
 
-    pidInit(&pid_x_rate, 15.0f, 8.0f, 0.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 0);
-    pidInit(&pid_y_rate, 15.0f, 8.0f, 0.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 0);
-    pidInit(&pid_z_rate, 50.0f, 2.0f, 0.3f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 20.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
+    pidInit(&pid_x_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 0);
+    pidInit(&pid_y_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 0);
+    pidInit(&pid_z_rate, 40.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 20.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
 }
 
 void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_t *attitude_target, scalar_t *thrust) {

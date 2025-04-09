@@ -79,6 +79,13 @@ void paa3905_enhanced_mode(paa3905_dev_t *dev) {
     }
 }
 
+void paa3905_disable_motion_cutoff(paa3905_dev_t *dev) {
+    register_write(dev, 0x7F, 0x05);
+    register_write(dev, 0x6A, 0xFF);
+    register_write(dev, 0x6B, 0x3F);
+    register_write(dev, 0x7F, 0x00);
+}
+
 void paa3905_set_auto_switch(paa3905_dev_t *dev) {
     register_write(dev, 0x7F, 0x08);
     register_write(dev, 0x68, 0x01);

@@ -84,6 +84,7 @@ typedef struct {
 } paa3905_motion_t;
 
 int8_t paa3905_init(paa3905_dev_t *dev);
+void paa3905_disable_motion_cutoff(paa3905_dev_t *dev);
 void paa3905_motion_burst(paa3905_dev_t *dev, paa3905_motion_t *motion);
 
 #ifdef __cplusplus
