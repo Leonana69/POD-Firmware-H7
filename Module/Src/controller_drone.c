@@ -92,8 +92,8 @@ static pid_t pid_x, pid_y, pid_z;
 static pid_t pid_x_rate, pid_y_rate, pid_z_rate;
 
 void controllerPidPositionInit(void) {
-    pidInit(&pid_x, 2.0f, 2.0f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 1.2f);
-    pidInit(&pid_y, 2.0f, 2.0f, 0.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 1.2f);
+    pidInit(&pid_x, 4.0f, 2.0f, 0.5f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.8f);
+    pidInit(&pid_y, 4.0f, 2.0f, 0.5f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.8f);
     pidInit(&pid_z, 5.0f, 0.6f, 1.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 2.0f, 1.2f);
 
     pidInit(&pid_x_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 8.0f, 0);

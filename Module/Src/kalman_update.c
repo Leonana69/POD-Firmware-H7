@@ -64,6 +64,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     // Convert gyro to rad/s (correct for sensor axis orientation if needed)
     float omegax_b = radians(gyro->x);
     float omegay_b = radians(gyro->y);
+    float omegaz_b = radians(gyro->z);
 
     float co = (flow->dt * 12.198) / (0.0254 * z_body);
     // X displacement in body frame prediction and update
@@ -80,7 +81,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     hx[KC_STATE_VX] = co;
     kalmanCoreScalarUpdate(coreData, &Hx, measuredNX - predictedNX, flow->stdDevX);
 
-    float predictedNY = co * (vy_body + omegax_b * z_body);
+    float predictedNY = co * (vy_body + omegax_b * z_body - omegaz_b * 0.038);
     float measuredNY = flow->dpixely;
     memset(hy, 0, sizeof(hy));
     hy[KC_STATE_Z] = co * vy_body / (-z_body) / coreData->R[2][2];
