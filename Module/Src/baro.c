@@ -117,9 +117,5 @@ void baroTask(void *argument) {
         packet.baro.pressure = filterdBaro;
         packet.baro.temperature = bmp388_data.temperature;
         estimatorKalmanEnqueue(&packet);
-
-        // if (count++ % 5 == 0) {
-        //     DEBUG_REMOTE("P:%.1f %.1f %.2f\n", groundPressure, filterdBaro, pressureToAltitude(filterdBaro));
-        // }
     }
 }

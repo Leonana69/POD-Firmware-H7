@@ -86,9 +86,9 @@ void paa3905_disable_motion_cutoff(paa3905_dev_t *dev) {
     register_write(dev, 0x7F, 0x00);
 }
 
-void paa3905_set_auto_switch(paa3905_dev_t *dev) {
+void paa3905_set_auto_switch(paa3905_dev_t *dev, bool mode2) {
     register_write(dev, 0x7F, 0x08);
-    register_write(dev, 0x68, 0x01);
+    register_write(dev, 0x68, mode2 ? 0x02 : 0x01);
     register_write(dev, 0x7F, 0x00);
 }
 
@@ -115,7 +115,7 @@ int8_t paa3905_init(paa3905_dev_t *dev) {
         paa3905_standard_mode(dev);
 
     dev->delay(2);
-    paa3905_set_auto_switch(dev);
+    paa3905_set_auto_switch(dev, false);
     return PAA3905_OK;
 }
 

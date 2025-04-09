@@ -68,6 +68,8 @@ void flowTask(void *argument) {
         uint32_t currentTime = getTimeUs();
         packet.flow.dt = getDurationUs(lastTime, currentTime) / 1e6f;
         lastTime = currentTime;
+
+        // DEBUG_REMOTE("Flow: %d, %d, %d\n", motion.delta_x, motion.delta_y, motion.challenging_condition);
         estimatorKalmanEnqueue(&packet);
     }
 }

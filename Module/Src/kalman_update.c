@@ -4,6 +4,7 @@
 #include "debug.h"
 
 static float last_tof = 0;
+static bool last_tof_valid = false;
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
@@ -11,7 +12,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     const float suddenChangeThreshold = 1.25f;  // Threshold for detecting sudden changes
     static float accumulatedDistance = 0;
 
-    // Initialize last_tof if it's the first valid measurement
+    // Initialize last_tof after lift-off
     if (last_tof == 0 && tof->distance > 0.5) {
         last_tof = tof->distance;
     }
@@ -19,11 +20,13 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
     float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2]
         - 0.033 * tanf(asinf(coreData->R[2][0])); // The ToF installation is not at the center of the drone
 
-    // Apply filtering only if there is a sudden change
     if (last_tof > 0) {
-        if (fabsf(tof->distance - last_tof) / tof->dt > suddenChangeThreshold)
+        if (fabsf(tof->distance - last_tof) / tof->dt > suddenChangeThreshold) {
             accumulatedDistance += tof->distance - last_tof;
-
+            last_tof_valid = false;
+        } else {
+            last_tof_valid = true;
+        }
         last_tof = tof->distance;
     }
 
@@ -40,6 +43,11 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     DATA_REGION static float hy[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 Hx = { 1, KC_STATE_DIM, hx };
     static arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
+
+    // discard the flow measurement if the tof changes too fast
+    if (last_tof > 0 && !last_tof_valid) {
+        return;
+    }
 
     /* For PAA3905, CPI (count per inch) = 12.198 / height * (resolution + 1) / 43
      * Default resolution s 0x2A, which is 42 pixels, so CPI = 12.198 / height
@@ -112,12 +120,13 @@ void kalmanCoreUpdateWithMotor(kalmanCoreData_t* coreData, const motor_t *motor)
 }
 
 void kalmanCoreUpdateWithBaro(kalmanCoreData_t* coreData, const baro_t *baro) {
-    static float measNoiseBaro = 0.1f; // meters
+    static float measNoiseBaro = 0.2f; // meters
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
 
     h[KC_STATE_Z] = 1;
 
     float meas = pressureToAltitude(baro->pressure);
+    return;
     kalmanCoreScalarUpdate(coreData, &H, meas - coreData->S[KC_STATE_Z], measNoiseBaro);
 }
