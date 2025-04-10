@@ -97,7 +97,7 @@ def simulate_pid_z():
     plt.show()
 
 def simulate_pid_xy():
-    outer_pid = PID(kp=10.0, ki=2.0, kd=0.5, rate=100, cutoff_freq=20, i_limit=1, o_limit=0.8)
+    outer_pid = PID(kp=10, ki=1, kd=1.8, rate=100, cutoff_freq=20, i_limit=1, o_limit=1.2)
     inner_pid = PID(kp=20.0, ki=10.0, kd=1.0, rate=100, cutoff_freq=40, i_limit=8, o_limit=0)
     
     # outer_pid = PID(kp=10.0, ki=4.0, kd=0.0, rate=500, cutoff_freq=40, i_limit=20, o_limit=0)

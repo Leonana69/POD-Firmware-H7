@@ -59,21 +59,33 @@ static state_t state;
 static void getXyzySetpoint(setpoint_t *sp, scalar_t x, scalar_t y, scalar_t z, scalar_t yaw) {
     estimatorKalmanUpdate(&state);
     sp->thrust = 0;
-    sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
 
-    // position is body frame
-    float cos_yaw = cosf(radians(state.attitude.yaw));
-    float sin_yaw = sinf(radians(state.attitude.yaw));
-    float new_x = state.position.x + x * cos_yaw - y * sin_yaw;
-    float new_y = state.position.y + x * sin_yaw + y * cos_yaw;
-    sp->position = (position_t) { .x = new_x, .y = new_y, .z = state.position.z + z };
-    sp->velocity_body = false;
-    sp->mode.x = STABILIZE_ABSOLUTE;
-    sp->mode.y = STABILIZE_ABSOLUTE;
-    sp->mode.z = STABILIZE_ABSOLUTE;
+    if (yaw != 0) {
+        sp->attitude = (attitude_t) { .roll = 0, .pitch = 0, .yaw = yaw + state.attitude.yaw };
+        sp->velocity = (velocity_t) { .x = 0, .y = 0, .z = 0 };
+        sp->position.z = state.position.z;
+        sp->velocity_body = true;
+        sp->mode.x = STABILIZE_VELOCITY;
+        sp->mode.y = STABILIZE_VELOCITY;
+        sp->mode.z = STABILIZE_ABSOLUTE;
+        sp->mode.yaw = STABILIZE_ABSOLUTE;
+    } else {
+        sp->palstance = (palstance_t) { .roll = 0, .pitch = 0, .yaw = 0 };
+        // position is body frame
+        float cos_yaw = cosf(radians(state.attitude.yaw));
+        float sin_yaw = sinf(radians(state.attitude.yaw));
+        float new_x = state.position.x + x * cos_yaw - y * sin_yaw;
+        float new_y = state.position.y + x * sin_yaw + y * cos_yaw;
+        sp->position = (position_t) { .x = new_x, .y = new_y, .z = state.position.z + z };
+        sp->velocity_body = false;
+        sp->mode.x = STABILIZE_ABSOLUTE;
+        sp->mode.y = STABILIZE_ABSOLUTE;
+        sp->mode.z = STABILIZE_ABSOLUTE;
+        sp->mode.yaw = STABILIZE_VELOCITY;
+    }
+
     sp->mode.roll = STABILIZE_DISABLE;
     sp->mode.pitch = STABILIZE_DISABLE;
-    sp->mode.yaw = STABILIZE_ABSOLUTE;
 };
 
 typedef struct {
