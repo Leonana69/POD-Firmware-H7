@@ -54,8 +54,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      * CPM (count per meter) = 12.198 / (height * 0.0254)
      */
     // Use last_tof if available, otherwise use the state estimate
-    float z_g = last_tof > 0 ? last_tof : (coreData->S[KC_STATE_Z] < 0.05f ? 0.05f : coreData->S[KC_STATE_Z]) / coreData->R[2][2];
-    float z_body = z_g - 0.038 * tanf(asinf(coreData->R[2][0])); // The flow sensor is not at the center of the drone
+    float z_body = last_tof > 0 ? last_tof : (coreData->S[KC_STATE_Z] < 0.05f ? 0.05f : coreData->S[KC_STATE_Z]) / coreData->R[2][2]  - 0.038 * tanf(asinf(coreData->R[2][0]));
 
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
     float vx_body = coreData->S[KC_STATE_VX];

@@ -152,9 +152,10 @@ void distanceTask(void *argument) {
     }
 }
 
-#define LONG_OBSTACLE_DIST 2000
-#define SHORT_OBSTACLE_DIST 500
-#define NOISE_LEVEL 500
+#define LONG_OBSTACLE_DIST 1000
+#define SHORT_OBSTACLE_DIST 450
+#define CRIT_OBSTACLE_DIST 300
+#define NOISE_LEVEL 200
 static bool canMove(int16_t *dist, int size) {
     for (int i = 0; i < size; i++) {
         if (dist[i] > 0 && dist[i] < SHORT_OBSTACLE_DIST) return false;
@@ -170,6 +171,7 @@ static bool canFreelyMove(int16_t *dist, int size) {
 }
 
 void distanceAdjustSpeed(float *vx, float *vy) {
+    int valid_count = 0;
     // only apply to moving forward command
     if (*vy != 0 || *vx <= 0) return;
 
@@ -180,7 +182,27 @@ void distanceAdjustSpeed(float *vx, float *vy) {
 
     // if central front is closely blocked, stop
     if (!canMove(&front[2], 4)) {
-        *vx = *vy = 0;
+        float front_sum = 0;
+        valid_count = 0;
+        for (int i = 0; i < 4; i++) {
+            if (front[i] > 0) {
+                valid_count++;
+                front_sum += front[i + 2];
+            }
+        }
+        front_sum /= valid_count;
+
+        if (front_sum < CRIT_OBSTACLE_DIST) {
+            *vx = -*vx * 0.5;  // Move backward
+            return;
+        }
+
+        if (front_sum >= CRIT_OBSTACLE_DIST && front_sum < SHORT_OBSTACLE_DIST) {
+            *vx = 0;  // Stop
+            return;
+        }
+
+        *vx = -*vx * 0.5;  // Move backward
         return;
     }
 
@@ -188,35 +210,31 @@ void distanceAdjustSpeed(float *vx, float *vy) {
     // TODO: test sensor
     float front_l_sum = 0, front_r_sum = 0;
     for (int i = 0; i < 4; i++) {
-        front_l_sum += front[i] > 0 ? front[i] : 5000;
-        front_r_sum += front[i + 4] > 0 ? front[i + 4] : 5000;
+        if (front[i] > 0) {
+            valid_count++;
+            front_l_sum += front[i];
+        }
     }
+    front_l_sum /= valid_count;
+    valid_count = 0;
+    for (int i = 0; i < 4; i++) {
+        if (front[4 + i] > 0) {
+            valid_count++;
+            front_r_sum += front[4 + i];
+        }
+    }
+    front_r_sum /= valid_count;
 
     // front left/right is clear for move
     if (front_l_sum < front_r_sum - NOISE_LEVEL) {
-        if (canMove(&right[3], 2)) {
+        if (canMove(&right[0], 5)) {
             *vy = -0.5 * (*vx);
         }
         return;
     } else if (front_r_sum < front_l_sum - NOISE_LEVEL) {
-        if (canMove(&left[3], 2)) {
+        if (canMove(&left[3], 5)) {
             *vy = 0.5 * (*vx);
         }
         return;
-    }
-
-    // no clear forward side, align to the center of left/right
-    float left_sum = 0, right_sum = 0;
-    for (int i = 0; i < 2; i++) {
-        left_sum += left[3 + i] > 0 ? left[3 + i] : 5000;
-        right_sum += right[3 + i] > 0 ? right[3 + i] : 5000;
-    }
-
-    if (left_sum < right_sum - NOISE_LEVEL) {
-        *vy = -1.5 * (*vx);
-    } else if (right_sum < left_sum - NOISE_LEVEL) {
-        *vy = 1.5 * (*vx);
-    } else {
-        *vy = 0;
     }
 }
