@@ -425,6 +425,14 @@ void kalmanCorePredict(kalmanCoreData_t* coreData, imu_t *imuData, float dt, boo
         coreData->S[KC_STATE_VZ] += dt * (accel->z + gyro->y * tmpSPX - gyro->x * tmpSPY - GRAVITY_EARTH * coreData->R[2][2]);
     }
 
+    // compensate for the displacement of IMU, (dx, dy, 0)
+    float imu_dx = -0.029f;
+    float imu_dy = 0.0007f;
+    float vx_rot = -gyro->z * imu_dy;
+    float vy_rot =  gyro->z * imu_dx;
+    coreData->S[KC_STATE_VX] -= vx_rot * dt;
+    coreData->S[KC_STATE_VY] -= vy_rot * dt;
+
     // attitude update (rotate by gyroscope), we do this in quaternions
     // this is the gyroscope angular velocity integrated over the sample period
     dpal2q(coreData, dt * gyro->x, dt * gyro->y, dt * gyro->z);

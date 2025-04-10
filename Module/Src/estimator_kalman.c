@@ -61,7 +61,6 @@ bool processDataQueue() {
                 update = true;
                 break;
             case TOF_TASK_INDEX:
-                // TODO: implement taking off and landing
                 kalmanCoreUpdateWithTof(&coreData, &packet.tof);
                 update = true;
                 break;
