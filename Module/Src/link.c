@@ -127,7 +127,7 @@ bool linkProcessPacket(PodtpPacket *packet) {
                     DEBUG_PRINT("** RESET ESTIMATOR **\n");
                     estimatorKalmanReset();
                 }
-            } else if (packet->port == PORT_CTRL_ABSTACLE_AVOIDANCE) {
+            } else if (packet->port == PORT_CTRL_OBSTACLE_AVOIDANCE) {
                 controllerDroneEnableObstacleAvoidance(packet->data[0] != 0);
                 DEBUG_PRINT("** OBSTACLE AVOIDANCE0 [%s] **\n", packet->data[0] != 0 ? "ON" : "OFF");
             }
