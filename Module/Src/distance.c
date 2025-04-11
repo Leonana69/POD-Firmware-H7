@@ -152,8 +152,8 @@ void distanceTask(void *argument) {
     }
 }
 
-#define LONG_OBSTACLE_DIST 1000
-#define SHORT_OBSTACLE_DIST 450
+#define LONG_OBSTACLE_DIST 1500
+#define SHORT_OBSTACLE_DIST 500
 #define CRIT_OBSTACLE_DIST 300
 #define NOISE_LEVEL 200
 static bool canMove(int16_t *dist, int size) {
@@ -170,7 +170,7 @@ static bool canFreelyMove(int16_t *dist, int size) {
     return true;
 }
 
-void distanceAdjustSpeed(float *vx, float *vy) {
+void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
     int valid_count = 0;
     // only apply to moving forward command
     if (*vy != 0 || *vx <= 0) return;
@@ -182,22 +182,30 @@ void distanceAdjustSpeed(float *vx, float *vy) {
 
     // if central front is closely blocked, stop
     if (!canMove(&front[2], 4)) {
-        float front_sum = 0;
+        float front_ave = 0;
         valid_count = 0;
         for (int i = 0; i < 4; i++) {
             if (front[i] > 0) {
                 valid_count++;
-                front_sum += front[i + 2];
+                front_ave += front[i + 2];
             }
         }
-        front_sum /= valid_count;
 
-        if (front_sum < CRIT_OBSTACLE_DIST) {
+        if (valid_count == 0) {
+            *vx = 0;  // Stop
+            return;
+        }
+
+        front_ave /= valid_count;
+
+        DEBUG_REMOTE("Obstacle in front: %.1f\n", front_ave);
+
+        if (front_ave < CRIT_OBSTACLE_DIST) {
             *vx = -*vx * 0.5;  // Move backward
             return;
         }
 
-        if (front_sum >= CRIT_OBSTACLE_DIST && front_sum < SHORT_OBSTACLE_DIST) {
+        if (front_ave >= CRIT_OBSTACLE_DIST && front_ave < SHORT_OBSTACLE_DIST && current_vx < 0.2) {
             *vx = 0;  // Stop
             return;
         }
@@ -215,7 +223,7 @@ void distanceAdjustSpeed(float *vx, float *vy) {
             front_l_sum += front[i];
         }
     }
-    front_l_sum /= valid_count;
+    front_l_sum /= valid_count + 1;
     valid_count = 0;
     for (int i = 0; i < 4; i++) {
         if (front[4 + i] > 0) {
@@ -223,7 +231,7 @@ void distanceAdjustSpeed(float *vx, float *vy) {
             front_r_sum += front[4 + i];
         }
     }
-    front_r_sum /= valid_count;
+    front_r_sum /= valid_count + 1;
 
     // front left/right is clear for move
     if (front_l_sum < front_r_sum - NOISE_LEVEL) {

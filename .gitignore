@@ -56,3 +56,4 @@ build/
 .vscode/settings.json
 .mxproject
 test
+app.log

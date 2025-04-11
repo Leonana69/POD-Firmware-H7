@@ -92,7 +92,7 @@ static pid_t pid_x_rate, pid_y_rate, pid_z_rate;
 void controllerPidPositionInit(void) {
     pidInit(&pid_x, 0.9f, 0.2f, 0.2f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 0.5f, 1.0f);
     pidInit(&pid_y, 0.9f, 0.2f, 0.2f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 0.5f, 1.0f);
-    pidInit(&pid_z, 5.0f, 0.6f, 1.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 1.2f);
+    pidInit(&pid_z, 5.0f, 0.6f, 1.0f, POSITION_RATE, POS_OUTTER_LOOP_CUTOFF_FREQ, 1.0f, 0.8f);
 
     pidInit(&pid_x_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 15.0f, 0);
     pidInit(&pid_y_rate, 20.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 15.0f, 0);
@@ -109,7 +109,8 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
         && setpoint->velocity_body) {
         float test_vx = setpoint->velocity.x;
         float test_vy = setpoint->velocity.y;
-        distanceAdjustSpeed(&test_vx, &test_vy);
+        float body_vx = state->velocity.x * cos_yaw - state->velocity.y * sin_yaw;
+        distanceAdjustSpeed(body_vx, &test_vx, &test_vy);
         setpoint->velocity.x = test_vx;
         setpoint->velocity.y = test_vy;
     }
