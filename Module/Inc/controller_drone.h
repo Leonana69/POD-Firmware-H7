@@ -11,6 +11,7 @@ void controllerDroneInit();
 void controllerDroneUpdate(
     setpoint_t *setpoint, imu_t *imu, state_t *state,
     uint32_t tick, control_t *control_out);
+void controllerDroneEnableObstacleAvoidance(bool enable);
 
 #ifdef __cplusplus
 }

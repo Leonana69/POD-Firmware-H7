@@ -6,13 +6,15 @@
 #include "distance.h"
 #include "debug.h"
 
-static pid_t pid_roll, pid_pitch, pid_yaw;
-static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
+static bool obstacleAvoidanceEnabled = true;
 
 #define ATTI_OUTTER_LOOP_CUTOFF_FREQ 40.0f
 #define ATTI_INNER_LOOP_CUTOFF_FREQ 100.0f
 #define POS_OUTTER_LOOP_CUTOFF_FREQ 10.0f
 #define POS_INNER_LOOP_CUTOFF_FREQ 30.0f
+
+static pid_t pid_roll, pid_pitch, pid_yaw;
+static pid_t pid_roll_rate, pid_pitch_rate, pid_yaw_rate;
 void controllerPidAttitudeInit(void) {
     pidInit(&pid_roll,  10.0f, 4.0f, 0.1f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
     pidInit(&pid_pitch, 10.0f, 4.0f, 0.1f, ATTITUDE_RATE, ATTI_OUTTER_LOOP_CUTOFF_FREQ, 20.0f, 0.0f);
@@ -99,12 +101,17 @@ void controllerPidPositionInit(void) {
     pidInit(&pid_z_rate, 40.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 20.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
 }
 
+void controllerDroneEnableObstacleAvoidance(bool enable) {
+    obstacleAvoidanceEnabled = enable;
+}
+
 void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_t *attitude_target, scalar_t *thrust) {
     float cos_yaw = cosf(radians(state->attitude.yaw));
     float sin_yaw = sinf(radians(state->attitude.yaw));
 
     // apply obstacle avoidance for velocity moving
-    if (setpoint->mode.x == STABILIZE_VELOCITY
+    if (obstacleAvoidanceEnabled
+        && setpoint->mode.x == STABILIZE_VELOCITY
         && setpoint->mode.y == STABILIZE_VELOCITY
         && setpoint->velocity_body) {
         float test_vx = setpoint->velocity.x;

@@ -8,6 +8,7 @@
 #include "command.h"
 #include "supervisor.h"
 #include "estimator_kalman.h"
+#include "controller_drone.h"
 
 STATIC_QUEUE_DEF(linkTxPacketQueue, 15, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
@@ -126,9 +127,11 @@ bool linkProcessPacket(PodtpPacket *packet) {
                     DEBUG_PRINT("** RESET ESTIMATOR **\n");
                     estimatorKalmanReset();
                 }
+            } else if (packet->port == PORT_CTRL_ABSTACLE_AVOIDANCE) {
+                controllerDroneEnableObstacleAvoidance(packet->data[0] != 0);
+                DEBUG_PRINT("** OBSTACLE AVOIDANCE0 [%s] **\n", packet->data[0] != 0 ? "ON" : "OFF");
             }
             break;
-
         default:
             ret = PODTP_ERROR_UNKNOWN_COMMAND;
             break;
