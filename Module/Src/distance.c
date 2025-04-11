@@ -185,7 +185,7 @@ void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
         float front_ave = 0;
         valid_count = 0;
         for (int i = 0; i < 4; i++) {
-            if (front[i] > 0) {
+            if (front[i + 2] > 0) {
                 valid_count++;
                 front_ave += front[i + 2];
             }
@@ -198,7 +198,7 @@ void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
 
         front_ave /= valid_count;
 
-        DEBUG_REMOTE("Obstacle in front: %.1f\n", front_ave);
+        // DEBUG_REMOTE("Obstacle in front: %.1f\n", front_ave);
 
         if (front_ave < CRIT_OBSTACLE_DIST) {
             *vx = -*vx * 0.5;  // Move backward

@@ -111,13 +111,8 @@ bool linkProcessPacket(PodtpPacket *packet) {
 
         case PODTP_TYPE_CTRL:
             if (packet->port == PORT_CTRL_LOCK) {
-                if (packet->data[0] == 0) {
-                    DEBUG_PRINT("** UNLOCK **\n");
-                    supervisorLockDrone(false);
-                } else if (packet->data[0] == 1) {
-                    DEBUG_PRINT("** FORCE LOCK **\n");
-                    supervisorLockDrone(true);
-                }
+                supervisorLockDrone(packet->data[0] != 0);
+                DEBUG_PRINT("** DRONE [%s] **\n", packet->data[0] != 0 ? "LOCKED" : "UNLOCKED");
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
                 // Do nothing, just to keep the drone flying
             } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {

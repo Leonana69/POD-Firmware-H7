@@ -5,7 +5,9 @@
 #include "arm_math.h"
 #include "distance.h"
 #include "debug.h"
+#include "freeRTOS_helper.h"
 
+STATIC_MUTEX_DEF(obstacleAvoidanceMutex);
 static bool obstacleAvoidanceEnabled = true;
 
 #define ATTI_OUTTER_LOOP_CUTOFF_FREQ 40.0f
@@ -102,7 +104,9 @@ void controllerPidPositionInit(void) {
 }
 
 void controllerDroneEnableObstacleAvoidance(bool enable) {
+    STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
     obstacleAvoidanceEnabled = enable;
+    STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
 }
 
 void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_t *attitude_target, scalar_t *thrust) {
@@ -110,7 +114,10 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     float sin_yaw = sinf(radians(state->attitude.yaw));
 
     // apply obstacle avoidance for velocity moving
-    if (obstacleAvoidanceEnabled
+    STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
+    bool adjustSpeed = obstacleAvoidanceEnabled;
+    STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
+    if (adjustSpeed
         && setpoint->mode.x == STABILIZE_VELOCITY
         && setpoint->mode.y == STABILIZE_VELOCITY
         && setpoint->velocity_body) {
@@ -167,6 +174,7 @@ void controllerPidPositionReset() {
 void controllerDroneInit() {
     controllerPidAttitudeInit();
     controllerPidPositionInit();
+    STATIC_MUTEX_INIT(obstacleAvoidanceMutex);
 }
 
 void controllerDroneUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint32_t tick, control_t *control_out) {
