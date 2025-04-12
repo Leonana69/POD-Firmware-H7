@@ -59,7 +59,10 @@ void tofTask(void *argument) {
 		int16_t range_mm = vl53l1RangingData.RangeMilliMeter;
 		VL53L1_ClearInterruptAndStartMeasurement(&vl53l1Dev);
 
-		if (range_mm < RANGE_MAX && range_mm > RANGE_MIN) {
+		if (range_mm < RANGE_MAX) {
+            if (range_mm < RANGE_MIN) {
+                range_mm = RANGE_MIN;
+            }
 			packet.tof.distance = range_mm * 0.001f;
 			packet.tof.stdDev = expStdA * (1.0f  + expf(expCoeff * (range_mm * 0.001f - expPointA)));
             uint32_t currentTime = getTimeUs();

@@ -16,6 +16,8 @@
 
 DATA_REGION static kalmanCoreData_t coreData;
 DATA_REGION static state_t stateData;
+static bool resetKalman = false;
+static float tof_starting_height = 0.0f;
 
 STATIC_MUTEX_DEF(estimatorDataMutex);
 STATIC_QUEUE_DEF(estimatorDataQueue, 30, estimatorPacket_t);
@@ -61,7 +63,7 @@ bool processDataQueue() {
                 update = true;
                 break;
             case TOF_TASK_INDEX:
-                kalmanCoreUpdateWithTof(&coreData, &packet.tof);
+                kalmanCoreUpdateWithTof(&coreData, &packet.tof, motorPowerIsFlying());
                 update = true;
                 break;
             case BARO_TASK_INDEX:
@@ -102,6 +104,13 @@ void estimatorKalmanTask(void *argument) {
     while (1) {
         TASK_TIMER_WAIT(ESTIMATOR);
 
+        if (resetKalman) {
+            resetKalman = false;
+            kalmanCoreInit(&coreData);
+            coreData.accumulated_tof = -tof_starting_height;
+            DEBUG_REMOTE("** Kalman Core [RESET] (%.2f) **\n", -tof_starting_height);
+        }
+
         update = processDataQueue();
 
         uint32_t currentTime = getTimeUs();
@@ -124,6 +133,7 @@ void estimatorKalmanTask(void *argument) {
     }
 }
 
-void estimatorKalmanReset() {
-    kalmanCoreInit(&coreData);
+void estimatorKalmanReset(float starting_height) {
+    resetKalman = true;
+    tof_starting_height = starting_height;
 }

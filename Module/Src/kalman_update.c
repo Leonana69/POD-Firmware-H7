@@ -2,35 +2,35 @@
 #include "utils.h"
 #include "baro.h"
 #include "debug.h"
-
-static float last_tof = 0;
-static bool last_tof_valid = false;
-void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof) {
+static int count = 0;
+static bool last_tof_valid = true;
+void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool isFlying) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
     static arm_matrix_instance_f32 H = { 1, KC_STATE_DIM, h };
     
-    const float suddenChangeThreshold = 1.25f;  // Threshold for detecting sudden changes
-    static float accumulatedDistance = 0;
-
-    // Initialize last_tof after lift-off
-    if (last_tof == 0 && tof->distance > 0.5) {
-        last_tof = tof->distance;
-    }
-   
     float predictedDistance = coreData->S[KC_STATE_Z] / coreData->R[2][2]
         - 0.033 * tanf(asinf(coreData->R[2][0])); // The ToF installation is not at the center of the drone
 
-    if (last_tof > 0) {
-        if (fabsf(tof->distance - last_tof) / tof->dt > suddenChangeThreshold) {
-            accumulatedDistance += tof->distance - last_tof;
-            last_tof_valid = false;
-        } else {
-            last_tof_valid = true;
+    if (isFlying) {
+        // when vz is not big but distance is changing fast, we assume that the distance change is terrain
+        // change, not quadcopter movement
+        const float vz_threshold = 0.80f;
+        float vz_abs = fabsf(coreData->S[KC_STATE_VZ] * coreData->R[2][2]);
+        if (vz_abs < 0.20f) {
+            if (fabsf(tof->distance - coreData->last_tof) > vz_threshold * tof->dt) {
+                coreData->accumulated_tof += tof->distance - coreData->last_tof;
+                last_tof_valid = false;
+            } else {
+                last_tof_valid = true;
+            }
         }
-        last_tof = tof->distance;
+        coreData->last_tof = tof->distance;
+    } else {
+        coreData->last_tof = 0;
+        last_tof_valid = true;
     }
 
-    float measurement = tof->distance - accumulatedDistance;
+    float measurement = tof->distance - coreData->accumulated_tof;
     // Measurement model: h = z / cos(alpha)
     h[KC_STATE_Z] = 1.0 / coreData->R[2][2];
 
@@ -45,7 +45,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
     static arm_matrix_instance_f32 Hy = { 1, KC_STATE_DIM, hy };
 
     // discard the flow measurement if the tof changes too fast
-    if (last_tof > 0 && !last_tof_valid) {
+    if (coreData->last_tof > 0 && !last_tof_valid) {
         return;
     }
 
@@ -54,7 +54,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
      * CPM (count per meter) = 12.198 / (height * 0.0254)
      */
     // Use last_tof if available, otherwise use the state estimate
-    float z_body = last_tof > 0 ? last_tof : (coreData->S[KC_STATE_Z] < 0.05f ? 0.05f : coreData->S[KC_STATE_Z]) / coreData->R[2][2]  - 0.038 * tanf(asinf(coreData->R[2][0]));
+    float z_body = coreData->last_tof > 0 ? coreData->last_tof : (coreData->S[KC_STATE_Z] < 0.05f ? 0.05f : coreData->S[KC_STATE_Z]) / coreData->R[2][2]  - 0.038 * tanf(asinf(coreData->R[2][0]));
 
     // Get body-frame velocities directly from state (PX/PY are body-frame velocities)
     float vx_body = coreData->S[KC_STATE_VX];

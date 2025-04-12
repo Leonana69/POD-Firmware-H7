@@ -98,8 +98,8 @@ typedef struct {
     __attribute__((aligned(4))) float P[KC_STATE_DIM][KC_STATE_DIM];
     arm_matrix_instance_f32 Pm;
 
-    // Indicates that the internal state is corrupt and should be reset
-    bool reset;
+    float last_tof;
+    float accumulated_tof;
 } kalmanCoreData_t;
 
 void kalmanCoreInit(kalmanCoreData_t* coreData);

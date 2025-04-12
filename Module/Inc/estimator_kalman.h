@@ -22,7 +22,7 @@ typedef struct {
 uint32_t estimatorKalmanInit();
 void estimatorKalmanUpdate(state_t *state);
 void estimatorKalmanEnqueue(estimatorPacket_t *packet);
-void estimatorKalmanReset();
+void estimatorKalmanReset(float starting_height);
 
 #ifdef __cplusplus
 }

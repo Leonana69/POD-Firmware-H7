@@ -9,6 +9,7 @@
 #include "supervisor.h"
 #include "estimator_kalman.h"
 #include "controller_drone.h"
+#include "motor_power.h"
 
 STATIC_QUEUE_DEF(linkTxPacketQueue, 15, PodtpPacket);
 STATIC_QUEUE_DEF(linkRxPacketQueue, 10, PodtpPacket);
@@ -116,11 +117,12 @@ bool linkProcessPacket(PodtpPacket *packet) {
             } else if (packet->port == PORT_CTRL_KEEP_ALIVE) {
                 // Do nothing, just to keep the drone flying
             } else if (packet->port == PORT_CTRL_RESET_ESTIMATOR) {
-                if (commandGetState() != COMMAND_STATE_LANDED) {
+                if (motorPowerIsFlying()) {
                     ret = PODTP_ERROR_LOCKED;
                 } else {
                     DEBUG_PRINT("** RESET ESTIMATOR **\n");
-                    estimatorKalmanReset();
+                    float starting_height = packet->data[0] / 100.0f;
+                    estimatorKalmanReset(starting_height);
                 }
             } else if (packet->port == PORT_CTRL_OBSTACLE_AVOIDANCE) {
                 controllerDroneEnableObstacleAvoidance(packet->data[0] != 0);

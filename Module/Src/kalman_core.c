@@ -162,6 +162,9 @@ void kalmanCoreInit(kalmanCoreData_t* coreData) {
     coreData->Pm.numRows = KC_STATE_DIM;
     coreData->Pm.numCols = KC_STATE_DIM;
     coreData->Pm.pData = (float *)coreData->P;
+
+    coreData->last_tof = 0;
+    coreData->accumulated_tof = 0;
 }
 
 void kalmanCoreScalarUpdate(kalmanCoreData_t* coreData, arm_matrix_instance_f32 *Hm, float error, float stdMeasNoise) {

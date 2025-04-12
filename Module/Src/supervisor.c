@@ -6,7 +6,7 @@
 #include "command.h"
 
 #define COMMAND_TIMEOUT     1500
-#define Z_ACCEL_THRESHOLD   -0.4f
+#define Z_ACCEL_THRESHOLD   0.3f
 #define Z_ACCEL_COUNT       100
 
 STATIC_MUTEX_DEF(supervisorMutex);
