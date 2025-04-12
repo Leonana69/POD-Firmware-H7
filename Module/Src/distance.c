@@ -171,7 +171,6 @@ static bool canFreelyMove(int16_t *dist, int size) {
 }
 
 void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
-    int valid_count = 0;
     // only apply to moving forward command
     if (*vy != 0 || *vx <= 0) return;
 
@@ -181,9 +180,9 @@ void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
     }
 
     // if central front is closely blocked, stop
-    if (!canMove(&front[2], 4)) {
+    if (!canMove(&front[0], 8)) {
+        int valid_count = 0;
         float front_ave = 0;
-        valid_count = 0;
         for (int i = 0; i < 4; i++) {
             if (front[i + 2] > 0) {
                 valid_count++;
@@ -218,20 +217,13 @@ void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
     // TODO: test sensor
     float front_l_sum = 0, front_r_sum = 0;
     for (int i = 0; i < 4; i++) {
-        if (front[i] > 0) {
-            valid_count++;
-            front_l_sum += front[i];
-        }
+        front_l_sum += front[i] > 0 ? front[i] : 3000;
     }
-    front_l_sum /= valid_count + 1;
-    valid_count = 0;
+    front_l_sum /= 4;
     for (int i = 0; i < 4; i++) {
-        if (front[4 + i] > 0) {
-            valid_count++;
-            front_r_sum += front[4 + i];
-        }
+        front_r_sum += front[i + 4] > 0 ? front[i + 4] : 3000;
     }
-    front_r_sum /= valid_count + 1;
+    front_r_sum /= 4;
 
     // front left/right is clear for move
     if (front_l_sum < front_r_sum - NOISE_LEVEL) {

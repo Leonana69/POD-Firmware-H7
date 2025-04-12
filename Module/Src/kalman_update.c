@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "baro.h"
 #include "debug.h"
-static int count = 0;
+
 static bool last_tof_valid = true;
 void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool isFlying) {
     DATA_REGION static float h[KC_STATE_DIM] = { 0 };
