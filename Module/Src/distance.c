@@ -156,6 +156,9 @@ void distanceTask(void *argument) {
 #define SHORT_OBSTACLE_DIST 500
 #define CRIT_OBSTACLE_DIST 300
 #define NOISE_LEVEL 200
+
+#define SPEED_NONE_ZERO 0.05f
+
 static bool canMove(int16_t *dist, int size) {
     for (int i = 0; i < size; i++) {
         if (dist[i] > 0 && dist[i] < SHORT_OBSTACLE_DIST) return false;
@@ -170,12 +173,63 @@ static bool canFreelyMove(int16_t *dist, int size) {
     return true;
 }
 
-void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
-    // only apply to moving forward command
-    if (*vy != 0 || *vx <= 0) return;
+static void distanceAdjustY(float body_vy, float *target_vy) {
+    int16_t *target_direction_dist;
+    if (*target_vy < -SPEED_NONE_ZERO) {
+        target_direction_dist = right;
+    } else if (*target_vy > SPEED_NONE_ZERO) {
+        target_direction_dist = left;
+    } else {
+        return;
+    }
+
+    // left/right is clear for move
+    if (canFreelyMove(&target_direction_dist[2], 4)) {
+        return;
+    }
+
+    // left/right is closely blocked, stop
+    if (!canMove(&target_direction_dist[0], 8)) {
+        int valid_count = 0;
+        float target_ave = 0;
+        for (int i = 2; i < 6; i++) {
+            if (target_direction_dist[i] > 0) {
+                valid_count++;
+                target_ave += target_direction_dist[i];
+            }
+        }
+
+        if (valid_count > 0) {
+            target_ave /= valid_count;
+
+            if (target_ave < CRIT_OBSTACLE_DIST) {
+                *target_vy = -*target_vy * 0.5;  // Move backward
+            } else if (target_ave < SHORT_OBSTACLE_DIST && fabsf(body_vy) < 0.2) {
+                *target_vy = 0;  // Stop
+            } else {
+                *target_vy = -*target_vy * 0.5;  // Move backward
+            }
+        } else {
+            *target_vy = 0;  // Stop if no valid readings
+        }
+        return;
+    }
+}
+
+void distanceAdjustSpeed(state_t *state, float *vx, float *vy, controller_oa_t mode) {
+    float cos_yaw = cosf(radians(state->attitude.yaw));
+    float sin_yaw = sinf(radians(state->attitude.yaw));
+    float body_vx = state->velocity.x * cos_yaw + state->velocity.y * sin_yaw;
+    float body_vy = -state->velocity.x * sin_yaw + state->velocity.y * cos_yaw;
+    float target_vx = *vx * cos_yaw + *vy * sin_yaw;
+    float target_vy = -*vx * sin_yaw + *vy * cos_yaw;
+
+    distanceAdjustY(body_vy, &target_vy);
 
     // if central front is clear, just go
-    if (canFreelyMove(&front[2], 4)) {
+    if (target_vx < SPEED_NONE_ZERO || canFreelyMove(&front[2], 4)) {
+        *vx = target_vx * cos_yaw - target_vy * sin_yaw;
+        *vy = target_vx * sin_yaw + target_vy * cos_yaw;
         return;
     }
 
@@ -183,58 +237,55 @@ void distanceAdjustSpeed(float current_vx, float *vx, float *vy) {
     if (!canMove(&front[0], 8)) {
         int valid_count = 0;
         float front_ave = 0;
-        for (int i = 0; i < 4; i++) {
-            if (front[i + 2] > 0) {
+        for (int i = 2; i < 6; i++) {
+            if (front[i] > 0) {
                 valid_count++;
-                front_ave += front[i + 2];
+                front_ave += front[i];
             }
         }
 
         if (valid_count == 0) {
-            *vx = 0;  // Stop
-            return;
+            target_vx = 0;  // Stop
+        } else {
+            front_ave /= valid_count;
+
+            // DEBUG_REMOTE("Obstacle in front: %.1f\n", front_ave);
+
+            if (front_ave < CRIT_OBSTACLE_DIST) {
+                target_vx = -target_vx * 0.5;  // Move backward
+            } else if (front_ave < SHORT_OBSTACLE_DIST && body_vx < 0.2) {
+                target_vx = 0;  // Stop
+            } else {
+                target_vx = -target_vx * 0.5;  // Move backward
+            }
         }
-
-        front_ave /= valid_count;
-
-        // DEBUG_REMOTE("Obstacle in front: %.1f\n", front_ave);
-
-        if (front_ave < CRIT_OBSTACLE_DIST) {
-            *vx = -*vx * 0.5;  // Move backward
-            return;
-        }
-
-        if (front_ave >= CRIT_OBSTACLE_DIST && front_ave < SHORT_OBSTACLE_DIST && current_vx < 0.2) {
-            *vx = 0;  // Stop
-            return;
-        }
-
-        *vx = -*vx * 0.5;  // Move backward
-        return;
     }
 
-    // there is obstacle in the front between LONG_OBSTACLE_DIST and SHORT_OBSTACLE_DIST
-    // TODO: test sensor
-    float front_l_sum = 0, front_r_sum = 0;
-    for (int i = 0; i < 4; i++) {
-        front_l_sum += front[i] > 0 ? front[i] : 3000;
-    }
-    front_l_sum /= 4;
-    for (int i = 0; i < 4; i++) {
-        front_r_sum += front[i + 4] > 0 ? front[i + 4] : 3000;
-    }
-    front_r_sum /= 4;
+    if (mode == CONTROLLER_OA_AVOID) {
+        // there is obstacle in the front between LONG_OBSTACLE_DIST and SHORT_OBSTACLE_DIST
+        float front_l_sum = 0, front_r_sum = 0;
+        for (int i = 0; i < 4; i++) {
+            front_l_sum += front[i] > 0 ? front[i] : 3000;
+        }
+        front_l_sum /= 4;
+        for (int i = 0; i < 4; i++) {
+            front_r_sum += front[i + 4] > 0 ? front[i + 4] : 3000;
+        }
+        front_r_sum /= 4;
 
-    // front left/right is clear for move
-    if (front_l_sum < front_r_sum - NOISE_LEVEL) {
-        if (canMove(&right[0], 5)) {
-            *vy = -0.5 * (*vx);
+        // front left/right is clear for move
+        if (front_l_sum < front_r_sum - NOISE_LEVEL) {
+            if (canMove(&right[0], 5)) {
+                target_vy = -0.5 * (target_vx);
+            }
+        } else if (front_r_sum < front_l_sum - NOISE_LEVEL) {
+            if (canMove(&left[3], 5)) {
+                target_vy = 0.5 * (target_vx);
+            }
         }
-        return;
-    } else if (front_r_sum < front_l_sum - NOISE_LEVEL) {
-        if (canMove(&left[3], 5)) {
-            *vy = 0.5 * (*vx);
-        }
-        return;
     }
+
+    *vx = target_vx * cos_yaw - target_vy * sin_yaw;
+    *vy = target_vx * sin_yaw + target_vy * cos_yaw;
+    return;
 }

@@ -8,7 +8,7 @@
 #include "freeRTOS_helper.h"
 
 STATIC_MUTEX_DEF(obstacleAvoidanceMutex);
-static bool obstacleAvoidanceEnabled = true;
+static controller_oa_t oaMode= CONTROLLER_OA_STOP;
 
 #define ATTI_OUTTER_LOOP_CUTOFF_FREQ 40.0f
 #define ATTI_INNER_LOOP_CUTOFF_FREQ 100.0f
@@ -103,9 +103,9 @@ void controllerPidPositionInit(void) {
     pidInit(&pid_z_rate, 40.0f, 10.0f, 1.0f, POSITION_RATE, POS_INNER_LOOP_CUTOFF_FREQ, 20.0f, motorPowerGetMaxThrust() / MOTOR_THRUST_SCALE);
 }
 
-void controllerDroneEnableObstacleAvoidance(bool enable) {
+void controllerDroneSetOA(controller_oa_t mode) {
     STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
-    obstacleAvoidanceEnabled = enable;
+    oaMode = mode;
     STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
 }
 
@@ -113,36 +113,15 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     float cos_yaw = cosf(radians(state->attitude.yaw));
     float sin_yaw = sinf(radians(state->attitude.yaw));
 
-    // apply obstacle avoidance for velocity moving
-    STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
-    bool adjustSpeed = obstacleAvoidanceEnabled;
-    STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
-    if (adjustSpeed
-        && setpoint->mode.x == STABILIZE_VELOCITY
-        && setpoint->mode.y == STABILIZE_VELOCITY
-        && setpoint->velocity_body) {
-        float test_vx = setpoint->velocity.x;
-        float test_vy = setpoint->velocity.y;
-        float body_vx = state->velocity.x * cos_yaw - state->velocity.y * sin_yaw;
-        distanceAdjustSpeed(body_vx, &test_vx, &test_vy);
-        setpoint->velocity.x = test_vx;
-        setpoint->velocity.y = test_vy;
-    }
-
     float vx, vy, vz;
     if (setpoint->mode.x == STABILIZE_ABSOLUTE) {
         vx = pidUpdate(&pid_x, setpoint->position.x - state->position.x);
-    } else if (setpoint->velocity_body) {
-        vx = setpoint->velocity.x * cos_yaw - setpoint->velocity.y * sin_yaw;
-    } else {
-        vx = setpoint->velocity.x;
-    }
-
-    if (setpoint->mode.y == STABILIZE_ABSOLUTE) {
         vy = pidUpdate(&pid_y, setpoint->position.y - state->position.y);
     } else if (setpoint->velocity_body) {
+        vx = setpoint->velocity.x * cos_yaw - setpoint->velocity.y * sin_yaw;
         vy = setpoint->velocity.x * sin_yaw + setpoint->velocity.y * cos_yaw;
     } else {
+        vx = setpoint->velocity.x;
         vy = setpoint->velocity.y;
     }
 
@@ -151,6 +130,18 @@ void controllerPidPositionUpdate(setpoint_t *setpoint, state_t *state, attitude_
     } else {
         vz = setpoint->velocity.z;
     }
+
+    // apply obstacle avoidance for velocity moving
+    STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
+    if (oaMode != CONTROLLER_OA_NONE) {
+        float test_vx = vx;
+        float test_vy = vy;
+        distanceAdjustSpeed(state, &test_vx, &test_vy, oaMode);
+        vx = test_vx;
+        vy = test_vy;
+    }
+    STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
+    
 
     float ax = pidUpdate(&pid_x_rate, vx - state->velocity.x);
     float ay = pidUpdate(&pid_y_rate, vy - state->velocity.y);

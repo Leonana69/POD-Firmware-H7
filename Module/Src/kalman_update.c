@@ -16,9 +16,14 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
         // change, not quadcopter movement
         const float vz_threshold = 0.80f;
         float vz_abs = fabsf(coreData->S[KC_STATE_VZ] * coreData->R[2][2]);
-        if (vz_abs < 0.20f) {
+        if (vz_abs < 0.10f) {
             if (fabsf(tof->distance - coreData->last_tof) > vz_threshold * tof->dt) {
                 coreData->accumulated_tof += tof->distance - coreData->last_tof;
+                if (coreData->accumulated_tof > 1.5f) {
+                    coreData->accumulated_tof = 1.5f;
+                } else if (coreData->accumulated_tof < -1.5f) {
+                    coreData->accumulated_tof = -1.5f;
+                }
                 last_tof_valid = false;
             } else {
                 last_tof_valid = true;
@@ -46,6 +51,7 @@ void kalmanCoreUpdateWithFlow(kalmanCoreData_t* coreData, const flow_t *flow, co
 
     // discard the flow measurement if the tof changes too fast
     if (coreData->last_tof > 0 && !last_tof_valid) {
+        // DEBUG_REMOTE("Skip %.2f\n", coreData->last_tof);
         return;
     }
 

@@ -55,9 +55,10 @@ void flowTask(void *argument) {
 
         int mode = (motion.observation >> 6) & 0x03;
         uint32_t shutter = motion.shutter_lower | (motion.shutter_middle << 8) | (motion.shutter_upper << 16);
-        if (motion.squal < squalThreshold[mode] && shutter >= shutterThreshold[mode]) {
+        if ((motion.squal < squalThreshold[mode] && shutter >= shutterThreshold[mode]) || (motion.motion & 0x01)) {
             packet.flow.dpixelx = 0;
             packet.flow.dpixely = 0;
+            continue;
         } else {
             packet.flow.dpixelx = -motion.delta_y;
             packet.flow.dpixely = motion.delta_x;
