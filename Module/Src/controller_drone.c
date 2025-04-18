@@ -8,7 +8,7 @@
 #include "freeRTOS_helper.h"
 
 STATIC_MUTEX_DEF(obstacleAvoidanceMutex);
-static controller_oa_t oaMode= CONTROLLER_OA_STOP;
+static controller_oa_t oaMode = CONTROLLER_OA_NONE;
 
 #define ATTI_OUTTER_LOOP_CUTOFF_FREQ 40.0f
 #define ATTI_INNER_LOOP_CUTOFF_FREQ 100.0f
@@ -105,7 +105,7 @@ void controllerPidPositionInit(void) {
 
 void controllerDroneSetOA(controller_oa_t mode) {
     STATIC_MUTEX_LOCK(obstacleAvoidanceMutex, osWaitForever);
-    oaMode = mode;
+    oaMode  = mode;
     STATIC_MUTEX_UNLOCK(obstacleAvoidanceMutex);
 }
 

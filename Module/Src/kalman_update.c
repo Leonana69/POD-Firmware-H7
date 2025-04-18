@@ -35,6 +35,7 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
         last_tof_valid = true;
     }
 
+    // disable for environment with direct sun light which will cause the bad measurement
     float measurement = tof->distance - coreData->accumulated_tof;
     // Measurement model: h = z / cos(alpha)
     h[KC_STATE_Z] = 1.0 / coreData->R[2][2];

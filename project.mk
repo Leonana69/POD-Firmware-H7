@@ -66,4 +66,4 @@ sgdb:
 
 load:
 	make
-	python -m podtp.upload_firmware -i 192.168.0.125 -f ./build/POD-Firmware-H7.bin
+	python -m podtp.upload_firmware -i 192.168.8.103 -f ./build/POD-Firmware-H7.bin
