@@ -13,7 +13,7 @@
 
 STATIC_TASK_DEF(flowTask, FLOW_TASK_PRIORITY, FLOW_TASK_STACK_SIZE);
 
-#define FLOW_TASK_RATE RATE_100_HZ
+#define FLOW_TASK_RATE RATE_50_HZ
 #define FLOW_STD_DEV 0.2f
 static paa3905_dev_t paa3905_dev;
 
@@ -26,7 +26,7 @@ uint32_t flowInit(void) {
     paa3905_dev.delay = sensorsDelayMs;
     paa3905_dev.read = paa3905_read_dma;
     paa3905_dev.write = paa3905_write_dma;
-    paa3905_dev.mode = PAA3905_STANDARD_MODE;
+    paa3905_dev.mode = PAA3905_ENHANCED_MODE;
 
     uint8_t rslt = paa3905_init(&paa3905_dev);
     paa3905_disable_motion_cutoff(&paa3905_dev);
