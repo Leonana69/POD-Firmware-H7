@@ -153,8 +153,8 @@ void distanceTask(void *argument) {
 }
 
 #define LONG_OBSTACLE_DIST 1500
-#define SHORT_OBSTACLE_DIST 500
-#define CRIT_OBSTACLE_DIST 300
+#define SHORT_OBSTACLE_DIST 600
+#define CRIT_OBSTACLE_DIST 400
 #define NOISE_LEVEL 200
 
 #define SPEED_NONE_ZERO 0.05f

@@ -14,16 +14,11 @@ void kalmanCoreUpdateWithTof(kalmanCoreData_t* coreData, const tof_t *tof, bool 
     if (isFlying) {
         // when vz is not big but distance is changing fast, we assume that the distance change is terrain
         // change, not quadcopter movement
-        const float vz_threshold = 0.80f;
+        const float vz_threshold = 1.20f;
         float vz_abs = fabsf(coreData->S[KC_STATE_VZ] * coreData->R[2][2]);
         if (vz_abs < 0.10f) {
             if (fabsf(tof->distance - coreData->last_tof) > vz_threshold * tof->dt) {
                 coreData->accumulated_tof += tof->distance - coreData->last_tof;
-                if (coreData->accumulated_tof > 1.5f) {
-                    coreData->accumulated_tof = 1.5f;
-                } else if (coreData->accumulated_tof < -1.5f) {
-                    coreData->accumulated_tof = -1.5f;
-                }
                 last_tof_valid = false;
             } else {
                 last_tof_valid = true;
