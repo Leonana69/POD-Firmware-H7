@@ -4,6 +4,7 @@ OPENOCD_TARGET    	?= target/stm32h7x.cfg
 OPENOCD_CMDS		?=
 LOAD_ADDRESS		?= 0x8020000
 PROG				?= $(BUILD_DIR)/$(TARGET)
+GEAR 				?=
 
 ######################################
 # POD's C includes
@@ -19,14 +20,13 @@ C_INCLUDES += \
 -IDrivers/Vl53l8cx/Inc \
 -IDrivers/Vl53l8cx_Platform
 
-# C_DEFS += -DGEAR
-
 CFLAGS += -Wno-comment
 
-C_SOURCES += $(filter-out Module/Src/motor_2040.c, $(wildcard Module/Src/*.c))
-
 ifdef GEAR
-C_SOURCES += Module/Src/motor_2040.c
+C_DEFS += -DGEAR
+C_SOURCES += $(wildcard Module/Src/*.c)
+else
+C_SOURCES += $(filter-out Module/Src/motor_2040.c, $(wildcard Module/Src/*.c))
 endif
 
 C_SOURCES += $(wildcard HAL/Src/*.c)
@@ -66,4 +66,4 @@ sgdb:
 
 load:
 	make
-	python -m podtp.upload_firmware -i 192.168.0.131 -f ./build/POD-Firmware-H7.bin
+	python -m podtp.upload_firmware -i 192.168.0.115 -f ./build/POD-Firmware-H7.bin

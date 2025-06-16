@@ -49,6 +49,9 @@ void controllerGearUpdate(setpoint_t *setpoint, imu_t *imu, state_t *state, uint
             vr = 0;
         }
 
+        if (tick % 50 == 0)
+            DEBUG_PRINT("Gear Control: vx=%.2f, vy=%.2f, vr=%.2f\n", vx, vy, vr);
+
         control.attitude.roll = -vr * MOTOR_THRUST_SCALE;
         control.attitude.pitch = 0;
         control.attitude.yaw = vy * MOTOR_THRUST_SCALE;

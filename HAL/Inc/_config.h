@@ -7,9 +7,10 @@ extern "C" {
 
 #ifdef GEAR
 #define GEAR_UART_HANDLE        huart4
+#else
+#define DEBUG_UART_HANDLE       huart4
 #endif
 
-#define DEBUG_UART_HANDLE       huart4
 #define ESP_UART_HANDLE         huart5
 
 #define VL53L8CX_I2C_HANDLE     hi2c4

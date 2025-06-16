@@ -9,7 +9,11 @@ extern "C" {
 #include <stdbool.h>
 #include "stabilizer_types.h"
 
+#ifdef GEAR
+#define MOTOR_THRUST_SCALE  500.0f
+#else
 #define MOTOR_THRUST_SCALE  100.0f
+#endif
 
 typedef struct {
     void (*init)();
