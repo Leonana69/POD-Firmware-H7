@@ -4,7 +4,7 @@ OPENOCD_TARGET    	?= target/stm32h7x.cfg
 OPENOCD_CMDS		?=
 LOAD_ADDRESS		?= 0x8020000
 PROG				?= $(BUILD_DIR)/$(TARGET)
-GEAR 				?=
+GEAR 				?= 1
 
 ######################################
 # POD's C includes
@@ -66,4 +66,4 @@ sgdb:
 
 load:
 	make
-	python -m podtp.upload_firmware -i 192.168.0.115 -f ./build/POD-Firmware-H7.bin
+	python -m podtp.upload_firmware -i 192.168.0.54 -f ./build/POD-Firmware-H7.bin
