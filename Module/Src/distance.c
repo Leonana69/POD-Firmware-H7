@@ -8,8 +8,8 @@
 #include "stabilizer_types.h"
 #include "system.h"
 
-// 3 for car, 1 for drone
-#define DIS_SENSOR_COUNT 0
+#define ENABLE_TOF_SENSORS true
+#define DIS_SENSOR_COUNT 3
 
 VL53L8CX_Configuration vl53l8Dev[DIS_SENSOR_COUNT];
 STATIC_TASK_DEF(distanceTask, DIS_TASK_PRIORITY, DIS_TASK_STACK_SIZE);
@@ -38,6 +38,9 @@ typedef struct {
 } distance_t;
 
 uint32_t distanceInit(void) {
+    if (!ENABLE_TOF_SENSORS) {
+        return TASK_INIT_SUCCESS;
+    }
     if (!pca9546Init()) {
         return TASK_INIT_FAILED(DIS_TASK_INDEX);
     }

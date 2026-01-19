@@ -120,13 +120,13 @@ bool linkProcessPacket(PodtpPacket *packet) {
                 if (motorPowerIsFlying()) {
                     ret = PODTP_ERROR_LOCKED;
                 } else {
-                    DEBUG_PRINT("** RESET ESTIMATOR **\n");
+                    DEBUG_REMOTE("** RESET ESTIMATOR **\n");
                     float starting_height = packet->data[0] / 100.0f;
                     estimatorKalmanReset(starting_height);
                 }
             } else if (packet->port == PORT_CTRL_OBSTACLE_AVOIDANCE) {
                 controllerDroneSetOA(packet->data[0]);
-                DEBUG_PRINT("** OBSTACLE AVOIDANCE0 [%d] **\n", packet->data[0]);
+                DEBUG_REMOTE("** OBSTACLE AVOIDANCE0 [%d] **\n", packet->data[0]);
             }
             break;
         default:
